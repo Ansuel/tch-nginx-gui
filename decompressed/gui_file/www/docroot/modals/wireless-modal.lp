@@ -318,6 +318,7 @@ for i,v in ipairs(radios) do
 	supported_frequency_bands = path..".supported_frequency_bands" ,
     remotely_managed = path .. ".remotely_managed",
     supported_standards = path .. ".supported_standards",
+    requested_channel_width = path .. ".requested_channel_width",
     integrated_ap = path .. ".integrated_ap",
     phy_rate = path .. ".phy_rate",
     country = path .. ".country",
@@ -343,21 +344,40 @@ local wifi_standard_24GHz = {
 }
 
 local wifi_standard_5GHz = {
-    ["an"]= T'802.11a/n',
-    ["anac"]= T'802.11a/n/ac',
+    { "an", T'802.11a/n'},
+    { "anac", T'802.11a/n/ac'},
 }
 
+local supported_standards = untaint(radioData[curradio].supported_standards or "")
+local wifi6 = supported_standards == "bgnax" or supported_standards == "anacax"
+if supported_standards == "bgnax" then
+    wifi_standard_24GHz = {
+        { "bgn", T'802.11b/g/n'},
+        { "bgnax", T'802.11b/g/n/ax'},
+        { "gnax", T'802.11g/n/ax'},
+        { "nax", T'802.11n/ax'},
+    }
+elseif supported_standards == "anacax" then
+    wifi_standard_5GHz = {
+        { "anac", T'802.11a/n/ac'},
+        { "anacax", T'802.11a/n/ac/ax'},
+        { "nac", T'802.11n/ac'},
+        { "nacax", T'802.11n/ac/ax'},
+        { "acax", T'802.11ac/ax'},
+    }
+end
+
 local wifiStandard = {
-  standard = "uci.wireless.wifi-device.@radio_5G.standard"
+  standard = "uci.wireless.wifi-device.@" .. curradio .. ".standard"
 }
 
 local wifi_standard={}
 if radioData[curradio].supported_frequency_bands == "5GHz" then
-  content_helper.getExactContent(wifiStandard)
-  if wifiStandard.standard and wifiStandard.standard ~= "" then
-    wifi_standard[1] = {wifiStandard.standard,wifi_standard_5GHz[untaint(wifiStandard.standard)]}
-  else
-    wifi_standard[1] = {"",""}
+  wifi_standard = wifi_standard_5GHz
+  if isIntRemman == "1" then
+    content_helper.getExactContent(wifiStandard)
+    local standard = wifiStandard.standard or ""
+    wifi_standard = { {standard, listboxToText(wifi_standard_5GHz, standard)} }
   end
 else
     wifi_standard = wifi_standard_24GHz
@@ -387,17 +407,56 @@ local cw_80 = {
     {"auto", T"Auto (20/40/80MHz)"},
 }
 
+-- AGTHF uses numeric channelwidth values and limits automatic width to 80 MHz.
+-- Keep the legacy RPC values for older radios, including Quantenna.
+local radio_width = radioData[curradio].requested_channel_width or ""
+local native_channelwidth = wifi6 or (match(radio_width, "^%d") ~= nil
+    and not match(radio_width, "MHz$"))
+local channelWithNo160MHz = wifi6
+local has_variant, variant = pcall(require, "variant_helper")
+if has_variant and variant.Wireless and variant.Wireless.wireless then
+    local setting = variant.Wireless.wireless.channelWithNo160MHz
+    if setting then
+        channelWithNo160MHz = setting.value ~= false
+    end
+end
+if native_channelwidth then
+    cw_40 = { {"20", T"20MHz"}, {"auto", T"Auto (20/40MHz)"} }
+    cw_80 = {
+        {"20", T"20MHz"},
+        {"20/40", T"20/40MHz"},
+        {channelWithNo160MHz and "20/40/80" or "auto", T"Auto (20/40/80MHz)"},
+    }
+end
+local cw_160 = {
+    {"20", T"20MHz"},
+    {"20/40", T"20/40MHz"},
+    {"20/40/80", T"Auto (20/40/80MHz)"},
+}
+if not channelWithNo160MHz then
+    cw_160[3][2] = T"20/40/80MHz"
+    cw_160[#cw_160 + 1] = {"auto", T"Auto (20/40/80/160MHz)"}
+end
+
 local cw = {
   ["bg"] = "channelwidth20",
   ["bgn"] = "channelwidth40",
+  ["bgnax"] = "channelwidth40",
+  ["gnax"] = "channelwidth40",
+  ["nax"] = "channelwidth40",
   ["an"] = "channelwidth40",
   ["anac"] = "channelwidth80",
+  ["nac"] = "channelwidth80",
+  ["anacax"] = "channelwidth160",
+  ["nacax"] = "channelwidth160",
+  ["acax"] = "channelwidth160",
 }
 
 local cwmaps = {
     ["channelwidth20"] = cw_40,
     ["channelwidth40"] = cw_40,
     ["channelwidth80"] = cw_80,
+    ["channelwidth160"] = cw_160,
 }
 
 local cddList = {
@@ -448,9 +507,13 @@ local acl_modes = {
 
 local function getValidateChannelWidth(channelWidth)
   return function(value, postdata, key)
-    local success, msg = gVIES(channelWidth)
+    -- Hidden selects are submitted too; only the selected standard controls width.
+    if key ~= cw[untaint(postdata["standard"])] then
+      return true
+    end
+    local success, msg = gVIES(channelWidth)(value)
     if success then
-      postdata["requested_channel_width"] = postdata[cw[untaint(postdata["standard"])]]
+      postdata["requested_channel_width"] = value
       return true
     else
       return nil, msg
@@ -746,6 +809,7 @@ local function getParamsAndValidation()
     channelwidth20 = getValidateChannelWidth(cw_40),
     channelwidth40 = getValidateChannelWidth(cw_40),
     channelwidth80 = getValidateChannelWidth(cw_80),
+    channelwidth160 = getValidateChannelWidth(cw_160),
     ap_enabled = vB,
     security = gVIES(secmodes),
     ssid = gAV(gVSLIR(1,32),getValidateExtraSpaces),
@@ -793,6 +857,17 @@ local bandsteerhelpmsg = {}
 local content_rssi = {}
 local mapParams, mapValid = getParamsAndValidation()
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
+if native_channelwidth and content["requested_channel_width"] then
+    content["requested_channel_width"] = gsub(content["requested_channel_width"], "MHz$", "")
+    local width_control = cw[untaint(content["standard"] or "")]
+    if channelWithNo160MHz and content["requested_channel_width"] == "auto"
+        and (width_control == "channelwidth80" or width_control == "channelwidth160") then
+        content["requested_channel_width"] = "20/40/80"
+    elseif not channelWithNo160MHz and width_control == "channelwidth80"
+        and content["requested_channel_width"] == "20/40/80" then
+        content["requested_channel_width"] = "auto"
+    end
+end
 
 if ngx.req.get_method() == "POST" and ngx.req.get_post_args().action == "bs_check" then
     local postargs = ngx.req.get_post_args()
@@ -1068,7 +1143,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
         html[#html + 1] = ui_helper.createLabel(T"Frequency band", content["supported_frequency_bands"])
         -- Label that shows the MAC address of the Wifi interface
         html[#html + 1] = ui_helper.createLabel(T"MAC address", content["macaddress"])
-    if radioData[curradio].supported_frequency_bands == "5GHz" then
+    if isIntRemman == "1" then
       html[#html + 1] = ui_helper.createLabel(T"Standard", listboxToText(wifi_standard, wifiStandard.standard), advanced)
     else
       html[#html + 1] = ui_helper.createLabel(T"Standard", listboxToText(wifi_standard, content["standard"]), advanced)
@@ -1109,7 +1184,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
                 class = "monitor-changes"
             }
         }
-   if radioData[curradio].supported_frequency_bands == "5GHz" then
+   if isIntRemman == "1" then
      html[#html + 1] = ui_helper.createLabel(T"Standard", listboxToText(wifi_standard, wifiStandard.standard), stdattributes)
      stdattributes.select={class = "monitor-changes",style="display:none"}
      html[#html + 1] = ui_helper.createSimpleInputSelect("standard", wifi_standard, wifiStandard.standard,stdattributes)
@@ -1150,7 +1225,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
 
             local cw40attributes  = {
                 group = {
-                    class ="hide monitor-standard monitor-bgn monitor-an",
+                    class ="hide monitor-standard monitor-bgn monitor-bgnax monitor-gnax monitor-nax monitor-an",
                 },
 
             }
@@ -1159,11 +1234,17 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
 
             local cw80attributes  = {
                 group = {
-                    class ="hide monitor-standard monitor-anac",
+                    class ="hide monitor-standard monitor-anac monitor-nac",
                 },
             }
 
             html[#html + 1] = ui_helper.createInputSelect(T"Channel Width", "channelwidth80", cw_80, content["requested_channel_width"], cw80attributes)
+            if supported_standards == "anacax" then
+                local cw160attributes = {
+                    group = { class = "hide monitor-standard monitor-anacax monitor-nacax monitor-acax" },
+                }
+                html[#html + 1] = ui_helper.createInputSelect(T"Channel Width", "channelwidth160", cw_160, content["requested_channel_width"], cw160attributes)
+            end
             html[#html + 1] = '</div>'
 			if isExtRemman ~= "1" and isIntRemman ~= "1" then
 				html[#html + 1] = ui_helper.createSwitch(T"Bypass Reg Domain Power Rule", "tx_power_overrule_reg", content["tx_power_overrule_reg"], advanced)
