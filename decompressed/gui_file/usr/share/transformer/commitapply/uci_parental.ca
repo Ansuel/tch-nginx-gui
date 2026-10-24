@@ -1,1 +1,1 @@
-^parental /etc/init.d/firewall reload;/etc/init.d/weburl restart
+^parental /etc/init.d/firewall reload;/usr/share/transformer/scripts/ispConfigHelper.sh parental

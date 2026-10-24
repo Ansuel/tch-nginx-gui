@@ -1,6 +1,8 @@
 #!/bin/sh
 
 restart_dnsmasq=0
+INIT=/etc/init.d
+policy_mode=apply
 
 logecho() {
   if [ "$debug" -eq 1 ]; then
@@ -383,21 +385,137 @@ autodetect_isp() { #Detect ISP based on cwmp or wan settings (Italian only)
   fi
 }
 
+
+service_action() {
+  [ -x "$INIT/$1" ] || return 0
+  "$INIT/$1" "$2"
+}
+
+stop_services() {
+  stop_status=0
+  for stop_name in "$@"; do
+    service_action "$stop_name" stop || stop_status=1
+    service_action "$stop_name" disable || stop_status=1
+  done
+  return "$stop_status"
+}
+
+# rc.common reload on older firmware need not start a stopped process.
+# Restore boot links when the UI enables a function. Installation synchronizes
+# the links without restarting features which are already enabled.
+activate() {
+  service_action "$1" enable || return 1
+  [ "$policy_mode" = sync ] || service_action "$1" restart
+}
+
+parental_policy() {
+  case "$(uci -q get parental.general.enable)" in
+    0) stop_services weburl dnsfilter ;;
+    1)
+      mode=$(uci -q get parental.general.mode)
+      case "$mode" in
+        dns) stop_services weburl && activate dnsfilter ;;
+        web|'') stop_services dnsfilter && activate weburl ;;
+        *) [ "$policy_mode" = sync ] || service_action weburl restart ;;
+      esac ;;
+    *) [ "$policy_mode" = sync ] || service_action weburl restart ;;
+  esac
+}
+
+dlna_policy() {
+  case "$(uci -q get dlnad.config.enabled)" in
+    0)
+      stop_services dlnad mud mvfs ;;
+    1)
+      activate mvfs && activate mud && activate dlnad ;;
+    *) [ "$policy_mode" = sync ] || service_action dlnad reload ;;
+  esac
+}
+
+# Do not overwrite custom init implementations or act on unknown firmware.
+factory_service() {
+  [ -x "$INIT/$1" ] && [ -r "/rom/etc/init.d/$1" ] &&
+    cmp -s "$INIT/$1" "/rom/etc/init.d/$1"
+}
+
+# Missing config is unconfigured; an existing but unreadable config is unknown.
+read_config() {
+  if [ ! -e "/etc/config/$1" ] && [ ! -L "/etc/config/$1" ]; then return 0; fi
+  uci -q show "$1"
+}
+
+gre_unused() {
+  gre_config=$(read_config gre_hotspotd) || return 1
+  tunnel_config=$(read_config gre_intf) || return 1
+  [ -z "$gre_config$tunnel_config" ]
+}
+
+pnp_unused() {
+  read_config generic_app >/dev/null || return 1
+  # Preserve customized provisioning, including unknown config layouts.
+  if [ -e /etc/config/generic_app ] || [ -L /etc/config/generic_app ]; then
+    cmp -s /etc/config/generic_app /rom/etc/config/generic_app || return 1
+  fi
+  [ -z "$(uci -q get generic_app.pnpserver.url)" ] || return 1
+  case "$(uci -q get generic_app.pnpserver.registered)" in ''|0) ;; *) return 1 ;; esac
+  if [ -e /etc/ssl/paired ] || [ -L /etc/ssl/paired ]; then
+    [ -d /etc/ssl/paired ] && [ -r /etc/ssl/paired ] && [ -x /etc/ssl/paired ] || return 1
+    paired_files=$(find /etc/ssl/paired ! -type d) || return 1
+    [ -z "$paired_files" ] || return 1
+  fi
+}
+
+isp_policy() {
+  [ "$(uci -q get modgui.var.keep_isp_services)" != 1 ] || return 0
+  isp_status=0
+  if factory_service gre-hotspotd && gre_unused; then
+    service_action gre-hotspotd stop && service_action gre-hotspotd disable || isp_status=1
+  fi
+  if factory_service generic_pnpd && pnp_unused; then
+    service_action generic_pnpd stop && service_action generic_pnpd disable || isp_status=1
+  fi
+  return "$isp_status"
+}
+
+# These apply hooks also restore the boot service when provisioning is configured.
+isp_apply() {
+  case "$1" in
+    gre) name=gre-hotspotd; unused=gre_unused ;;
+    pnp) name=generic_pnpd; unused=pnp_unused ;;
+  esac
+  if [ "$(uci -q get modgui.var.keep_isp_services)" != 1 ] &&
+    factory_service "$name" && "$unused"; then
+    service_action "$name" stop && service_action "$name" disable
+  else
+    service_action "$name" enable && service_action "$name" restart
+  fi
+}
+
+sync_services() {
+  policy_mode=sync
+  sync_status=0
+  parental_policy || sync_status=1
+  dlna_policy || sync_status=1
+  isp_policy || sync_status=1
+  return "$sync_status"
+}
+
 isp_helper() {
   purge_telemetry
   purge_default_services
   if [ "$1" = "refresh" ]; then
     autodetect_isp
-    setup_ISP "$(uci get -q modgui.var.isp)"
+    setup_ISP "$(uci get -q modgui.var.isp)" || return 1
   elif [ "$1" = "force" ]; then
-    setup_ISP "$(uci get -q modgui.var.isp)"
+    setup_ISP "$(uci get -q modgui.var.isp)" || return 1
   elif [ "$1" = "setup" ]; then
     if [ -z "$2" ]; then
       echo "Specify ISP_NAME (Supported Tiscali, TIM, Fastweb, Other)"
       return 1
     fi
-    setup_ISP "$2"
+    setup_ISP "$2" || return 1
   fi
+  sync_services
 }
 
 apply_cwmp_service() {
@@ -484,6 +602,11 @@ apply_samba_service() {
 }
 
 case "$1" in
+parental) parental_policy ;;
+dlna) dlna_policy ;;
+isp) isp_policy ;;
+gre|pnp) isp_apply "$1" ;;
+sync) sync_services ;;
 cwmp)
   apply_cwmp_service
   ;;
@@ -494,7 +617,7 @@ refresh | setup | force)
   isp_helper "$1" "$2"
   ;;
 *)
-  echo "usage: refresh, force, setup ISP_NAME, cwmp or samba [reload|restart]" 1>&2
+  echo "usage: refresh, force, setup ISP_NAME, cwmp, samba [reload|restart], parental, dlna, isp, gre, pnp or sync" 1>&2
   return 1
   ;;
 esac
