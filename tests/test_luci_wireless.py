@@ -1,5 +1,6 @@
 """Exercise the native LuCI bridge without a router or real credentials."""
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import unittest
@@ -288,7 +289,38 @@ assert(not pcall(assert(loadstring(source))))
 assert(files[path] == "-- Unsupported version")
 io.open, os.remove, os.rename = real_open, real_remove, real_rename
 '''
-        self.run_lua("local INSTALLER = " + repr(str(INSTALLER)) + "\n" + code)
+        for overview in ("cbi", "template"):
+            with self.subTest(overview=overview):
+                fixture = code.replace('arcombine(cbi("admin_network/wifi_overview")',
+                                       f'arcombine({overview}("admin_network/wifi_overview")')
+                self.run_lua("local INSTALLER = " + repr(str(INSTALLER)) + "\n" + fixture)
+
+    def test_templates_render_without_modern_url_global(self):
+        code = '''
+package.loaded['luci.model.tch_wireless'] = b
+package.loaded['luci.dispatcher'] = {build_url=function(...) return '/' .. table.concat({...}, '/') end}
+url = nil; token = nil; resource = '/resources'
+pcdata = function(value) assert(type(value) == 'string'); return value end
+translate = function(value) return value end
+self = {snapshot=snapshot, creation={radios={}, unavailable={}}}
+'''
+        for filename in ('tch_wireless_overview.htm', 'tch_wireless_back.htm'):
+            template = (BACKEND.parents[1] / 'view' / filename).read_text()
+            chunks = ['do\n']
+            for part in re.split(r'(<%.*?%>)', template, flags=re.S):
+                if not part.startswith('<%'):
+                    chunks.append('io.write([====[' + part + ']====])\n')
+                elif part.startswith('<%#'):
+                    continue
+                elif part.startswith('<%:'):
+                    chunks.append('io.write([====[' + part[3:-2] + ']====])\n')
+                elif part.startswith('<%='):
+                    chunks.append('io.write(tostring(' + part[3:-2] + '))\n')
+                else:
+                    chunks.append(part[2:-2] + '\n')
+            chunks.append('end\n')
+            code += ''.join(chunks)
+        self.run_lua(code)
 
 
 if __name__ == "__main__":

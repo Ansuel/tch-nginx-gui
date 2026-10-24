@@ -93,6 +93,21 @@ marketing_version=''' + version + '\napp_luci install')
                 self.assertEqual(result.stdout, 'STORAGE_GUARD\n')
                 self.assertEqual(result.stderr, '')
 
+    def test_luci_mips_installs_wireless_adapter_and_propagates_failure(self):
+        for status in (0, 1):
+            with self.subTest(adapter_status=status):
+                result = self.run_sh(function('app_luci', 'app_amule') + '''
+cpu_type=mips
+marketing_version=17.2
+luci_mips_install() { return 0; }
+install_from_github() { echo "ADAPTER:$2:$4"; return ''' + str(status) + '''; }
+uci() { echo "UCI:$*"; }
+app_luci install
+''')
+                self.assertEqual(result.returncode, status, result.stderr)
+                self.assertIn('ADAPTER:luci_wireless:install', result.stdout)
+                self.assertEqual('UCI:set modgui.app.luci_webui=1' in result.stdout, status == 0)
+
     def test_luci_checksum_failure_rolls_back_without_touching_vendor_uci(self):
         helper = SOURCE[SOURCE.index('luci_mips_state='):SOURCE.index('require_usb_storage() {')]
         with tempfile.TemporaryDirectory() as directory:

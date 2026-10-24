@@ -1,6 +1,10 @@
 <%# Technicolor backend; layout and controls follow LuCI wireless overview. %>
+<% local url = require('luci.dispatcher').build_url %>
 <style>
-.tch-wireless-table .cbi-section-actions { width:240px; text-align:right; white-space:nowrap; }
+.tch-wireless-table, .tch-stations { display:table; width:100%; }
+.tch-wireless-table > .tr, .tch-stations > .tr { display:table-row; }
+.tch-wireless-table > .tr > .td, .tch-stations > .tr > .td, .tch-stations > .tr > .th { display:table-cell; padding:8px; }
+.tch-wireless-table .cbi-section-actions { width:1%; text-align:right; white-space:nowrap; }
 .tch-wireless-table .cbi-section-actions .cbi-button { display:inline-block; width:auto; margin:0 0 0 4px; }
 .tch-wireless-table .tch-wireless-note { display:block; width:240px; white-space:normal; margin-top:6px; }
 .tch-stations-wrap { overflow-x:auto; }
@@ -13,7 +17,7 @@
 .tch-client-details dd { margin:0 0 7px; overflow-wrap:anywhere; }
 </style>
 <form method="post" action="<%=url('admin','network','wireless')%>">
-<input type="hidden" name="token" value="<%=token%>" />
+<input type="hidden" name="token" value="<%=token or ''%>" />
 <input type="hidden" name="cbi.submit" value="1" />
 <h2><%:Wireless Overview%></h2>
 <% if self.errmessage then %><div class="alert-message warning"><%=pcdata(self.errmessage)%></div><% end %>

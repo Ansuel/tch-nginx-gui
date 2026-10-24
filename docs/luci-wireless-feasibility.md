@@ -137,3 +137,52 @@ no real keys are recorded here.
 
 QCSAPI reference: <https://github.com/openwrt-es/qcsapi/blob/master/qcsapi.h>.
 Observed behavior and compatibility claims above are based on the modem tests.
+
+## Legacy MIPS support (TG788vn v2, 24 October 2026)
+
+The optional adapter is now installed by the MIPS LuCI extension path too.
+Legacy Chaos Calmer controllers use `template("admin_network/wifi_overview")`
+instead of `cbi(...)`; the controller patch supports both layouts and keeps
+the original controller for removal. Templates resolve `build_url` explicitly
+and use table display styles compatible with the old theme. The Quantenna
+worker is enabled only when a Quantenna radio is configured.
+
+Validated on a TG788vn v2 running Mint 17.2, MIPS, Lua 5.1.5 and LuCI
+git-16.043.44305-e2f9172: adapter installation and repeat installation succeeded;
+native radio/SSID/station RPCs and the five editable fields were available;
+the browser rendered the live 2.4 GHz overview and Add Wireless Network form.
+The Quantenna service remained disabled, and `/etc/config/wireless` was
+byte-for-byte unchanged. Existing SSIDs, keys and radio settings were retained.
+
+Local regression coverage includes both controller variants, legacy template
+rendering without a global `url` or token, MIPS installer failure propagation,
+and Quantenna service gating (36 focused tests passed).
+
+Subsequent user-authorized live tests created a disabled WPA2 test network,
+verified its generated key internally without printing it, changed its SSID
+through the LuCI edit form while preserving its key, and changed SSID/key
+through the native adapter. Key readback converges asynchronously after apply;
+an immediate read can still contain the previous key. A no-op form submission
+returned `No changes to apply`; the reveal/hide control changed input type
+password/text/password without logging the value.
+
+The first activation was followed by an unexpected modem reboot. Its cause
+was not established, and the boot log contained no retained panic evidence.
+The user requested one retry: creation and activation succeeded, both SSIDs
+were operational, and monitoring recorded approximately four minutes with
+17 MiB free memory and no further reboot. The modem remained up through the
+final cleanup (45 minutes of uptime). This does not establish long-term
+stability or prove the cause of the first reboot.
+
+The retry used a persistent backup and an automatic cleanup service. Cleanup
+removed the UCI sections, but its bounded reload failed because this firmware's
+`timeout` does not accept the newer duration syntax. The residual runtime SSID
+was detected separately and removed with the native wireless reload. Final
+checks found only the original active SSID, no test sections or pending wireless
+changes, and wireless/network/firewall files byte-for-byte identical to their
+retry backups. The wireless digest also matched the original pre-test digest.
+The temporary boot service, scripts, generated keys and backups were removed.
+
+No additional activation cycle was performed after automatic approval review
+rejected it as exceeding the single retry. Client association, throughput,
+deliberate channel/width changes and other MIPS models remain unverified.

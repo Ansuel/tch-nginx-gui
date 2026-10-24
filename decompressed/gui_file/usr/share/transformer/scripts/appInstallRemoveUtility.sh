@@ -435,9 +435,8 @@ app_luci() {
       return 1
       ;;
     esac
-    if [ "$cpu_type" = "armv7l" ]; then
-      install_from_github "" luci_wireless specificapp install || return 1
-    fi
+    # The adapter uses the native wireless RPCs on both ARM and legacy MIPS.
+    install_from_github "" luci_wireless specificapp install || return 1
     uci set modgui.app.luci_webui="1"
     uci commit modgui
   }

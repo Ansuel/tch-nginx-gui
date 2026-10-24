@@ -8,6 +8,7 @@ import unittest
 
 
 INSTALLER = Path(__file__).resolve().parents[1] / "decompressed/gui_file/usr/share/transformer/scripts/appInstallRemoveUtility.sh"
+WIRELESS_SETUP = INSTALLER.parents[5] / "luci_wireless/setup.sh"
 
 
 class LuciActivation(unittest.TestCase):
@@ -42,6 +43,25 @@ class LuciActivation(unittest.TestCase):
         status, calls = self.activate(1)
         self.assertNotEqual(status, 0)
         self.assertEqual(calls, ["enable", "enabled"])
+
+    def test_quantenna_worker_only_starts_with_a_remote_radio(self):
+        source = WIRELESS_SETUP.read_text()
+        start = source.index("    if lua -e '")
+        activation = source[start:source.index("    ;;", start)]
+        for quantenna in (False, True):
+            with self.subTest(quantenna=quantenna), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                service, calls = root / "qtn", root / "calls"
+                service.write_text('#!/bin/sh\necho "$1" >> "$TEST_CALLS"\nexit 0\n')
+                service.chmod(0o755)
+                result = subprocess.run(
+                    ["sh", "-c", f"lua() {{ return {0 if quantenna else 1}; }}\n" +
+                     activation.replace("/etc/init.d/modgui-luci-qtn", str(service))],
+                    env={**os.environ, "TEST_CALLS": str(calls)},
+                    capture_output=True, text=True, timeout=5)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(calls.read_text().splitlines(),
+                                 ["enable", "restart"] if quantenna else ["stop", "disable"])
 
 
 if __name__ == "__main__":

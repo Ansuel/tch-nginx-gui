@@ -13,8 +13,19 @@ case "${1:-install}" in
     printf '%s\n' "$state/setup.sh" >> "$state/files.new"
     lua /usr/share/transformer/scripts/configure_luci_wireless.lua
     mv "$state/files.new" "$state/files"
-    /etc/init.d/modgui-luci-qtn enable || /etc/init.d/modgui-luci-qtn enabled
-    /etc/init.d/modgui-luci-qtn restart
+    if lua -e '
+      local found = false
+      require("uci").cursor():foreach("wireless", "wifi-device", function(radio)
+        if radio.type == "quantenna" then found = true end
+      end)
+      os.exit(found and 0 or 1)
+    '; then
+      /etc/init.d/modgui-luci-qtn enable || /etc/init.d/modgui-luci-qtn enabled
+      /etc/init.d/modgui-luci-qtn restart
+    else
+      /etc/init.d/modgui-luci-qtn stop >/dev/null 2>&1 || true
+      /etc/init.d/modgui-luci-qtn disable || true
+    fi
     ;;
   remove)
     controller=/usr/lib/lua/luci/controller/admin/network.lua
