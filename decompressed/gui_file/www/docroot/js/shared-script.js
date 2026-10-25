@@ -10,13 +10,26 @@ var modgui = modgui || {};
 		tch.showProgress(waitMsg);
 		window.location.reload(true);
 	}
+	var commandRequestInProgress = false;
 	function postAction(action, logModal, customCloseAction, customTarget) {
+		if (logModal && commandRequestInProgress) return false;
 		var onClose = ( typeof customCloseAction === "function" ) && customCloseAction || function() {
 			tch.showProgress(waitMsg);
 			window.location.reload(true);
 		}
 
 		var target = customTarget ? customTarget : $(".modal form").attr("action");
+		function showStartError(data) {
+			if (!logModal) return;
+			var message = data && typeof data.error === "string" ? data.error : "Unable to start command.";
+			$("#command-start-error").remove();
+			$("<div>").attr({id: "command-start-error", role: "alert"})
+				.addClass("alert alert-error").text(message).prependTo(".modal .modal-body");
+		}
+		if (logModal) {
+			commandRequestInProgress = true;
+			$("#command-start-error").remove();
+		}
 		$.post(
 			target, {
 				action: action,
@@ -24,10 +37,16 @@ var modgui = modgui || {};
 			},
 			null,
 			"json"
-		);
-		if(logModal){
+		).done(function(data) {
+			if (!logModal) return;
+			if (!data || (data.success !== true && data.success !== "true")) {
+				showStartError(data);
+				return;
+			}
+			// Start polling only after the server has accepted the new command
+			// and cleared the shared result of the previous command.
 			clearKoInterval();
-			$(window).on('shown.bs.modal', function() {
+			$(window).one('shown.bs.modal', function() {
 				$(".modal-backdrop").unbind();
 				$("#close-config,.modal-action-close").unbind( "click" );
 				$("#close-config,.modal-action-close").on("click", function() {
@@ -35,7 +54,11 @@ var modgui = modgui || {};
 				});
 			});
 			tch.openModal("/modals/command-log-read-modal.lp");
-		}
+		}).fail(function(request) {
+			showStartError(request.responseJSON);
+		}).always(function() {
+			if (logModal) commandRequestInProgress = false;
+		});
 		return false;
 	}
 

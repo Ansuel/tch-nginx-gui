@@ -13,6 +13,44 @@ WIRELESS_SETUP = INSTALLER.parents[5] / "luci_wireless/setup.sh"
 
 
 class LuciActivation(unittest.TestCase):
+    @unittest.skipUnless(shutil.which("lua"), "Lua required")
+    def test_gui_upgrade_prepares_terminal_before_dispatch(self):
+        source = (INSTALLER.parents[1] / "mappings/rpc/system.modgui.map").read_text()
+        utility = source[source.index("local SYSTEM_MODGUI_UTILITY_ ="):source.index("local SYSTEM_MODGUI_DEBUGLOG_ =")]
+        terminal = source[source.index("local SYSTEM_MODGUI_SCRIPTREQUEST_ ="):source.index("local SYSTEM_MODGUI_APP_ =")]
+        prelude = '''
+local maps, launches, log = {}, 0, "previous GUI update log"
+local prepare_command_log
+local commands_helper = {upgradegui = "start-stop-daemon -x /usr/share/transformer/scripts/wrapper.sh upgradegui"}
+register = function(map) maps[map.objectType.name] = map end
+os.remove = function() end
+local fail_log = false
+io.open = function(path, mode)
+    if mode == nil then return {read = function() return "Complete" end, close = function() end} end
+    if path == "/tmp/command_log" then
+        if fail_log then return nil, "no space" end
+        log = ""
+    end
+    return {write = function() end, close = function() end}
+end
+local async_exec = function()
+    assert(maps["rpc.system.modgui.executeCommand."].get.state() == "Requested")
+    assert(log == "")
+    launches = launches + 1
+end
+'''
+        assertions = '''
+local send = maps["rpc.system.modgui.utility."].set.sendcmd
+send(nil, "sendcmd", "upgradegui")
+assert(launches == 1)
+fail_log = true
+local ok, err = send(nil, "sendcmd", "upgradegui")
+assert(ok == nil and err == "no space" and launches == 1)
+'''
+        result = subprocess.run(["lua", "-"], input=prelude + utility + terminal + assertions,
+                                text=True, capture_output=True, timeout=5)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_feed_failure_stops_before_installing_packages(self):
         source = INSTALLER.read_text()
         start = source.index("app_luci() {")

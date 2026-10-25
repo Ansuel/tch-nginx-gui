@@ -160,8 +160,13 @@ local function receive_file(filename, match)
         return result, err_code, err_msg
 end
 
-local function sendcmd(cmd)
-        proxy.set("rpc.system.modgui.utility.sendcmd", cmd)
+local function sendcmd(cmd, path)
+                local ok, err = proxy.set(path or "rpc.system.modgui.utility.sendcmd", cmd)
+                ngx.header.content_type = "application/json"
+                if not ok then
+                        ngx.print(require("dkjson").encode({success = false, error = err}))
+                        return ngx.exit(ngx.HTTP_CONFLICT)
+                end
         ngx.print('{"success":"true"}')
         ngx.timer.at(0, function()
                 proxy.apply()
@@ -328,13 +333,7 @@ if ngx.req.get_method() == "POST" then
                 return sendcmd("upgradegui_terminate")
         end
         if action == "system_install_specificapp" then
-                proxy.set("rpc.system.modgui.app.sendcmd", "install_specificapp_"..getSupportedModel())
-                ngx.header.content_type = "application/json"
-                ngx.print('{"success":"true"}')
-                ngx.timer.at(0, function()
-                        proxy.apply()
-                end)
-                ngx.exit(ngx.HTTP_OK)
+                return sendcmd("install_specificapp_"..getSupportedModel(), "rpc.system.modgui.app.sendcmd")
         end
         if action == "system_remove_root" then
                 return sendcmd("removeroot")

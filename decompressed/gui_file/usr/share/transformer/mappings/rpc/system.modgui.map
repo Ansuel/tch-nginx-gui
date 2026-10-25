@@ -141,6 +141,7 @@ local commands_helper = {
 }
 
 local async_exec = require("lasync").execute
+local prepare_command_log
 
 local SYSTEM_MODGUI_UTILITY_ = {
   objectType = {
@@ -177,6 +178,10 @@ local SYSTEM_MODGUI_UTILITY_ = {
         local clean_comm =
           "for pid in $(pgrep -f " .. command .. "); do logger terminating :  $pid && kill -KILL $pid;done"
         async_exec {[clean_comm] = true}
+      end
+      if command:find("/scripts/wrapper.sh", 1, true) then
+        local ready, err = prepare_command_log()
+        if not ready then return nil, err end
       end
       if args and args:match("sync") then
         os.execute(command)
@@ -307,6 +312,14 @@ SYSTEM_MODGUI_SCRIPTREQUEST_.set = {
 
 register(SYSTEM_MODGUI_SCRIPTREQUEST_)
 
+prepare_command_log = function()
+  local log, err = io.open("/tmp/command_log", "w")
+  if not log then return nil, err end
+  log:close()
+  SYSTEM_MODGUI_SCRIPTREQUEST_.set.state(nil, "state", "Requested")
+  return true
+end
+
 local SYSTEM_MODGUI_APP_ = {
   objectType = {
     name = "rpc.system.modgui.app.",
@@ -396,10 +409,9 @@ SYSTEM_MODGUI_APP_.set = {
       -- lasync terminates foreground commands after 30 seconds. Package
       -- downloads must outlive that timeout, just like GUI upgrades do.
       string.format('start-stop-daemon -S -b -x %s -- "%s %s %s %s"', wrapper, appScript, commdParse[1], commdParse[2], commdParse[3] or "")
+    local ready, err = prepare_command_log()
+    if not ready then return nil, err end
     appRequestedAt = os.time()
-    SYSTEM_MODGUI_SCRIPTREQUEST_.set.state(nil, "state", "Requested")
-    local log = io.open("/tmp/command_log", "w")
-    if log then log:close() end
     async_exec({[command] = true})
   end
 }

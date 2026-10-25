@@ -71,30 +71,11 @@ append_missing_opkg_feeds() {
   done
 }
 
-# opkg passes http_timeout to its downloader. Set a global inactivity limit
-# rather than terminating the package manager while it may be writing files.
-configure_opkg_timeout() {
-  local config timeout
-  set -- "$opkg_file"
-  for config in "$opkg_config_dir"/*.conf; do
-    [ ! -f "$config" ] || set -- "$@" "$config"
-  done
-  timeout="$(awk '$1 == "option" && $2 == "http_timeout" { gsub(/"/, "", $3); print $3; exit }' "$@")"
-  case "$timeout" in
-    '' | *[!0-9]*) ;;
-    *) [ "$timeout" -gt 0 ] 2>/dev/null && return 0 ;;
-  esac
-  # Preserve a configured positive timeout, but replace missing/disabled limits.
-  sed -i '/^[[:space:]]*option[[:space:]][[:space:]]*http_timeout[[:space:]]/d' "$opkg_file" || return 1
-  printf '\noption http_timeout 30\n' >> "$opkg_file"
-}
-
 apply_right_opkg_repo() {
   logecho "Checking opkg feeds..."
 
   opkg_file="/etc/opkg.conf"
   opkg_config_dir="/etc/opkg"
-  configure_opkg_timeout || return 1
 
   if [ "$cpu_type" = "armv7l" ]; then
     case $marketing_version in
