@@ -15,15 +15,22 @@ local function checkCron()
 
     -- Use the cron_cache for subsequent request
     if cron_cache.tbl and not cron_cache.reload and
-      ( time - cron_cache.time_check ) < 30 then
+      ( cron_cache.refresh or ( time - cron_cache.time_check ) < 30 ) then
         return cron_cache.tbl
     end
 
     local f = io.open(cronfile,"r")
 
+    if not f then
+        cron_cache.tbl = res
+        cron_cache.time_check = time
+        cron_cache.reload = nil
+        return res
+    end
+
     for line in f:lines() do
         if line ~= "" then
-            local minute, hour, day, month, week, command = line:match("([0-9-%*-%--%/]+) ([0-9-%*-%--%/]+) ([0-9-%*-%--%/]+) ([0-9-%*-%--%/]+) ([0-9-%*-%--%/]+) (.*)")
+            local minute, hour, day, month, week, command = line:match("^%s*([%d%*%-%/,]+)%s+([%d%*%-%/,]+)%s+([%d%*%-%/,]+)%s+([%d%*%-%/,]+)%s+([%d%*%-%/,]+)%s+(.*)$")
             res[line] = {
                 minute = minute,
                 hour = hour,
@@ -54,6 +61,10 @@ local function writeLine(fd,tbl)
     fd:write(tbl.command.."\n")
 end
 
+local function cronLine(tbl)
+    return table.concat({tbl.minute, tbl.hour, tbl.day, tbl.month, tbl.week, tbl.command}, " ")
+end
+
 local function removeCron(line)
 
     checkCron()
@@ -75,7 +86,10 @@ end
 local function editCron(param, value, key)
     local cronTbl = checkCron()
 
-    cron_cache.tbl[key][param] = value
+    if not cronTbl[key] then
+        return nil, "Line not present"
+    end
+    cronTbl[key][param] = value
     if not cron_cache.refresh then
         cron_cache.refresh = key
     end
@@ -106,6 +120,7 @@ local function updateLineToFile()
 
     cron_cache.reload = true
 
+    return true
 end
 
 local SYSTEM_CRON_ = {
@@ -267,7 +282,7 @@ SYSTEM_CRON_i_.add = function(mapping)
         day = "*",
         month = "*",
         week = "*",
-        command = "echo ID_RULE "..random,
+        command = ": # ID_RULE "..random,
     }
 
     local f = io.open(cronfile,"a")
@@ -276,7 +291,9 @@ SYSTEM_CRON_i_.add = function(mapping)
 
     cron_cache.reload = true
 
-    return random
+    -- Transformer uses the returned key for subsequent parameter writes.
+    -- entries() keys are complete crontab lines, not the random marker.
+    return cronLine(tbl)
 end
 
 SYSTEM_CRON_i_.delete = function(mapping, key)

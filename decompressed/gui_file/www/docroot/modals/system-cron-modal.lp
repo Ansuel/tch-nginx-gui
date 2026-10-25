@@ -83,28 +83,7 @@ local cron_options = {
 }
 
 cron_options.onAdd = function(index, content)
-
-	--We increment as the add function write a line
-	index = index+1
-
-	if content.command == "" then
-		cron_options.errmsg = T"Command input can't be empty"
-		return nil
-	end
-
-	local tbl = {
-        minute = content.minute or "*",
-        hour = content.hour or "*",
-        day = content.day or "*",
-        month = content.month or "*",
-        week = content.week or "*",
-        command = content.command,
-	}
-
-	for key,value in pairs(tbl) do
-		proxy.set(string.format("%s%s.%s",cron_options.basepath,index,key),value)
-	end
-
+	-- handleTableQuery has already written the submitted parameters to this instance.
 	proxy.set("rpc.system.cron.editCronRuleNumber",index)
 end
 
@@ -141,4 +120,4 @@ local cron_data, cron_helpmsg = post_helper.handleTableQuery(cron_columns, cron_
   <script>\
   </script>\
 ');  ngx.print(ui_helper.createFooter() ); ngx.print('\
-'); 
+');
