@@ -39,7 +39,13 @@ if marketing_version then
 end
 
 local function appapply(action)
-	proxy.set("rpc.system.modgui.app.sendcmd",action)
+	local ok, err = proxy.set("rpc.system.modgui.app.sendcmd",action)
+	if not ok then
+		ngx.status = ngx.HTTP_CONFLICT
+		ngx.header.content_type = "application/json"
+		ngx.print(require("dkjson").encode({success = false, error = err}))
+		return ngx.exit(ngx.HTTP_CONFLICT)
+	end
 	if ( action == "install_blacklist_empty" ) then
 		action = "install_blacklist"
 	end

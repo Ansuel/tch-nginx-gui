@@ -14,8 +14,10 @@ finish() {
 	trap - EXIT HUP INT TERM
 	if [ "$status" -ne 0 ]; then
 		printf '\nCommand failed (exit status %s).\n' "$status" >> "$LOG_LOCATION"
+		set_transformer "rpc.system.modgui.executeCommand.state" "Error"
+	else
+		set_transformer "rpc.system.modgui.executeCommand.state" "Complete"
 	fi
-	set_transformer "rpc.system.modgui.executeCommand.state" "Complete"
 	exit "$status"
 }
 
@@ -24,7 +26,7 @@ trap 'exit 143' TERM
 trap 'exit 130' INT
 trap 'exit 129' HUP
 
-set_transformer "rpc.system.modgui.executeCommand.state" "Requested"
+set_transformer "rpc.system.modgui.executeCommand.state" "In Progress"
 
 # Use one file descriptor so stderr cannot overwrite stdout. Keep the final
 # state and log until the next command: polling may miss a one-second window.

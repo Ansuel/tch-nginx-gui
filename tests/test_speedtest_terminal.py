@@ -98,7 +98,7 @@ exit "$TEST_STATUS"
                 saved = (root / "speedtest-result.txt").read_text()
                 self.assertEqual(saved, "Download: testing\nUpload: testing\nResult URL: https://example.test/result\n")
                 self.assertTrue(log.read_text().startswith(saved))
-                self.assertIn("Complete", (root / "states").read_text())
+                self.assertIn("Error" if status else "Complete", (root / "states").read_text())
                 if status:
                     self.assertIn("exit status 7", log.read_text())
                 self.assertFalse((root / "speedtest.pid").exists())

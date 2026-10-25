@@ -35,8 +35,9 @@ class CommandWrapper(unittest.TestCase):
         result, log, states = self.run_command(0)
         self.assertEqual(result.returncode, 0)
         self.assertEqual(log, "first\nerror\nlast\n")
-        self.assertIn("Requested", states)
+        self.assertIn("In Progress", states)
         self.assertIn("Complete", states)
+        self.assertNotIn("Error", states)
         self.assertNotIn("Idle", states)
 
     def test_failure_keeps_output_and_completes_polling(self):
@@ -44,7 +45,8 @@ class CommandWrapper(unittest.TestCase):
         self.assertEqual(result.returncode, 7)
         self.assertIn("first\nerror\nlast\n", log)
         self.assertIn("exit status 7", log)
-        self.assertIn("Complete", states)
+        self.assertIn("Error", states)
+        self.assertNotIn("Complete", states)
 
 
 if __name__ == "__main__":

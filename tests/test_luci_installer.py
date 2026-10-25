@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -12,6 +13,68 @@ WIRELESS_SETUP = INSTALLER.parents[5] / "luci_wireless/setup.sh"
 
 
 class LuciActivation(unittest.TestCase):
+    def test_feed_failure_stops_before_installing_packages(self):
+        source = INSTALLER.read_text()
+        start = source.index("app_luci() {")
+        function = source[start:source.index("\napp_amule()", start)]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            opkg = root / "opkg"
+            opkg.write_text('#!/bin/sh\necho "$*" >> "$TEST_ROOT/actions"\nexit 7\n')
+            opkg.chmod(0o755)
+            result = subprocess.run(
+                ["sh", "-c", function + '\nmarketing_version=18.3; cpu_type=armv7l; app_luci install'],
+                env={**os.environ, "PATH": f"{root}:{os.environ['PATH']}", "TEST_ROOT": str(root)},
+                capture_output=True, text=True, timeout=5)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertEqual((root / "actions").read_text(), "update\n")
+            self.assertIn("another opkg process", result.stdout)
+
+    @unittest.skipUnless(shutil.which("lua"), "Lua required")
+    def test_duplicate_requests_preserve_log_and_stale_requests_can_retry(self):
+        mapping = INSTALLER.parents[1] / "mappings/rpc/system.modgui.map"
+        source = mapping.read_text()
+        snippet = source[source.index("local SYSTEM_MODGUI_SCRIPTREQUEST_ ="):]
+        prelude = '''
+local maps, launches, log_writes = {}, 0, 0
+local now, running = 100, ""
+register = function(map) maps[map.objectType.name] = map end
+os.time = function() return now end
+os.remove = function() end
+io.open = function(path, mode)
+    if mode == nil then return nil end
+    if path == "/tmp/command_log" then log_writes = log_writes + 1 end
+    return {write = function() end, close = function() end}
+end
+io.popen = function() return {read = function() return running end, close = function() end} end
+local async_exec = function() launches = launches + 1 end
+'''
+        assertions = '''
+local app = maps["rpc.system.modgui.app."].set.sendcmd
+local state = maps["rpc.system.modgui.executeCommand."].set.state
+app(nil, "sendcmd", "install_luci")
+assert(launches == 1 and log_writes == 1)
+local ok, err = app(nil, "sendcmd", "install_luci")
+assert(ok == nil and err and launches == 1 and log_writes == 1)
+now = 110; running = "123\\n"
+state(nil, "state", "In Progress")
+ok, err = app(nil, "sendcmd", "install_luci")
+assert(ok == nil and err and launches == 1 and log_writes == 1)
+state(nil, "state", "Complete")
+ok, err = app(nil, "sendcmd", "install_luci")
+assert(ok == nil and err and launches == 1 and log_writes == 1)
+state(nil, "state", "Requested")
+running = ""
+app(nil, "sendcmd", "install_luci")
+assert(launches == 2 and log_writes == 2)
+state(nil, "state", "Error")
+app(nil, "sendcmd", "install_luci")
+assert(launches == 3)
+'''
+        result = subprocess.run(["lua", "-"], input=prelude + snippet + assertions,
+                                text=True, capture_output=True, timeout=5)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def activate(self, enabled_status):
         source = INSTALLER.read_text()
         start = source.index("      /etc/init.d/uhttpd enable")

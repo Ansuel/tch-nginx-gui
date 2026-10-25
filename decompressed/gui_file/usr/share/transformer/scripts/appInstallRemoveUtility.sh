@@ -363,11 +363,16 @@ app_telstra() {
 app_luci() {
   install() {
     luci_install_arm() {
-      opkg update || return 1
+      echo "Updating LuCI package feeds..."
+      opkg update || {
+        echo "Unable to update package feeds. Check network/repository access and whether another opkg process is running."
+        return 1
+      }
       if [ ! -f /rom/usr/lib/libjson-c.so.2 ] && [ ! -e /usr/lib/libjson-c.so.2 ]; then
         ln -s /usr/lib/libjson-c.so.4 /usr/lib/libjson-c.so.2 || return 1
       fi
       rm -f /usr/lib/lua/uci.so #remove to avoid lua-uci conflict during install
+      echo "Installing LuCI packages..."
       opkg install --force-reinstall libuci-lua luci rpcd uhttpd
       luci_opkg_status=$?
       # Restore the firmware binding even when opkg fails.

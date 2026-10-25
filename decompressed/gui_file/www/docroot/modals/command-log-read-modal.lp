@@ -6,7 +6,9 @@ gettext.textdomain('webui-core')
 local ui_helper = require("web.ui_helper")
 local labels = require("dkjson").encode({
         Requested = T"Executing",
+        ["In Progress"] = T"Executing",
         Complete = T"Complete",
+        Error = T"Error",
         login = T"Login Required",
 })
 
@@ -57,7 +59,7 @@ ngx.print('\
                                 if (header_text != state_text) $("#header_title").text(state_text);\
                                 $("#show_progress").text($("#show_progress").text().replace(/[\\.]{10}/g, ""));\
                                 $("#show_progress").append(".");\
-                                if(data.state == "Complete"){\
+                                if(data.state == "Complete" || data.state == "Error"){\
                                         clearInterval(KoRequest.CommandLogReadInterval.interval);\
                                         $("#show_progress").text("");\
                                         $(".modal-footer").show();\

@@ -269,6 +269,7 @@ local SYSTEM_MODGUI_SCRIPTREQUEST_ = {
           "Checking",
           "Requested",
           "In Progress",
+          "Error",
           "Complete"
         }
       }
@@ -362,8 +363,21 @@ end
 --
 -- Example install_blacklist_empty
 --         remove_luci
+local appRequestedAt = 0
 SYSTEM_MODGUI_APP_.set = {
   sendcmd = function(mapping, paramName, paramValue)
+    -- The extensions share one log and one result. A second request must not
+    -- erase the output or terminal state of an installation already running.
+    -- A persisted state can survive a killed worker, or a previous overlapping
+    -- request can mark a still-running command Complete. Check the process too.
+    local workers = io.popen("pgrep -f '[w]rapper.sh|[a]ppInstallRemoveUtility.sh'")
+    local running = workers and workers:read("*a") or ""
+    if workers then workers:close() end
+    local pending = (executeCommandRes == "Requested" or executeCommandRes == "In Progress")
+      and os.time() - appRequestedAt < 5
+    if running ~= "" or pending then
+      return nil, "Another command is already running"
+    end
     local commdParse = {}
 
     for s in paramValue:gmatch("[^%_]+") do
@@ -382,6 +396,7 @@ SYSTEM_MODGUI_APP_.set = {
       -- lasync terminates foreground commands after 30 seconds. Package
       -- downloads must outlive that timeout, just like GUI upgrades do.
       string.format('start-stop-daemon -S -b -x %s -- "%s %s %s %s"', wrapper, appScript, commdParse[1], commdParse[2], commdParse[3] or "")
+    appRequestedAt = os.time()
     SYSTEM_MODGUI_SCRIPTREQUEST_.set.state(nil, "state", "Requested")
     local log = io.open("/tmp/command_log", "w")
     if log then log:close() end
