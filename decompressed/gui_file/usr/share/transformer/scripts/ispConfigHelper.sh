@@ -269,8 +269,16 @@ cwmp_specific_TIM() {
   fi
   logecho "CWMP Server detected: $detected_acs"
 
-  logecho "Resetting unlock bit..."
-  uci set env.var.unlockedstatus='0'
+  # The env backend only accepts variables exposed by the firmware.
+  # Older firmware may not provide this flag; do not try to create it.
+  if unlocked_status="$(uci -q get env.var.unlockedstatus)"; then
+    if [ "$unlocked_status" != "0" ]; then
+      logecho "Resetting unlock bit..."
+      uci set env.var.unlockedstatus='0'
+    fi
+  else
+    logecho "Unlock bit unavailable on this firmware, skipping reset..."
+  fi
 
   [ -z "$cwmp_url" ] && cwmp_url="None"
 
