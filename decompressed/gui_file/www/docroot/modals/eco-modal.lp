@@ -12,6 +12,16 @@ local content_helper = require("web.content_helper")
 local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
 local vB = post_helper.validateBoolean
 
+local power_color_select = {
+	{"green", T"Green"},
+	{"blue", T"Blue"},
+	{"orange", T"Orange"},
+	{"red", T"Red"},
+	{"cyan", T"Cyan"},
+	{"magenta", T"Magenta"},
+	{"white", T"White"}
+}
+
 local mapValid = {
     eee = vB,
 	autogreeen = vB,
@@ -46,6 +56,12 @@ else
 
 	mapParams.eco_led = "uci.ledfw.status_led.enable"
 	mapParams.ledfw_wifinsc = "uci.ledfw.wifi.nsc_on"
+
+	-- colore LED Power (DGA4130/4132): opzione dichiarata in uci/ledfw.map
+	if prod_friendly_name[1].value:match("4130") or prod_friendly_name[1].value:match("4132") then
+		mapValid.power_led_color = post_helper.getValidateInEnumSelect(power_color_select)
+		mapParams.power_led_color = "uci.ledfw.status_led.power_color"
+	end
 end
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -104,6 +120,13 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		else
 			html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status.", info_box)
 			html[#html + 1] = ui_helper.createSwitch(T"Eco Led", "eco_led", content["eco_led"])
+		end
+		if prod_friendly_name[1].value:match("4130") or prod_friendly_name[1].value:match("4132") then
+			if content["power_led_color"] == "" or content["power_led_color"] == nil then
+				content["power_led_color"] = "green"
+			end
+			html[#html + 1] = ui_helper.createAlertBlock(T"Color of the Power LED when the gateway is up and running.", info_box)
+			html[#html + 1] = ui_helper.createInputSelect(T"Power LED color", "power_led_color", power_color_select, content["power_led_color"])
 		end
 		html[#html + 1] = ui_helper.createInputText(T"Timeout", "eco_led_timeout", content["eco_led_timeout"], basic , helpmsg["eco_led_timeout"] )
 		html[#html + 1] = ui_helper.createAlertBlock(T"Select the services to check on before turning the “Info” LED green and turning the services LEDs off (if ECO LED has been enabled).", info_box)

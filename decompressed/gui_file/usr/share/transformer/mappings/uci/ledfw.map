@@ -16,7 +16,7 @@ mapper("uci_1to1").registerSimpleMap(ledfw_ambient)
 local ledfw_status = {
   config =  config_ledfw,
   section = "status_led",
-  options = { "enable" }
+  options = { "enable", "power_color" }
 }
 
 mapper("uci_1to1").registerSimpleMap(ledfw_status)
