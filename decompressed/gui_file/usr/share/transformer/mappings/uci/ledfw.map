@@ -65,3 +65,4 @@ local ledfw_wifi = {
 }
 
 mapper("uci_1to1").registerSimpleMap(ledfw_wifi)
+
