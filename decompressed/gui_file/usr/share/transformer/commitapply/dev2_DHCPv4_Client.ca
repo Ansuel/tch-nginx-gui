@@ -1,0 +1,1 @@
+^Device%.DHCPv4%.Client%.[^%.]+%.Renew while read line;do if [ -n "$line" ];then kill -SIGUSR1 $line;fi;done < /tmp/.dhcpv4_clients;rm /tmp/.dhcpv4_clients

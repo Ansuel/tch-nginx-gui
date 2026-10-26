@@ -1,0 +1,113 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-tailscale\n"
+"PO-Revision-Date: 2026-09-23 00:00+0200\n"
+"Last-Translator: ModGUI\n"
+"Language-Team: Italiano\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Tailscale connected"
+msgstr "Tailscale connesso"
+
+msgid "Tailscale disconnected"
+msgstr "Tailscale disconnesso"
+
+msgid "Downloading runtime"
+msgstr "Download del runtime"
+
+msgid "Preparing Tailscale"
+msgstr "Preparazione di Tailscale"
+
+msgid "Tailscale error"
+msgstr "Errore Tailscale"
+
+msgid "Service"
+msgstr "Servizio"
+
+msgid "Enabled"
+msgstr "Abilitato"
+
+msgid "Disabled"
+msgstr "Disabilitato"
+
+msgid "Tailscale IP"
+msgstr "IP Tailscale"
+
+msgid "Subnet route"
+msgstr "Route della sottorete"
+
+msgid "Exit node advertised"
+msgstr "Exit node pubblicizzato"
+
+msgid "Authorization required"
+msgstr "Autorizzazione richiesta"
+
+msgid "Open this Tailscale link to authorize the gateway, then reopen this window to verify the connection."
+msgstr "Apri questo link Tailscale per autorizzare il gateway, quindi riapri questa finestra per verificare la connessione."
+
+msgid "Authorize gateway"
+msgstr "Autorizza gateway"
+
+msgid "Connection"
+msgstr "Connessione"
+
+msgid "The service starts disabled. Enabling Connect for the first time generates an authorization link without storing account credentials in the gateway GUI."
+msgstr "Il servizio parte disabilitato. Attivando la connessione per la prima volta viene generato un link di autorizzazione senza salvare credenziali account nella GUI del gateway."
+
+msgid "Tailscale service"
+msgstr "Servizio Tailscale"
+
+msgid "Connect to tailnet"
+msgstr "Connetti alla tailnet"
+
+msgid "Device name"
+msgstr "Nome dispositivo"
+
+msgid "UDP listen port"
+msgstr "Porta UDP in ascolto"
+
+msgid "Use a valid device name containing letters, numbers, dots or dashes"
+msgstr "Usa un nome dispositivo valido contenente lettere, numeri, punti o trattini"
+
+msgid "Status"
+msgstr "Stato"
+
+msgid "Connected"
+msgstr "Connesso"
+
+msgid "Disconnected"
+msgstr "Disconnesso"
+
+msgid "Tailnet name"
+msgstr "Nome nella tailnet"
+
+msgid "Version"
+msgstr "Versione"
+
+msgid "Routing"
+msgstr "Instradamento"
+
+msgid "Route and exit-node advertisements must also be approved in the Tailscale admin console. Leave the subnet empty to expose only the gateway itself."
+msgstr "Le route e la modalità exit node devono essere approvate anche nella console di amministrazione Tailscale. Lascia vuota la sottorete per esporre solo il gateway."
+
+msgid "Advertised LAN subnet (optional)"
+msgstr "Sottorete LAN pubblicizzata (opzionale)"
+
+msgid "Advertise as exit node"
+msgstr "Pubblicizza come exit node"
+
+msgid "Accept routes from tailnet"
+msgstr "Accetta route dalla tailnet"
+
+msgid "Remote access"
+msgstr "Accesso remoto"
+
+msgid "Tailscale SSH permits shell access according to your tailnet ACLs. Enable it only when those policies are configured."
+msgstr "Tailscale SSH consente l'accesso alla shell secondo le ACL della tailnet. Abilitalo solo quando queste regole sono configurate."
+
+msgid "Tailscale SSH"
+msgstr "Tailscale SSH"

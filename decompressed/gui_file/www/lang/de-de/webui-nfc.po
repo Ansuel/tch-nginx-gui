@@ -1,0 +1,37 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-nfc\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-06-21 15:33+0200\n"
+"PO-Revision-Date: 2019-02-02 14:57+0100\n"
+"Last-Translator: Dr. Uwe Meyer-Gruhl\n"
+"Language-Team: none\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Name: Deutsch\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.2.1\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+msgid "Global Information"
+msgstr "Übersicht"
+
+msgid "NFC"
+msgstr "NFC"
+
+msgid "NFC Disabled"
+msgstr "NFC abgeschaltet"
+
+msgid "NFC Enabled"
+msgstr "NFC eingeschaltet"
+
+msgid "WiFi Interface"
+msgstr "WiFi Schnittstelle"
+
+msgid "Wi-Fi Interface Status"
+msgstr "WiFi Schnittstellen Zustand"
+
+msgid "NFC Status"
+msgstr "NFC Zustand"

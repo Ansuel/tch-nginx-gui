@@ -1,0 +1,46 @@
+local config_ethernet = "ethernet"
+local uci_1to1 = mapper("uci_1to1")
+
+-- uci.ethernet
+uci_1to1.registerConfigMap(config_ethernet)
+
+-- uci.ethernet.ethernet
+local ethernet_ethernet = {
+  config = config_ethernet,
+  type = "port",
+  options = { "enable", "speed", "duplex", "wan", "td", "softswitch", "pauseenable"}
+}
+uci_1to1.registerNamedMultiMap(ethernet_ethernet)
+
+-- uci.ethernet.ethernet
+local ethernet_trafficdesc = {
+  config = config_ethernet,
+  type = "trafficdesc",
+  options = { "enable", "max_bit_rate", "max_burst_size", "rate", "ratio"}
+}
+uci_1to1.registerNamedMultiMap(ethernet_trafficdesc)
+
+-- uci.ethernet.mapping
+local ethernet_mapping = {
+  config = config_ethernet,
+  type = "mapping",
+  options = { "port", "wlan_remote"}
+}
+uci_1to1.registerNamedMultiMap(ethernet_mapping)
+
+-- uci.ethernet.phyconfig
+local ethernet_phyconfig = {
+  config = config_ethernet,
+  type = "phyconfig",
+  options = { "name", "port", "switch", "phyoffset", "phyvalue"}
+}
+uci_1to1.registerNamedMultiMap(ethernet_phyconfig)
+
+-- uci.ethernet.globals
+local ethernet_globals = {
+  config = config_ethernet,
+  section = "globals",
+  type = "globals",
+  options = { "trafficmanager", "multicastlearning", "eth4lanwanmode"}
+}
+uci_1to1.registerSimpleMap(ethernet_globals)

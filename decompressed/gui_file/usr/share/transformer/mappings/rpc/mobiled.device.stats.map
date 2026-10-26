@@ -1,0 +1,11 @@
+local mobiled_device_stats_ = {
+  objectType = {
+    name = "rpc.mobiled.device.@.stats.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {}
+  }
+}
+
+register(mobiled_device_stats_)

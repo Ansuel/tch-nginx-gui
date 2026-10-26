@@ -1,0 +1,260 @@
+local sys_conn_ = {
+  objectType = {
+    name = "sys.conn.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = 1,
+    parameters = {
+      ActiveConnections = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      DownloadIPv4NatTable = {
+        access = "readWrite",
+        type = "boolean"
+      },
+      DownloadIPv6NatTable = {
+        access = "readWrite",
+        type = "boolean"
+      },
+    },
+  }
+}
+
+local io = io
+local os = os
+
+local tostring = tostring
+local pairs = pairs
+local ipairs = ipairs
+local conn = mapper("ubus").connect()
+local match = string.match
+local format = string.format
+
+local ipv4Conn = {}
+local ipv6Conn = {}
+local activeConn = "0"
+
+local function getConnectedDevices(data)
+  local ipList = {}
+  local ipv4 = ""
+  local ipv6 = ""
+  local ipv4Address = data and data.ipv4
+  for _, ipv4Data in pairs(ipv4Address) do
+    if (ipv4Data.state == "connected" or ipv4Data.state == "stale") and ipv4Data.address then
+      ipList[ipv4Data.address] = true
+      ipv4 = ipv4Data.address
+      break
+    end
+  end
+  local ipv6Address = data and data.ipv6
+  for _, ipv6Data in pairs(ipv6Address) do
+    if (ipv6Data.state == "connected" or ipv6Data.state == "stale") and ipv6Data.address then
+      ipList[ipv6Data.address] = true
+      ipv6 = ipv6Data.address
+      break
+    end
+  end
+  return ipList, ipv4, ipv6
+end
+
+sys_conn_.entries = function()
+  local count = 0
+  local ipList = {}
+  ipv4Conn = {}
+  ipv6Conn = {}
+  local ubusData = conn:call("hostmanager.device", "get", {})
+  if ubusData then
+    for _, data in pairs(ubusData) do
+      ipList[#ipList+1] = getConnectedDevices(data)
+    end
+  end
+  local fd = io.open("/proc/net/nf_conntrack")
+  if fd then
+    for line in fd:lines() do
+      if (match(line, "tcp") and match(line, "ESTABLISHED")) or (match(line, "udp") and not match(line, "%[UNREPLIED%]")) then
+        local srcIP = line:match("src=(%S+)")
+        for _, ipCheck in pairs(ipList) do
+          if srcIP and ipCheck[srcIP] then
+            count = count + 1
+          end
+        end
+      end
+      if match(line, "^ipv4") then
+        ipv4Conn[#ipv4Conn+1] = line
+      elseif match(line, "^ipv6") then
+        ipv6Conn[#ipv6Conn+1] = line
+      end
+    end
+    fd:close()
+    activeConn = tostring(count)
+    return {"1"}
+  end
+  return {}
+end
+
+sys_conn_.get = {
+  ActiveConnections = function()
+    return activeConn
+  end,
+  DownloadIPv4NatTable = "0",
+  DownloadIPv6NatTable = "0"
+}
+
+local function downloadNATTable(ipVersion, connList)
+  local fd
+  local fileName = format("/tmp/%sSession.csv",ipVersion)
+  fd = io.open(fileName, "w")
+  if fd then
+    if #connList == 0 then
+      fd:write(" ")
+    end
+    for _,line in ipairs(connList) do
+      line = line:gsub("%s+", ",")
+      -- add empty value for udp connection state column
+      line = line:gsub("%S+,%d+,udp,%d+,%d+,","%1,")
+      fd:write(line .. "\n")
+    end
+    fd:close()
+  end
+end
+
+local function cleanNatTable(ipVersion)
+  local fileName = format("/tmp/%sSession.csv", ipVersion)
+  os.remove(fileName)
+end
+
+sys_conn_.set = {
+  DownloadIPv4NatTable = function(mapping, param, value, key)
+    if value == "1" then
+      downloadNATTable("ipv4", ipv4Conn)
+    else
+      cleanNatTable("ipv4")
+    end
+  end,
+  DownloadIPv6NatTable = function(mapping, param, value, key)
+    if value == "1" then
+      downloadNATTable("ipv6", ipv6Conn)
+    else
+      cleanNatTable("ipv6")
+    end
+  end,
+}
+
+register(sys_conn_)
+
+local sys_conn_host_i_ = {
+  objectType = {
+    name = "sys.conn.host.{i}.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      HostName = {
+        access = "readOnly",
+        type = "string",
+      },
+      IPAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      IP6Address = {
+        access = "readOnly",
+        type = "string",
+      },
+      LinkLocalAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      MACAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      NumberOfConnections = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      NeighborNumberOfConnections = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local conn = mapper("ubus").connect()
+local uciHelper = mapper("ucihelper")
+local devInfo = {}
+local envBinding = { config = "env", sectionname = "var", option = "qtn_eth_mac" }
+
+sys_conn_host_i_.entries = function()
+  local entries = {}
+  local ubusData = conn:call("hostmanager.device", "get", {})
+  if ubusData then
+    for _, data in pairs(ubusData) do
+      local _, ipv4, ipv6 = getConnectedDevices(data)
+      local name
+      if data["user-friendly-name"] and data["user-friendly-name"] ~= "" then
+        name = data["user-friendly-name"]
+      elseif data["hostname"] and data["hostname"] ~= "" then
+        name = data["hostname"]
+      else
+        name = "Unknown-" .. data["mac-address"]
+      end
+      local mac = data["mac-address"]
+      local qtnMac = string.lower(uciHelper.get_from_uci(envBinding))
+      if mac ~= qtnMac and data.state == "connected" and data.interface == "lan" then
+        entries[#entries+1] = mac
+        devInfo[mac] = { ipv4 = ipv4, ipv6 = ipv6, HostName = name }
+      end
+    end
+  end
+  return entries
+end
+
+local function getNumberOfConnections(ip, key, connList)
+  local ipAddress = devInfo[key][ip]
+  if not ipAddress then
+    return "0"
+  end
+  if ip == "ipv6" then
+    ipAddress = ipAddress:gsub("([^%:]+)", function(value)
+      if string.len(value) < 4 then
+        value = string.rep("0", 4 - tonumber(string.len(value)) ) .. value
+        return value
+      end
+    end)
+  end
+  local ipMatch = "src="..ipAddress
+  local connections = 0
+    for _, line in ipairs(connList) do
+    if match(line, ipMatch) then
+      connections = connections + 1
+    end
+  end
+  return tostring(connections)
+end
+
+sys_conn_host_i_.get = {
+  HostName = function(mapping, param, key)
+    return devInfo[key].HostName
+  end,
+  IPAddress = function(mapping, param ,key)
+    return devInfo[key].ipv4
+  end,
+  IP6Address = function(mapping, param ,key)
+    return devInfo[key].ipv6
+  end,
+  LinkLocalAddress = "",
+  MACAddress = function(mapping, param, key)
+    return key
+  end,
+  NumberOfConnections = function(mapping, param ,key)
+    return getNumberOfConnections("ipv4", key, ipv4Conn)
+  end,
+  NeighborNumberOfConnections = function(mapping, param ,key)
+    return getNumberOfConnections("ipv6", key, ipv6Conn)
+  end,
+}
+
+register(sys_conn_host_i_)

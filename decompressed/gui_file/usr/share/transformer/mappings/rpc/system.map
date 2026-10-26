@@ -1,0 +1,211 @@
+local uci = require('uci')
+local uciHelper = mapper("ucihelper")
+local commitapply = commitapply
+local floor = math.floor
+local open = io.open
+local tostring = tostring
+local upload_ca_filename = ""
+local network = require("transformer.shared.common.network")
+local rebootHelper = require("transformer.shared.reboot_helper")
+local versionBinding = { config = "versioncusto", sectionname = "override" }
+local envBinding = { config = "env", sectionname = "var" }
+local sysBinding = { config = "system", sectionname = "warmboot" }
+local lfs = require("lfs")
+local popen = require("modgui").popen
+
+local rebootreasons = network.getRebootReasons()
+
+local function getUciValue(uciBinding, option)
+  local binding = uciBinding
+  if option then
+    binding.option = option
+    return uciHelper.get_from_uci(binding)
+  end
+  return uciHelper.getall_from_uci(binding)
+end
+
+local system_ = {
+    objectType = {
+        name = 'rpc.system.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            reboot = {
+                access = "readWrite",
+                type = "string",
+                enumeration = rebootreasons,
+            },
+            reset = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            switchover = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            uptime = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            rebootreasons = {
+                access = "readOnly",
+                type = "string",
+            },
+            upload_ca_file = {
+               access = "readWrite",
+               type = "string",
+            },
+            SoftwareVersion = {
+               access = "readOnly",
+               type = "string",
+               max = "64",
+            },
+            RebootCause = {
+               access = "readOnly",
+               type = "string",
+            },
+            scheduledreboot = {
+               access = "readWrite",
+               type = "dateTime",
+            },
+            reboottime = {
+               access = "readOnly",
+               type = "dateTime",
+            },
+            scheduledrebootreason = {
+               access = "readWrite",
+               type = "string",
+               enumeration = rebootreasons,
+            },
+            usb3_available = {
+                access = "readOnly",
+                type = "boolean",
+            },
+        }
+    },
+    get = {
+        reboot = "",
+        reset = "0",
+        switchover = "0",
+        uptime = function()
+            local fd, msg = open("/proc/uptime")
+            if not fd then
+                return fd, msg
+            end
+            local uptime = fd:read("*n")
+            fd:close()
+            return tostring(floor(uptime))
+        end,
+        rebootreasons = table.concat(rebootreasons, ", "),
+        upload_ca_file = function()
+          return upload_ca_filename or ""
+        end,
+        SoftwareVersion = function(mapping)
+            local versionData = getUciValue(versionBinding)
+            local value = getUciValue(envBinding, "friendly_sw_version_activebank")
+            value = value:match("^([^-]+%-[^-]+)") or value
+            local fwp = versionData["fwversion_prefix"] or ""
+            local fws = versionData["fwversion_suffix"] or ""
+            local fwover = versionData["fwversion_override"] or ""
+            if fwover ~= "" and fwover ~= "override1" then
+                value = fwover
+            end
+            value = fwp .. value .. fws
+            local seperator = versionData["fwversion_seperator"] or ""
+            if seperator ~= "" then
+                value = value:gsub("%.", seperator)
+            end
+            mapping.get.SoftwareVersion = value
+            return value
+        end,
+        RebootCause = function()
+            local rebootCause = getUciValue(sysBinding, "reboot")
+            if tonumber(rebootCause) then
+              rebootCause = rebootreasons[rebootCause + 1] or ""
+            end
+            return rebootCause
+        end,
+        scheduledreboot = function()
+            return rebootHelper.getRebootOptions("time", "0001-01-01T00:00:00Z")
+        end,
+        reboottime = function()
+	    local file = io.open("/proc/uptime")
+            if file then
+              local uptime = file:read("*a")
+              uptime = tonumber(uptime:match("^(%d+)")) or 0
+              file:close()
+              return (os.date("%Y-%m-%dT%H:%M:%SZ", os.time()-uptime))
+            end
+            return ""
+        end,
+        scheduledrebootreason =  function()
+            return rebootHelper.getRebootOptions("rebootreason", "CLI")
+        end,
+        usb3_available = function()
+          local p_uname = popen("uname -r")
+          if p_uname then
+            local uname = p_uname:read("*l")
+            p_uname:close()
+            local filename = "/lib/modules/" .. uname .. "/xhci-hcd.ko"
+            if lfs.attributes(filename, "mode") == "file" then
+              return "1"
+            end
+          end
+          return "0"
+        end,
+    },
+    set = function(mapping, paramname, paramvalue)
+        if paramname == "reboot" then
+            local cursor = uci.cursor(nil, "/var/state")
+            local result, msg = cursor:set("system", "warmboot", "rebootreason", paramvalue)
+            if result == nil then
+                return result, msg
+            end
+            result, msg = cursor:save("system")
+            if result == nil then
+                return result, msg
+            end
+            cursor:close()
+            paramvalue = "1"
+        elseif paramname == "upload_ca_file" then
+            -- upload the file name given in "paramvalue" from /tmp/ to /etc/ssl/certs/
+            upload_ca_filename = paramvalue
+            local fd_tmp, msg = open("/tmp/" .. paramvalue)
+            if not fd_tmp then
+                return fd_tmp, msg
+            end
+            if upload_ca_filename == "" then
+                return nil, "Invalid file Name"
+            end
+            local data = fd_tmp:read("*all")
+            fd_tmp:close()
+            local fd_cert, err = open("/etc/ssl/certs/".. upload_ca_filename , "w")
+            if not fd_cert then
+                return fd_cert, err
+            end
+            fd_cert:write(data)
+            fd_cert:close()
+            os.remove("/tmp/" .. paramvalue)
+        elseif paramname == "scheduledreboot" then
+            local var, err =  rebootHelper.setRebootOptions("enabled", "1")
+            if not var then
+              return nil, err
+            end
+            local ok, errmsg = rebootHelper.setRebootOptions("time", paramvalue)
+            if not ok then
+              return nil, errmsg
+            end
+            commitapply:newset("scheduledReboot")
+        elseif paramname == "scheduledrebootreason" then
+            return rebootHelper.setRebootOptions("rebootreason", paramvalue)
+        end
+        if paramvalue == "1" then
+            commitapply:newset("rpc.system." .. paramname)
+        end
+    end,
+    commit = rebootHelper.uci_system_commit,
+    revert = rebootHelper.uci_system_revert,
+}
+
+register(system_)

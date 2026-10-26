@@ -1,0 +1,126 @@
+local optical = require("transformer.shared.optical")
+local flag = optical.getBoardtype()
+if flag ~= "gpon" and flag ~= "gpon_sfp" then
+  return
+end
+
+local register, tostring = register, tostring;
+local log = require("transformer.logger")
+
+local conn = mapper("ubus").connect()
+
+local function nilToEmptyString(st)
+    if st == nil then
+        return ""
+    else
+        return tostring(st)
+    end
+end
+
+local function get(idx, paramName)
+    local result = conn:call("gpon.stat.gtc.fec", "get", { })
+    if result == nil then
+        log:error(string.format("Cannot retrieve info %s", idx))
+        return ""
+    end
+    local data = result[idx]
+    local name = ""
+    name = string.gsub (paramName, "_", " ")
+    return nilToEmptyString(data[name])
+end
+
+local function getAll (idx)
+    local result = conn:call("gpon.stat.gtc.fec", "get", { })
+    if result == nil then
+        log:error(string.format ("Cannot retrieve  gpon.stat.gtc.fec info %s", idx))
+        return ""
+    end
+    local data = result[idx]
+    local res_data = {}
+    local key, val = "", ""
+    for key, val in pairs (data) do
+        local name = ""
+        name = string.gsub (key, " ", "_")
+        res_data[name] = nilToEmptyString(val)
+    end
+    return res_data
+end
+
+local gpon_stat_gtc = {
+  objectType = {
+    name = "rpc.gpon.stat.gtc.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+    }
+  }
+}
+register(gpon_stat_gtc)
+
+--"DS FEC state": "Disabled",
+--"BIP error": 0,
+--"FEC corrected codewords": 0,
+--"FEC uncorrectable codewords": 0,
+--"Total received DS FEC codewords": 0,
+--"FEC correction seconds": 0,
+--"Corrected HEC errors GEM frames": 0,
+--"Uncorrectable HEC errors GEM frames": 0
+local gpon_stat_gtc_fec = {
+  objectType = {
+    name = "rpc.gpon.stat.gtc.fec.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      DS_FEC_state = {
+        access = "readOnly",
+        type = "string",
+      },
+      BIP_error = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      FEC_corrected_codewords = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      FEC_uncorrectable_codewords = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      Total_received_DS_FEC_codewords = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      FEC_correction_seconds = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      Corrected_HEC_errors_GEM_frames = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      Uncorrectable_HEC_errors_GEM_frames = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+
+    }
+  }
+}
+
+local function getFec(mapping, paramName, key)
+      local data = get("fec", paramName)
+      return data
+end
+
+local function getAllFec (mapping)
+    local data = getAll ("fec")
+    return data
+end
+
+gpon_stat_gtc_fec.get = getFec
+gpon_stat_gtc_fec.getall = getAllFec
+register(gpon_stat_gtc_fec)
+

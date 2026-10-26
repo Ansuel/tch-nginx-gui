@@ -1,0 +1,132 @@
+local open, string, register = io.open, string, register
+local leds = require("transformer.shared.leds")
+
+local ledsInfo = {}
+
+local Multi_Leds_i_ = {
+  objectType = {
+    name = "rpc.Leds.Led.{i}.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = math.huge,
+    parameters = {
+      Name = {
+        access = "readOnly",
+        type = "string",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+             "On",
+             "Off",
+             "Blinking",
+             "Netdev",
+        },
+      },
+      Brightness = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+             "Low",
+             "Middle",
+             "high",
+             "None",
+        },
+      },
+      Color = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+             "Red",
+             "Orange",
+             "Blue",
+             "Green",
+             "Cyan",
+             "White",
+             "Magenta",
+             "None",
+        },
+      },
+    },
+  }
+}
+
+Multi_Leds_i_.entries = function(mapping)
+  local entries = {}
+  ledsInfo = leds.getLedsInfo()
+  for k, v in pairs(ledsInfo) do
+    entries[#entries+1] = k
+  end 
+  return entries
+end
+
+Multi_Leds_i_.get = {
+  Name = function(mapping, param, key)
+    return key
+  end,
+  Status = function(mapping, param, key)
+    return ledsInfo[key].mixStatus
+  end,
+  Brightness = function(mapping, param, key)
+    return ledsInfo[key].mixBrightness
+  end,
+  Color = function(mapping, param, key)
+    return ledsInfo[key].mixColor
+  end,
+}
+
+register(Multi_Leds_i_)
+
+local Multi_Leds_i_Led_i_ = {
+  objectType = {
+    name = "rpc.Leds.Led.{i}.HardwareLed.{i}.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = math.huge,
+    parameters = {
+      Name = {
+        access = "readOnly",
+        type = "string",
+      },
+      Trigger = {
+        access = "readOnly",
+        type = "string",
+      },
+      BrightnessVal = {
+        access = "readOnly",
+        type = "int",
+      },
+    },
+  }
+}
+
+Multi_Leds_i_Led_i_.entries = function(mapping, parentkey)
+  local entries = {}
+  for k1, v1 in pairs(ledsInfo) do
+    if k1 == parentkey then
+      for k2, v2 in pairs(v1) do
+        if k2 == "red" or k2 == "green" or k2 == "blue" then
+          entries[#entries+1] = parentkey .. ":" .. k2
+        end
+      end
+    end
+  end
+  return entries
+end
+
+Multi_Leds_i_Led_i_.get = function(mapping, param, key, parentkey)
+  local color = string.match(key, ":(.+)")
+  if not color then
+    return ""
+  end
+  if param == "Name" then
+    return color
+  elseif param == "Trigger" then
+    return ledsInfo[parentkey][color].trigger
+  elseif param == "BrightnessVal" then
+    return tostring(ledsInfo[parentkey][color].brightness)
+  end
+end
+
+register(Multi_Leds_i_Led_i_)

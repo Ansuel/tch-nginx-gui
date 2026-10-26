@@ -1,0 +1,7 @@
+{
+  "aggressiveCompression": false,
+  "ignoredFiles": [
+    "*.svg"
+  ],
+  "minKBReduced": 5
+}

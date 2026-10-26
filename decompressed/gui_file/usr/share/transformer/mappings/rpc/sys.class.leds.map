@@ -1,0 +1,94 @@
+local lfs = require("lfs")
+local register, string, tostring, table = register, string, tostring, table;
+local open = io.open
+
+local sys_class_leds_ = {
+  objectType = {
+    name = "sys.class.leds.@.",
+    access = "readOnly",
+    numEntriesParameter = "LedsNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      trigger = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "none",
+          "default-on",
+          "netdev",
+          "timer",
+        },
+      },
+      brightness = {
+        access = "readWrite",
+        type = "string"
+      },
+      max_brightness = {
+        access = "readOnly",
+        type = "string"
+      },
+      device_name = {
+        access = "readWrite",
+        type = "string"
+      },
+      interval = {
+        access = "readWrite",
+        type = "string"
+      },
+      mode = {
+        access = "readWrite",
+        type = "string"
+      },
+      delay_off = {
+        access = "readWrite",
+        type = "string"
+      },
+      delay_on = {
+        access = "readWrite",
+        type = "string"
+      },
+
+    },
+  }
+}
+
+local syspath = "/sys/class/leds/"
+local network = require("transformer.shared.common.network")
+
+local function entriesSysClassLeds(mapping)
+   local entries = {}
+   for file in lfs.dir(syspath) do
+      if file:match(':') and lfs.attributes(syspath .. file,"mode") == "directory" then
+         file = file:gsub(":", "_")
+         table.insert(entries, file)
+      end
+   end
+   return entries
+end
+
+local function get(mapping, paramName, key)
+   local ledColor = key:match("_([^_]+)$") or ""
+   key = key:gsub("_[^_]+$", ":") .. ledColor
+   local result = network.getFirstLine(syspath .. key .. "/" .. paramName)
+   -- This one is a special case, it returns the list of triggers with the selected one between []
+   if paramName == "trigger" then
+      result = string.match(result, "%[(.-)%]") or result
+   end
+   return result
+end
+
+local function set(mapping, paramName, paramValue, key)
+    local ledColor = key:match("_([^_]+)$") or ""
+    key = key:gsub("_[^_]+$", ":") .. ledColor
+    local f = open(syspath .. key .. "/" .. paramName, 'w+')
+    if f then
+        f:write(paramValue .. '\n')
+        f:close()
+    end
+end
+
+sys_class_leds_.entries = entriesSysClassLeds
+sys_class_leds_.get = get
+sys_class_leds_.set = set
+register(sys_class_leds_)

@@ -1,0 +1,28 @@
+local config_mcastsnooping = "mcastsnooping"
+local uci_1to1 = mapper("uci_1to1")
+
+uci_1to1.registerConfigMap(config_mcastsnooping)
+
+-- uci.mcastsnooping.interface
+local mcastsnooping_interface = {
+  config = config_mcastsnooping,
+  type = "interface",
+  options = {"igmp_snooping", "mcast_flooding", "mld_snooping", "igmplan2lan_snooping", "mcast6_flooding", "mldlan2lan_snooping", "state"}
+}
+uci_1to1.registerNamedMultiMap(mcastsnooping_interface)
+
+-- uci.mcastsnooping.bridge
+local mcastsnooping_bridge = {
+  config = config_mcastsnooping,
+  type = "bridge",
+  options = {"igmp_snooping", "mcast_flooding", "mld_snooping", "igmplan2lan_snooping", "mcast6_flooding", "mldlan2lan_snooping", "state"}
+}
+uci_1to1.registerNamedMultiMap(mcastsnooping_bridge)
+
+-- uci.mcastsnooping.nosnooping
+local mcastsnooping_nosnooping = {
+  config = config_mcastsnooping,
+  type = "nosnooping",
+  options = {"interface", "mcastrange"}
+}
+uci_1to1.registerNamedMultiMap(mcastsnooping_nosnooping)

@@ -1,0 +1,41 @@
+local wireless_ = {
+  objectType = {
+    name = "rpc.wireless.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+        acl_button = {
+            access = "readWrite",
+            type = "string",
+        },
+        wps_button = {
+            access = "readWrite",
+            type = "string",
+        },
+        reload = {
+            access = "readWrite",
+            type = "string",
+        },
+    },
+  }
+}
+
+local conn = mapper("ubus").connect()
+
+local function get()
+    return ""
+end
+
+local function set(mapping, paramName, paramValue, key)
+    local result = conn:call("wireless", paramName, {})
+    if paramName == "wps_button" then
+        result = conn:send("button", { wps = "pressed" })
+    end
+end
+
+wireless_.get = get
+wireless_.set = set
+
+register(wireless_)
+

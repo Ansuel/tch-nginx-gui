@@ -1,0 +1,34 @@
+local uci = mapper("uci_1to1")
+
+-- uci.webservice
+uci.registerConfigMap("webservice")
+
+-- uci.webservice.user
+local user_map = {
+  config = "webservice",
+  type = "user",
+  options = {
+    "token",
+    "token_is",
+    "role"
+  }
+}
+do
+  local map = uci.createNamedMultiMap(user_map)
+  map.objectType.numEntriesParameter = nil
+  register(map)
+end
+
+-- uci.webservice.role
+local role_map = {
+  config = "webservice",
+  type = "role",
+  options = {},
+  lists = { "allowed_commands", "allowed_paths", "disallowed_paths" }
+}
+do
+  local map = uci.createNamedMultiMap(role_map)
+  map.objectType.numEntriesParameter = nil
+  register(map)
+  uci.registerSubmaps(map.submappings)
+end

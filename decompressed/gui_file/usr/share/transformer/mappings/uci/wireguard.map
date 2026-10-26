@@ -1,0 +1,12 @@
+local config_wireguard = "wireguard"
+
+mapper("uci_1to1").registerConfigMap(config_wireguard)
+
+local wireguard_interface = {
+    config = config_wireguard,
+    section = "wg",
+    type = "interface",
+    options = { "enabled", "listen_port", "private_key", "public_key", "address", "allow_lan", "allow_wan" },
+}
+
+mapper("uci_1to1").registerSimpleMap(wireguard_interface)

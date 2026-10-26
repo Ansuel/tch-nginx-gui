@@ -1,0 +1,163 @@
+local mapper, pairs = mapper, pairs
+local uci_helper = mapper("ucihelper")
+local conn = mapper("ubus").connect()
+
+local network_nat_i_ = {
+  objectType = {
+    name = "rpc.network.nat.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "NatNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      dest_ip = {
+        access = "readOnly",
+        type = "string",
+      },
+      host_name = {
+        access = "readOnly",
+        type = "string",
+      },
+      number_of_connections = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local binding = {config="firewall",sectionname="userredirect"}
+local network = require("transformer.shared.common.network")
+
+--- get IP or MAC (destination) addresses which have NAT rules configured in firewall config
+-- @returns [table] the address info with following key-value pairs:
+--    Key:   the IP address or MAC address
+--    Value: the type of address, `ip` or `mac`
+local function get_redirect_addresses()
+  local result = {}
+  uci_helper.foreach_on_uci(binding, function(s)
+    if s.dest_ip and s.dest_ip ~= "" and s.dest_ip ~= "0.0.0.0" then
+      if s.family == "ipv4" then -- only ipv4 is supported in NAT monitoring
+        result[ s.dest_ip ] = "ip"
+      end
+    elseif s.dest_mac and s.dest_mac ~= "" then
+       result[ s.dest_mac ] = "mac"
+    end
+  end)
+  return result
+end
+
+--- build a selector to pass to hostmanager's get method with UBUS call()
+-- @param address [string] the IP or MAC address of the host for which to look up host info
+-- @param addr_type [string] the type of address that is passed, `ip` or `mac`
+-- @returns [table] the host info with fields:
+--    hostname [string] the host's hostname
+--    ip       [string] the host's IP address
+--  or nil in case of errors
+local function build_selector(address, addr_type)
+  if type(address) == "string" and address ~= "" then
+    if addr_type == "ip" then
+      return {["ipv4-address"] = address}
+    elseif addr_type == "mac" then
+      return {["mac-address"] = address}
+    end
+  end
+end
+
+--- get host information from hostmanager, for a given IP address or MAC address
+-- @param address [string] the IP or MAC address of the host for which to look up host info
+-- @param addr_type [string] the type of address that is passed, `ip` or `mac`
+-- @returns [table] the host info with fields:
+--    hostname [string] the host's hostname
+--    ip       [string] the host's IP address
+--  or empty table in case of errors
+local function get_hostinfo(address, addr_type)
+  local result = {}
+  local selector = build_selector(address, addr_type)
+  local devices  = selector and conn:call("hostmanager.device", "get", selector)
+  if devices then
+    -- Since we use a selector with IP or MAC address,
+    -- there should be only one element in the devices list; get it directly
+    local _, dev = next(devices)
+    if dev then
+      local ip
+      if addr_type == "mac" then
+        local dev4 = dev.ipv4
+        if dev4 then
+          local ctr=0
+          while dev4["ip"..ctr] do
+            if dev4["ip"..ctr].state == "connected" or dev4["ip"..ctr].state == "stale" then
+              ip = dev4["ip"..ctr].address
+              break
+            end
+            ctr = ctr + 1
+          end
+        end
+      else
+        -- ip address is just the passed address
+        ip = address
+      end
+      result = {
+        hostname = dev.hostname or "",
+        ip = ip or "",
+      }
+    end
+  end
+  return result
+end
+
+--- construct the actual NAT info, based on NAT rules configured in firewall,
+--  and data from host manager
+-- @returns [table] the NAT info, with key `ip` and following fields:
+--    hostname              [string] The hostname for that destination IP address,
+--                                      empty string if none found
+--    number_of_connections [string] The number of active NAT connections for that destination IP address,
+--                                      "0" if none found
+local function construct_nat_info()
+  local result = {}
+  for addr, addr_type in pairs( get_redirect_addresses() ) do
+    local hi =  get_hostinfo(addr, addr_type)
+    local ip = (hi and hi.ip)
+    if not ip and addr_type == "ip" then
+      ip = addr
+    end
+    -- Only consider entries that can be mapped to a IP address.
+    -- This means that MAC-address based port maps
+    -- that do not belong to a connected host will be ignored
+    if ip and ip ~= "" then
+      local cmd = "conntrack -L --dst-nat " .. ip .. " 2>/dev/null | wc -l"
+      local connections = network.executeCommand(cmd)
+      result[ip] = {
+        hostname = (hi and hi.hostname) or "",
+        number_of_connections =  connections ~= "" and connections or "0",
+      }
+    end
+  end
+  return result
+end
+
+local cache = {}
+
+network_nat_i_.entries = function(mapping)
+  local keys = {}
+  cache = {}
+  for ip, info in pairs( construct_nat_info() ) do
+    keys[#keys + 1] = ip
+    cache[ip] = {
+      dest_ip = ip,
+      host_name = info.hostname or "",
+      number_of_connections = info.number_of_connections or "",
+    }
+  end
+  return keys
+end
+
+network_nat_i_.get = function(mapping, param, key)
+  return cache[key][param]
+end
+
+network_nat_i_.getall = function(mapping, key)
+  return cache[key]
+end
+
+register(network_nat_i_)

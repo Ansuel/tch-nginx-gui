@@ -1,0 +1,24 @@
+local mapper = mapper
+local config_nfc = "nfc"
+
+-- uci.nfc
+mapper("uci_1to1").registerConfigMap(config_nfc)
+
+-- uci.nfc.nfc.{i}
+local nfc = {
+  config = config_nfc,
+  type = "nfc",
+  options = { "enabled"}
+}
+
+mapper("uci_1to1").registerNamedMultiMap(nfc)
+
+local nfc_iface = {
+  config = config_nfc,
+  section = "wifi_iface",
+  lists = {
+    "iface",
+  }
+}
+
+mapper("uci_1to1").registerSimpleMap(nfc_iface)

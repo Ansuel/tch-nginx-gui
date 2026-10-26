@@ -1,0 +1,8 @@
+# NG-81220
+^wireless /etc/init.d/hostapd reload && ubus send config "{'reload':'wireless'}" ;
+^wireless%.[^%.]+%.wl[^%.]+%.state /etc/init.d/network reload ;
+^wireless%.[^%.]+%.radio_[^%.]+%.state [ -f /usr/lib/hotspot/control.sh ] && /usr/lib/hotspot/control.sh evaluate
+^wireless%..+%.upload_rate /etc/hotplug.d/net/60-guestwifi-rate-limiting RELOAD
+^wireless%..+%.download_rate /etc/hotplug.d/net/60-guestwifi-rate-limiting RELOAD
+^wireless%..+%.rate_control_enabled /etc/hotplug.d/net/60-guestwifi-rate-limiting RELOAD
+^wireless%.[^%.]+%.wl[^%.]+%.state /etc/init.d/network reload

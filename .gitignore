@@ -1,0 +1,7 @@
+transfer.bat
+transfer_dev.bat
+total/*
+.DS_Store
+*.DS_Store
+.idea
+__pycache__/

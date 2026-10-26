@@ -1,0 +1,3 @@
+^samba /usr/share/transformer/scripts/ispConfigHelper.sh samba reload
+^samba%.samba%.samba%.filesharing$ /usr/share/transformer/scripts/ispConfigHelper.sh samba restart
+^samba%.sambashare%.printers%.enabled /usr/share/transformer/scripts/ispConfigHelper.sh samba restart

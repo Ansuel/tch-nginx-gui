@@ -1,0 +1,114 @@
+local network_ = {
+  objectType = {
+    name = "rpc.network.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      -- to enable/disable ipv6 globally for all interfaces
+      ipv6_enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      release_renew = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      wan_up = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      ula_enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      ula_prefix = {
+        access = "readWrite",
+        type = "string",
+      }
+    },
+  }
+}
+
+local networkBinding = { config = "network", state = false }
+local uciHelper = mapper("ucihelper")
+local network = require("transformer.shared.common.network")
+local configChanged
+
+local function getFromUci(intf, option, default)
+  networkBinding.sectionname = intf
+  networkBinding.option = option
+  networkBinding.default = default
+  return uciHelper.get_from_uci(networkBinding)
+end
+
+local function setOnUci(intf, option, value)
+  networkBinding.sectionname = intf
+  networkBinding.option = option
+  uciHelper.set_on_uci(networkBinding, value, commitapply)
+end
+
+-- Returns ipv6_enable as "1" only if network.wan.ipv6='1', network.lan.ipv6='1' & network.wan6.auto='1'
+local function getIPv6Value()
+  local value = "0"
+  local wanIPv6, lanIPv6, wan6Auto
+  wanIPv6 = getFromUci("wan", "ipv6", "1")
+  lanIPv6 = getFromUci("lan", "ipv6", "1")
+  wan6Auto = getFromUci("wan6", "auto", "1")
+  if wanIPv6 ~= "0" and lanIPv6 ~= "0" and wan6Auto ~= "0" then
+    value = "1"
+  end
+  return value
+end
+
+network_.get = {
+  ipv6_enable = getIPv6Value,
+  ula_enable = network.getULAEnable,
+  ula_prefix = network.getULAPrefix,
+  release_renew = "0",
+  wan_up = "0"
+}
+
+network_.set = {
+  release_renew = function(mapping, param, value, key)
+    commitapply:newset("rpc.network.release_renew")
+    return true
+  end,
+  ipv6_enable = function(mapping, param, value)
+    setOnUci("wan", "ipv6", value)
+    setOnUci("lan", "ipv6", value)
+    setOnUci("wan6", "auto", value)
+    configChanged = true
+  end,
+  wan_up = function(mapping, param, value, key)
+    if value == "1" then
+      commitapply:newset("rpc.network.wan_up")
+    end
+    return true
+  end,
+  ula_enable = function(mapping, param, value, key)
+    network.setULAEnable(value, commitapply)
+  end,
+  ula_prefix = function(mapping, param, value, key)
+    local result, err = network.setULAPrefix(value, commitapply)
+    if not result then
+      return result, err
+    end
+  end
+}
+
+network_.commit = function()
+  if configChanged then
+    uciHelper.commit(networkBinding)
+  end
+  configChanged = false
+end
+
+network_.revert = function()
+  if configChanged then
+    uciHelper.revert(networkBinding)
+  end
+  configChanged = false
+end
+
+register(network_)

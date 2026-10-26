@@ -1,0 +1,95 @@
+local register = register
+local open = io.open
+local format = string.format
+local tostring = tostring
+
+local password_file = "/etc/openvpn/psw-file"
+
+local function users()
+    local result = {}
+    local fd = open(password_file, "r")
+    if not fd then return result end
+    for line in fd:lines() do
+        local username = line:match("^([^%s]+)%s+")
+        if username then
+            result[#result + 1] = {
+                id = "user" .. tostring(#result + 1),
+                username = username,
+                password = line:match("^[^%s]+%s+(.*)$") or ""
+            }
+        end
+    end
+    fd:close()
+    return result
+end
+
+local function rewrite(action, key, param, value)
+    local current = users()
+    local index = tonumber((key or ""):match("^user(%d+)$"))
+    if not index then return nil end
+    local fd = open(password_file, "r")
+    local passwords = {}
+    if fd then
+        for line in fd:lines() do passwords[#passwords + 1] = line:match("^[^%s]+%s+(.*)$") or "" end
+        fd:close()
+    end
+    if action == "add" then
+        current[#current + 1] = { id = "user" .. tostring(#current + 1), username = "vpn_user" }
+        passwords[#passwords + 1] = "!"
+    elseif action == "delete" then
+        table.remove(current, index)
+        table.remove(passwords, index)
+    elseif current[index] then
+        if param == "username" then
+            if not value or not value:match("^[%w_.@-]+$") then return nil end
+            for i, user in ipairs(current) do
+                if i ~= index and user.username == value then return nil end
+            end
+            current[index].username = value
+        end
+        if param == "password" then
+            if not value or #value < 8 or value:find("%s") then return nil end
+            passwords[index] = value
+        end
+    else
+        return nil
+    end
+    fd = open(password_file, "w")
+    if not fd then return nil end
+    for i, user in ipairs(current) do
+        fd:write(format("%s\t%s\n", user.username, passwords[i] or "!"))
+    end
+    fd:close()
+    return true
+end
+
+local mapping = {
+    objectType = {
+        name = "rpc.openvpn.server.user.@.",
+        access = "readWrite",
+        minEntries = 0,
+        maxEntries = 32,
+        parameters = {
+            username = { access = "readWrite", type = "string" },
+            password = { access = "readWrite", type = "password" },
+        },
+    },
+}
+mapping.entries = function()
+    local result = {}
+    for _, user in ipairs(users()) do result[#result + 1] = user.id end
+    return result
+end
+mapping.get = function(_, param, key)
+    local index = tonumber((key or ""):match("^user(%d+)$"))
+    local user = index and users()[index]
+    if not user then return "" end
+    if param == "username" then return user.username end
+    return user.password or ""
+end
+mapping.set = function(_, param, value, key) return rewrite("set", key, param, value) end
+mapping.add = function() rewrite("add", "user1"); return "user" .. tostring(#users()) end
+mapping.delete = function(_, key) return rewrite("delete", key) end
+mapping.commit = function() end
+mapping.revert = function() end
+register(mapping)

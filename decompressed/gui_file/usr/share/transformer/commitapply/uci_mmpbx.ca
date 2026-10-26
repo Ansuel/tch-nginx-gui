@@ -1,0 +1,9 @@
+^mmpbx%. /etc/init.d/mmpbxd restart
+^mmpbxbrcmcountry%. /etc/init.d/mmpbxd restart
+^mmpbxbrcmfxonet%. /etc/init.d/mmpbxd restart
+^mmpbxbrcmfxsdev%. /etc/init.d/mmpbxd restart
+^mmpbxinternalnet%. /etc/init.d/mmpbxd restart
+^mmpbxrvsipnet%. /etc/init.d/mmpbxd restart
+^mmpbxbrcmdectdev%.[^%.]+%.global /etc/init.d/mmpbxd restart
+^mmpbxbrcmdectdev%.[^%.]+%.dect /etc/init.d/mmpbxd restart
+^mmpbxbrcmdectdev%.[^%.]+%.keypad /etc/init.d/mmpbxd restart

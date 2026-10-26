@@ -1,0 +1,88 @@
+local lfs = require("lfs")
+local register, table = register, table
+
+local sys_class_net_ = {
+  objectType = {
+    name = "sys.class.net.@.",
+    access = "readOnly",
+    numEntriesParameter = "NetNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+		address = {
+	        access = "readOnly",
+	        type = "string",
+        },
+		carrier = {
+	        access = "readOnly",
+	        type = "string",
+        },
+		dormant = {
+	        access = "readOnly",
+	        type = "string",
+        },
+		duplex = {
+	        access = "readOnly",
+	        type = "string",
+        },
+		flags = {
+	        access = "readOnly",
+	        type = "string",
+        },
+		link_mode = {
+	        access = "readOnly",
+	        type = "string",
+        },
+		mtu = {
+	        access = "readOnly",
+	        type = "string",
+        },
+		operstate = {
+	        access = "readOnly",
+	        type = "string",
+        },
+		speed = {
+	        access = "readOnly",
+	        type = "string",
+        },
+		tx_queue_len = {
+	        access = "readOnly",
+	        type = "string",
+        },
+    },
+  }
+}
+
+local syspath = "/sys/class/net/"
+local network = require("transformer.shared.common.network")
+
+local function entriesSysClassNet(mapping)
+   local entries = {}
+   for file in lfs.dir(syspath) do
+      if lfs.attributes(syspath .. file,"mode") == "directory" then
+         -- Filter out logic interface for TG-1600
+         if not (file == "." or file == ".." or file == "eth0.0" or file == "eth1.0" or file == "eth2.0" or file == "eth3.0") then
+            table.insert(entries, file)
+         end
+      end
+   end
+   return entries
+end
+
+local function get(mapping, paramName, key)
+   local result = network.getFirstLine(syspath .. key .. "/" .. paramName)
+   if result == "" then
+     if paramName == "speed" then
+       return "0"
+     elseif paramName == "duplex" then
+       return "N/A"
+     end
+   end
+   return result
+end
+
+
+sys_class_net_.entries = entriesSysClassNet
+sys_class_net_.get = get
+register(sys_class_net_)
+

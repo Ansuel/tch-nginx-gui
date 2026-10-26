@@ -1,0 +1,758 @@
+local lfs = require("lfs")
+if lfs.attributes("/etc/config/mmpbx", "mode") ~= "file" then
+  return
+end
+local uci_helper = mapper("ucihelper")
+local binding = {config = "mmpbx"}
+local transactions = {}
+local mt = { __index = function() return "" end }
+local common_default = setmetatable({}, mt)
+local set_on_uci = uci_helper.set_on_uci
+local dial_binding = {config = "mmpbx" , sectionname = "dial_plan_entry"}
+local au_binding = {config = "mmpbx", sectionname = "audionotification"}
+local profile_helper = require("transformer.shared.profile_helper")
+local function Commit()
+    local binding = {}
+    for config in pairs(transactions) do
+        binding.config = config
+        uci_helper.commit(binding)
+    end
+    transactions = {}
+end
+local function Revert()
+    local binding = {}
+    for config in pairs(transactions) do
+        binding.config = config
+        uci_helper.revert(binding)
+    end
+    transactions = {}
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.NumberingPlan.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            MinimumNumberOfDigits = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                         min = "1",
+                         max = "40",
+                    },
+                },
+              },
+            MaximumNumberOfDigits = {
+                access = "readOnly",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                        max = "40",
+                    },
+                },
+              },
+            InterDigitTimerStd = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                        max = "50000",
+                    },
+                },
+            },
+            InterDigitTimerOpen = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                        max = "50000",
+                    },
+                },
+            },
+            InvalidNumberTone = {
+                access = "readOnly",        -- ReadWrite not supported.
+                type = "unsignedInt",
+                description = "The tone that should be provided to the user when the number dialed is determined to be invalid",
+            },
+            PrefixInfoMaxEntries = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            --      -- PrefixInfoNumberOfEntries
+            --      -- automatically created when Multi.Services.VoiceService.{i}.VoiceProfile.{i}.NumberingPlan.PrefixInfo.{i}. is loaded
+        }
+    }
+}
+
+local function isInTable(value, list)
+    if (type(list) ~= "table") then
+       return nil
+    end
+    for _ , element in pairs(list) do
+        if element == value then
+            return true
+        end
+    end
+    return false
+end
+
+local dial_map = {
+    value = {
+        InterDigitTimerStd = "closed_inter_digit_timer",
+        InterDigitTimerOpen = "open_inter_digit_timer",
+        MinimumNumberOfDigits = function()
+            local minLength = 40
+            local flag = false
+            uci_helper.foreach_on_uci(dial_binding, function(section)
+                if tonumber(section.min_length) <= tonumber(minLength) then
+                    minLength=tonumber(section.min_length)
+                    flag = true
+                end
+            end)
+            if flag == true then
+                return tostring(minLength)
+            else
+                return "1"
+            end
+        end,
+        MaximumNumberOfDigits = function()
+            local maxLength = 1
+            local flag = false
+            uci_helper.foreach_on_uci(dial_binding, function(section)
+                if tonumber(section.max_length) >= tonumber(maxLength) then
+                    maxLength= tonumber(section.max_length)
+                    flag = true
+                end
+            end)
+            if flag == true then
+                return tostring(maxLength)
+            else
+                return "40"
+            end
+        end,
+        InvalidNumberTone = function()
+            local toneID
+            uci_helper.foreach_on_uci(au_binding, function(s)
+                if isInTable("DISCONNECTED_LOCAL_DIALPLANNOTALLOWED", s.event_description) then
+                    toneID = s.toneID
+                    return false
+                end
+            end)
+            return toneID or ""
+        end,
+    },
+    default = setmetatable({
+        PrefixInfoMaxEntries = "128"
+    }, mt),
+
+}
+
+local set_dial_map = {
+    InterDigitTimerStd = true,
+    InterDigitTimerOpen = true,
+    MinimumNumberOfDigits = function(value)
+        local binding = {config = "mmpbx" , sectionname = "dial_plan_entry"}
+        uci_helper.foreach_on_uci(binding, function(section)
+            binding.sectionname = section['.name']
+            binding.option = "min_length"
+            uci_helper.set_on_uci(binding, value, commitapply)
+            transactions[binding.config] = true
+        end)
+        return true
+    end,
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_.get = function(mapping, param, key)
+    binding.sectionname = "dial_plan_generic"
+    if dial_map.value[param] then
+	if type(dial_map.value[param]) == "function" then
+           return dial_map.value[param](object)
+        else
+            binding.option = dial_map.value[param]
+            return uci_helper.get_from_uci(binding)
+        end
+    else
+        return dial_map.default[param]
+    end
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_.set = function(mapping, param, value, key)
+    binding.sectionname = "dial_plan_generic"
+    if set_dial_map[param] then
+        if type(set_dial_map[param]) == "function" then
+            return set_dial_map[param](value)
+	else
+            binding.option = dial_map.value[param]
+            uci_helper.set_on_uci(binding, value, commitapply)
+            transactions[binding.config] = true
+            return true
+        end
+    else
+        return nil, "Not supported currently"
+    end
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_.commit = Commit
+
+Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_.revert = Revert
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.NumberingPlan.PrefixInfo.{i}.",
+        access = "readWrite",
+        minEntries = 0,
+        maxEntries = math.huge,
+        numEntriesParameter = "PrefixInfoNumberOfEntries",
+        parameters = {
+            PrefixRange = {
+                access = "readWrite",
+                type = "string",
+                max = "42",
+                default = "",
+            },
+            PrefixMinNumberOfDigits = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                        max = "40",
+                    },
+                },
+                default = "1",
+            },
+            PrefixMaxNumberOfDigits = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                        max = "40",
+                    },
+                },
+                default = "1",
+            },
+            NumberOfDigitsToRemove = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "40",
+                    },
+                },
+                default = "0",
+            },
+            PosOfDigitsToRemove = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "40",
+                    },
+                },
+                default = "0",
+            },
+            DialTone = {
+                access = "readOnly",     -- ReadWrite not supported.
+                type = "unsignedInt",
+                default = "0",
+                description = "The tone to be played by the VoIP device when the user has dialed exactly the same digits as defined in the prefix",
+            },
+            FacilityAction = {
+                access = "readWrite",
+                type = "string",
+                max = "64",
+                default = "",
+            },
+          FacilityActionArgument = {
+              access = "readWrite",
+              type = "string",
+              max = "256",
+              default = "",
+          },
+  --        X_000E50_DefaultPort = {
+  --            access = "readWrite",
+  --            type = "string",
+  --            enumeration = {
+  --                "FXS1",
+  --                "FXS2",
+  --                "FXO",
+  --                "VoIP",
+  --                "NA"
+  --            },
+  --        },
+  --        X_000E50_FallBackPort = {
+  --            access = "readWrite",
+  --            type = "string",
+  --            enumeration = {
+  --                "FXS1",
+  --                "FXS2",
+  --                "FXO",
+  --                "VoIP",
+  --                "NA"
+  --            },
+  --        },
+  --          X_000E50_Fallback = {
+  --              access = "readWrite",
+  --              type = "boolean",
+  --              default = "false",
+  --          },
+            X_000E50_Priority = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "Low",
+                    "High",
+                    "NA"
+                },
+            },
+            X_000E50_Insert = {
+                access = "readWrite",
+                type = "string",
+                max = "10",
+                default = "",
+            },
+            X_000E50_InsertPoint = {
+                access = "readWrite",
+                type = "unsignedInt",
+                default = "0",
+            },
+  --        X_000E50_Rescan = {
+  --            access = "readWrite",
+  --            type = "boolean",
+  --            default = "false",
+  --        },
+            X_000E50_Data = {
+                access = "readWrite",
+                type = "boolean",
+                default = "false",
+            },
+            X_000E50_Action = {
+                access = "readWrite",
+                type = "string",
+                default = "",
+            },
+            X_000E50_Enabled = {
+                access = "readWrite",
+                type = "boolean",
+                default = "false",
+           },
+           X_000E50_Index = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                        max = "65535",
+                    },
+                },
+                default = "1",
+                description = "The index parameter is used for priority selection mode. The higher the index the lower the priority",
+           },
+           X_BELGACOM_InterDigitTimerOpen = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "30000",
+                    },
+                },
+                description = "The inter-digit timer is used to configure the amount of time the phone waits after each digit is dialled before it assumes the user has finished entering digits and automatically sends the dialled number"
+            },
+        }
+    }
+}
+
+local function generateKey(ntype, keyid)
+    return ntype .. "|" .. keyid
+end
+local function getInfoFromKey(key)
+    local ntype, keyid = key:match("^(.*)|(.*)")
+    if not ntype then
+        ntype, keyid = "", ""
+    end
+    return ntype, keyid
+end
+
+local content_entries = {}
+local scc_binding = {config = "mmpbx", sectionname = "scc_entry"}
+local dialplanentry_binding = {config = "mmpbx", sectionname = "dial_plan_entry"}
+local profile_binding = {config = "mmpbx", sectionname = "profile"}
+local service_binding = {config="mmpbx", sectionname="service"}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_.entries = function (mapping, parentkey)
+    local entries = {}
+    local service_provisioned = {}
+    content_entries = {}
+
+    if parentkey:match("mmpbxrvsipdev") then
+        return entries
+    end
+
+    local digitmap_binding = { config = "mmpbx", sectionname = "dial_plan_generic" , option = "digit_map" }
+    if uci_helper.get_from_uci(digitmap_binding) == "1" then
+        return entries
+    end
+
+    local flag = false
+    --Record services which are provisioned
+    uci_helper.foreach_on_uci(service_binding, function(section)
+        if (section.provisioned == "1") then
+            service_provisioned[section["type"]] = true
+        end
+    end)
+
+    uci_helper.foreach_on_uci(scc_binding, function(s)
+        -- scc_entry is an unnamed config entry, generate a unique key to keyid if
+        -- across reboot if needed.
+        if (not s._key) then
+            binding.sectionname = s[".name"]
+            s._key = uci_helper.generate_key_on_uci(binding)
+            flag = true
+        end
+        -- Only add the scc if its related service is provisioned and datamodel_disabled option is not set to '1'
+        if service_provisioned[s["service_type"]] and s.datamodel_disabled ~= '1' then
+            entries[#entries + 1] = generateKey("scc_entry", s._key)
+            content_entries[s._key] = s
+        end
+    end)
+
+    uci_helper.foreach_on_uci(dialplanentry_binding, function(s)
+        -- dial_plan_entry is an unnamed config entry, generate a unique key to keyid if
+        -- across reboot if needed.
+        if (not s._key) then
+            binding.sectionname = s[".name"]
+            s._key = uci_helper.generate_key_on_uci(binding)
+            flag = true
+        end
+            entries[#entries + 1] = generateKey("dial_plan_entry", s._key)
+            content_entries[s._key] = s
+    end)
+
+    if flag then
+        uci_helper.commit_keys(binding)
+    end
+
+    uci_helper.foreach_on_uci(profile_binding, function(s)
+        --Add all sip profiles
+        if(s['.name']:match("sip_profile")) then
+            entries[#entries + 1] = generateKey("profile", s['.name'])
+            content_entries[s['.name']] = s
+        end
+    end)
+    return entries
+end
+
+local number_common_default = setmetatable({
+    NumberOfDigitsToRemove = "0",
+    PosOfDigitsToRemove = "0",
+    X_000E50_Priority = "NA",
+    X_000E50_Data = "0",
+    X_000E50_InsertPoint = "0",
+    X_000E50_Insert = "",
+    X_000E50_Index = "1",
+    X_BELGACOM_InterDigitTimerOpen = "0",
+    FacilityActionArgument = "",
+    DialTone = "0",
+}, mt)
+
+local scc_entry_map = {
+    value = {
+        PrefixRange = "pattern",
+        PrefixMinNumberOfDigits = function(object)
+            return object.pattern and tostring(#object.pattern) or "0"
+        end,
+        X_000E50_Action = function(object)
+            return string.format("%s_%s", object.action or "", object.service_type or "")
+        end,
+        X_000E50_Enabled = "enabled",
+        FacilityAction = function(object)
+            return string.format("%s_%s", object.action or "", object.service_type or "")
+        end,
+    },
+    default = number_common_default
+}
+scc_entry_map.default["PrefixMaxNumberOfDigits"] = "30"
+
+local selectionmode_binding = { config = "mmpbx", sectionname = "dial_plan_generic", option = "selection_mode" }
+local dial_plan_entry_map = {
+    value = {
+        PrefixRange = function(object)
+            local pattern = object.pattern
+            if pattern and (pattern:sub(1, 1) == "^") then
+                pattern = pattern:sub(2)
+            end
+            return pattern or ""
+        end,
+        PrefixMinNumberOfDigits = "min_length",
+        PrefixMaxNumberOfDigits = "max_length",
+        NumberOfDigitsToRemove = "remove_number_of_characters",
+        PosOfDigitsToRemove = "position_of_modify",
+        X_000E50_Priority = function(object)
+            local priority = object.priority
+            priority = (priority=="high") and "High" or "Low"
+            return priority
+        end,
+        X_000E50_Insert = "insert",
+        X_000E50_InsertPoint = "position_of_modify",
+        X_000E50_Data = "data",
+        X_000E50_Action = function(object)
+            if (object.include_eon) then
+                local eon = object.include_eon
+                if (eon== "1") then
+                    return "ROUTE_incl_eon"
+                end
+            end
+        return "ROUTE_excl_eon"
+        end,
+        X_000E50_Enabled = "enabled",
+        X_000E50_Index = function(object)
+            local selectionMode = uci_helper.get_from_uci(selectionmode_binding)
+            local index
+            if selectionMode == "priority" then
+                index = object.index
+            end
+            return index or number_common_default[X_000E50_Index]
+        end,
+        X_BELGACOM_InterDigitTimerOpen = "open_inter_digit_timer",
+        FacilityAction = function(object)
+            if (object.include_eon) then
+                local eon = object.include_eon
+                if (eon== "1") then
+                    return "ROUTE_incl_eon"
+                end
+            end
+        return "ROUTE_excl_eon"
+        end,
+        DialTone = function(object)
+            local toneID = "0"
+            uci_helper.foreach_on_uci(au_binding, function(s)
+                if isInTable("DIALING_PROFILE_USABLE", s.event_description) then
+                    toneID = s.toneID
+                    return false
+                end
+            end)
+            return toneID
+        end,
+    },
+    default = number_common_default
+}
+   dial_plan_entry_map.default["X_000E50_Action"] = "ROUTE_excl_eon"
+
+local profile_map = {
+    value = {
+        PrefixRange = function(object, name)
+            local pbinding = {}
+            pbinding.config = object.config
+            pbinding.sectionname = name
+            pbinding.option = "uri"
+	    local val = uci_helper.get_from_uci(pbinding) or ""
+            pbinding.option = "enabled"
+	    local isEnabled = uci_helper.get_from_uci(pbinding) or ""
+	    return isEnabled == "0" and "" or val
+        end,
+        PrefixMinNumberOfDigits = scc_entry_map.value.PrefixMinNumberOfDigits,
+        PrefixMaxNumberOfDigits = PrefixMinNumberOfDigits,
+    },
+    default = number_common_default
+}
+profile_map.default["X_000E50_Priority"] = "Low"
+
+local number_maps = {
+    scc_entry = scc_entry_map,
+    dial_plan_entry = dial_plan_entry_map,
+    profile = profile_map,
+}
+
+local set_scc_entry_map = {}
+
+local set_dial_plan_entry_map = {
+    PrefixRange = function(object, value)
+        local pattern = ""
+        if(value == "\"\"") then
+            return nil, "Should not be set"
+        else
+            pattern = "^" .. value
+            binding.option = "pattern"
+            uci_helper.set_on_uci(binding, pattern, commitapply)
+            transactions[binding.config] = true
+        end
+    end,
+    PrefixMinNumberOfDigits = function(object, value)
+        local prefix_max_len = ""
+        prefix_max_len = (object and object.max_length) or ""
+        if(value == "\"\"") then
+            return nil, "Should not be set"
+        else
+            binding.option = "min_length"
+            uci_helper.set_on_uci(binding, value, commitapply)
+            transactions[binding.config] = true
+            if (tonumber(value)>tonumber(prefix_max_len)) then
+                binding.option = "max_length"
+                uci_helper.set_on_uci(binding, value, commitapply)
+                transactions[binding.config] = true
+            end
+        end
+    end,
+    PrefixMaxNumberOfDigits = function(object, value)
+        local prefix_min_len = ""
+        prefix_min_len = (object and object.min_length) or ""
+        if(value == "\"\"") then
+            return nil, "should not be set"
+        else
+            binding.option = "max_length"
+            uci_helper.set_on_uci(binding, value, commitapply)
+            transactions[binding.config] = true
+            if (tonumber(value)<tonumber(prefix_min_len)) then
+                binding.option = "min_length"
+                uci_helper.set_on_uci(binding, value, commitapply)
+                transactions[binding.config] = true
+            end
+        end
+    end,
+    NumberOfDigitsToRemove = true,
+    PosOfDigitsToRemove = true,
+    X_000E50_Priority = function(object, value)
+        value = string.lower(value)
+        binding.option = "priority"
+        uci_helper.set_on_uci(binding, value, commitapply)
+        transactions[binding.config] = true
+    end,
+    X_000E50_Insert = true,
+    X_000E50_InsertPoint = true,
+    X_000E50_Data = true,
+    X_000E50_Action = function(object, value)
+        local incl_eon = "0"
+        if (value =="ROUTE_incl_eon") then
+            incl_eon = "1"
+        end
+        binding.option = "include_eon"
+        set_on_uci(binding, incl_eon, commitapply)
+    end,
+    X_000E50_Enabled = "enabled",
+    X_000E50_Index = function(object, value)
+        local selectionMode = uci_helper.get_from_uci(selectionmode_binding)
+        if selectionMode == "priority" then
+            binding.option = "index"
+            set_on_uci(binding, value, commitapply)
+        else
+            return nil, "Index value can be set only if the selection mode is priority"
+        end
+    end,
+    X_BELGACOM_InterDigitTimerOpen = "true",
+    FacilityActionArgument = function(object, value)
+    end,
+    FacilityAction = function(object, value)
+        local incl_eon = "0"
+        if (value =="ROUTE_incl_eon") then
+            incl_eon = "1"
+        end
+        binding.option = "include_eon"
+        set_on_uci(binding, incl_eon, commitapply)
+    end,
+}
+
+local set_profile_map = {}
+
+local set_number_maps = {
+    scc_entry = set_scc_entry_map,
+    dial_plan_entry = set_dial_plan_entry_map,
+    profile = set_profile_map,
+}
+
+
+Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_.getall = function(mapping, key)
+    local ntype, keyid = getInfoFromKey(key)
+    local object = content_entries[keyid]
+    local map = number_maps[ntype]
+
+    local data = {}
+
+    for p,_ in pairs(Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_.objectType.parameters) do
+        if map.value[p] then
+            if type(map.value[p]) == 'function' then
+                data[p] = map.value[p](object, keyid)
+            else
+                data[p] = object[map.value[p]]
+            end
+        end
+        data[p] = data[p] or map.default[p]
+    end
+    return data
+end
+
+
+Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_.get = function(mapping, param, key)
+    local ntype, keyid = getInfoFromKey(key)
+    local object = content_entries[keyid]
+    local map = number_maps[ntype]
+    local result
+    if map.value[param] then
+        if type(map.value[param]) == "function" then
+            result = map.value[param](object, keyid)
+        else
+            result = object[map.value[param]]
+        end
+    end
+    return result or map.default[param]
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_.set = function(mapping, param, value, key)
+    local ntype, keyid = getInfoFromKey(key)
+    local object = content_entries[keyid]
+    local map = number_maps[ntype]
+    local set_map = set_number_maps[ntype]
+
+    if set_map[param] then
+        binding.sectionname = object['.name']
+        if type(set_map[param]) == "function" then
+            if (param == "FacilityActionArgument" and value ~= "") then
+                  return false, "Invalid parameter value"
+            end
+            set_map[param](object, value)
+            transactions[binding.config] = true
+            return true
+        elseif type(map.value[param]) == "string" then
+            binding.option = map.value[param]
+            uci_helper.set_on_uci(binding, value, commitapply)
+            transactions[binding.config] = true
+            return true
+        end
+    end
+    return nil, "Not supported currently"
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_.commit = Commit
+
+Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_.revert = Revert
+
+
+Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_.add = function(mapping)
+    return profile_helper.add_sip_dial_plan_entry(0,sip_net,transactions, commitapply)
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_.delete = function (mapping,key)
+    local ntype,keyid=getInfoFromKey(key)
+    local dp_entry=content_entries[keyid]
+    return profile_helper.delete_sip_dial_plan_entry(dp_entry['.name'],transactions, commitapply)
+end
+
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

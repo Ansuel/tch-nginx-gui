@@ -1,0 +1,515 @@
+local SYSTEM_TCPDUMP_ = {
+  objectType = {
+    name = 'rpc.system.tcpdump.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      state = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Complete",
+          "Error",
+        },
+      },
+      interface = {
+        access = "readWrite",
+        type = "string",
+      },
+      type = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "pcap",
+          "log",
+        },
+      },
+      refcount = {
+        access = "readOnly",
+        type = "string",
+      },
+      refcountusb = {
+        access = "readOnly",
+        type = "string",
+      },
+      count = {
+        access = "readWrite",
+        type = "string",
+      },
+      intflist = {
+        access = "readOnly",
+        type = "string",
+      },
+      file = {
+        access = "readOnly",
+        type = "string",
+      },
+      usbstatus = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Connected",
+          "Disconnected",
+        },
+      },
+      saveonusb = {
+        access = "readWrite",
+        type = "boolean",
+      },
+    }
+  }
+}
+
+---------------------------------------------------------------------
+-- Local Variables
+---------------------------------------------------------------------
+local posix = require("tch.posix")
+local match, gmatch = string.match, string.gmatch
+local lfs = require("lfs")
+local execute, exit, remove = os.execute, os.exit, os.remove
+local open = io.open
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
+local log = logger.new("tcpdump",2)
+
+local MAX_COUNT = "16000"
+local TCPDUMP_PCAP = "/tmp/tcpdumpGUI.pcap"
+local TCPDUMP_LOG = "/tmp/tcpdumpGUI.log"
+local TCPDUMP_COMPL = "/tmp/.tcpdumpGUI.compl"
+local TCPDUMP_SH = "/tmp/.tcpdumpGUI.sh"
+local FC_ENABLED = "fcctl enable; fcctl config --mcast 3;"
+local FC_DISABLED = "fcctl disable;fcctl config --mcast 0;"
+local tcpdump_info = { state = "None", interface = "br-lan", acc = "1", refcount=MAX_COUNT, count = 0, type = "pcap" , file = "", intflist = "", intftable = {}, pid = 0, saveonusb = "0", refcountusb = "0" }
+
+local function isWritePermissionEnabled(dirPath)
+  local file1 = dirPath .. "/" .. "test.txt"
+  local file2 = open(file1, "w")
+  if file2 then
+    file2:close()
+    remove(file1)
+    return true
+  end
+  return false
+end
+
+local function getUSBSortedPath(path)
+  local usbPath = {}
+  for file in lfs.dir(path) do
+    usbPath[#usbPath+1] = file:match("[^%.]*")
+  end
+  table.sort(usbPath)
+  return usbPath
+end
+
+-- Function to return the dirctory name in the path specified(used to get the usb mount path) in case of reboot the mount path changes
+local function getDirName()
+  local path = "/mnt/usb"
+  local dirPath
+  local usbPath = getUSBSortedPath(path)
+  for _, file in ipairs(usbPath) do
+    -- file matches only USB-A1 or USB-B1 allowed
+    if file and file:match("^%u+-%u%d$") then
+      dirPath = path .. "/" .. file
+    end
+    if dirPath and (lfs.attributes(file, "mode") ~= "directory") and isWritePermissionEnabled(dirPath) then
+      return dirPath
+    end
+  end
+  return ""
+end
+
+---------------------------------------------------------------------
+-- Local Functions
+---------------------------------------------------------------------
+
+local function readfile(path)
+  local file = open(path, "rb")
+  if not file then
+    return ""
+  end
+  local content = file:read "*a"
+  file:close()
+  return content
+end
+
+-- to return the lines present in the "tcpdump -D" command
+local function readlines(f)
+  local lines = {}
+  repeat
+    local line = f:read("*l")
+    if line then
+      if not line:match("Loopback") then
+        local intf = line:match("^%d+.(%S+)")
+        if not intf:match("lo$") and intf ~= "bcmsw" and intf ~= "any" then
+          lines[#lines+1] = intf
+        end
+      end
+    end
+  until not line
+  return lines
+end
+
+-- to get all valid tcpdump interfaces
+local function getlist()
+  local popen = require("modgui").popen
+  local fd = popen("tcpdump -D")
+  local list = {}
+  tcpdump_info.intflist = ""
+  if fd then
+    list = readlines(fd)
+    fd:close()
+  end
+  table.sort(list)
+  for _,v in ipairs(list) do
+     tcpdump_info.intflist = tcpdump_info.intflist.." "..v
+  end
+  return tcpdump_info.intflist
+end
+
+-- 1/2 of free memory (exclude min_free_kbytes)
+local function getrefcount()
+  tcpdump_info.refcount = MAX_COUNT
+  -- oom
+  local oom = tonumber(readfile("/proc/sys/vm/min_free_kbytes"))
+  -- free
+  local f = open("/proc/meminfo","r")
+  local free = ""
+  for l in f:lines() do
+    local key, n, units = l:match("^([^:%s]+):%s+(%d+)%s?(%a?%a?)$")
+    if key and key == "MemFree" and units == "kB" then
+      free = tonumber(n)
+      break
+    end
+  end
+  f:close();
+  --refcount calc : 16MB is around 16000 number of packets
+  if type(oom) == "number" and type(free) == "number" then
+    tcpdump_info.refcount = tostring(math.modf((free-oom)/2000)*1000)
+  end
+  return tcpdump_info.refcount
+end
+
+local function pathexists(path)
+  local file = open(path, "rb")
+  if file then
+    file:close()
+    return true
+  end
+  return false
+end
+
+tcpdump_info.count = tostring(MAX_COUNT/2)
+remove(TCPDUMP_SH)
+remove(TCPDUMP_COMPL)
+
+local function fc_enabled()
+  if pathexists("/proc/fcache") then
+    execute(FC_ENABLED)
+  end
+end
+
+local function fc_disabled()
+  if pathexists("/proc/fcache") then
+    execute(FC_DISABLED)
+  end
+end
+
+local function createscript()
+  if pathexists(TCPDUMP_SH) then
+    return
+  end
+--[[
+  #/bin/sh
+  type=$1
+  interface=$2
+  count=$3
+  file=$4
+
+  if [ $type = pcap ]; then
+    /usr/sbin/tcpdump -i $interface -w $file -c $count
+  else
+    /usr/sbin/tcpdump -i $interface -l -c $count | tee $file
+  fi
+  touch "/tmp/.tcpdumpGUI.compl"
+  fcctl enable;fcctl config --mcast 3
+--]]
+
+  -- create script file /tmp/.tcpdump_gui.sh
+  -- fcctl enable
+  -- fcctl config --mcast 3
+  execute("echo 'type=\$1\
+interface=\$2\
+count=\$3\
+file=\$4\
+if [ \$type = pcap ]; then\
+  /usr/sbin/tcpdump -i \$interface -w \$file -c \$count;\
+else\
+  /usr/sbin/tcpdump -i \$interface -l -c \$count | tee \$file\
+fi\
+touch " .. TCPDUMP_COMPL .. "' > " .. TCPDUMP_SH)
+  if pathexists("/proc/fcache") then
+    execute("echo '" .. FC_ENABLED .. "' >> " .. TCPDUMP_SH)
+  end
+end
+
+local function killtcpdump()
+  if tcpdump_info.pid > 0 then
+    execute("pgrep -P " .. tcpdump_info.pid .. " | xargs kill -9")
+    tcpdump_info.pid = 0
+    fc_enabled()
+  end
+end
+
+--- Function to get USB status
+local function getUSBStatus()
+  local usbDevicesPath = "/sys/bus/usb/devices/"
+  for file in lfs.dir(usbDevicesPath) do
+    if file:match("^%d+-[%d%.]+$") then
+      local fileName = usbDevicesPath .. file .. "/"
+      for usbpath in lfs.dir(fileName) do
+        if usbpath:match("^%d+-[%d%.]+:[%d]%.[%d]$") then
+          local fd = open(fileName .. usbpath .. "/bInterfaceClass")
+          if fd then
+            local value = fd:read("*l")
+            if value == "08" then
+              return "Connected"
+            end
+            fd:close()
+          end
+        end
+      end
+    end
+  end
+  return "Disconnected"
+end
+
+-- 1/2 of free space on usb
+local function getrefcountusb()
+  tcpdump_info.refcountusb = "0"
+  if getUSBStatus() == "Connected" then
+    local mount = getDirName()
+    local result, statvfs_info = pcall(posix.statvfs, mount)
+    if not result or type(statvfs_info) ~= "table" then
+      return tcpdump_info.refcountusb
+    end
+    local free_size = statvfs_info.f_bsize * statvfs_info.f_bfree/1024
+    if type(free_size) == "number" then
+      tcpdump_info.refcountusb = tostring(math.modf(0.5*free_size))
+    end
+  end
+  return tcpdump_info.refcountusb
+end
+
+-- Function to get 'saveonusb' is enabled/disabled
+local function getSaveOnUSB()
+  return tcpdump_info.saveonusb
+end
+
+-- Function to create new directory when usb is connected
+local function createDir(dirName)
+  if lfs.attributes(dirName, "mode") ~= "directory" then
+    if not lfs.mkdir(dirName) then
+      return false
+    end
+  end
+  return true
+end
+
+-- Function to return the new file path for connected USB
+local function createUSBPath()
+  local type = tcpdump_info.type
+  local dirPath = getDirName()
+  local dirName = dirPath .. "/" .. "packetcapture"
+  local success = createDir(dirName)
+  if not success then
+    return nil
+  end
+  if type == "log" then
+    return dirName .. "/" .. "tcpdumpGUI.log"
+  end
+  return dirName .. "/" .. "tcpdumpGUI.pcap"
+end
+
+-- Function to return existing file path in USB
+local function getUSBFileName()
+  local type = tcpdump_info.type
+  local filePath = ""
+  local usbMountPath = getDirName() .. "/" .. "packetcapture"
+  if lfs.attributes(usbMountPath, "mode") == "directory" then
+    filePath = usbMountPath .. "/" .. "tcpdumpGUI.pcap"
+    if type == "log" then
+      filePath = usbMountPath .. "/" .. "tcpdumpGUI.log"
+    end
+  end
+  return filePath or ""
+end
+
+-- Function to return the File name
+local function getFileName()
+    local saveOnUsb = getSaveOnUSB()
+    local usbStatus = getUSBStatus()
+    if usbStatus == "Disconnected" then
+      tcpdump_info.saveonusb = "0"
+      saveOnUsb = "0"
+    end
+    if saveOnUsb == "1" and usbStatus == "Connected" then
+      local usbFileName = getUSBFileName()
+      return usbFileName or ""
+    end
+    return tcpdump_info.file
+end
+
+-- commit function
+local function statecommit()
+  local saveOnUsb = getSaveOnUSB()
+  local type = tcpdump_info.type
+  if tcpdump_info.state == "Requested" then
+    remove(TCPDUMP_PCAP)
+    remove(TCPDUMP_LOG)
+    local pid = posix.fork()
+    if not pid then
+      tcpdump_info.state = "Error"
+      log:info("execute tcpdump failed!")
+    elseif pid == 0 then -- pid 0 is the child process
+      createscript()
+
+      --disable accelerate during tcpdump
+      fc_disabled()
+      if saveOnUsb == "1" then
+        tcpdump_info.file = createUSBPath()
+      elseif type == "log" then
+        tcpdump_info.file = TCPDUMP_LOG
+      else
+        tcpdump_info.file = TCPDUMP_PCAP
+      end
+      local args = { TCPDUMP_SH, tcpdump_info.type, tcpdump_info.interface, tcpdump_info.count, tcpdump_info.file }
+      local _, err = posix.execv("/bin/sh", args)
+      -- execv failed; exit the child process.
+      log:info("child exit err: " .. err)
+      fc_enabled()
+      exit(0)
+    elseif pid > 0 then -- parent process
+      tcpdump_info.pid = tonumber(pid) -- get child pid in parent
+    end
+    -- Succeeded.
+  elseif tcpdump_info.state == "Complete" then
+    killtcpdump()
+    remove(TCPDUMP_COMPL)
+  elseif tcpdump_info.state == "None" then
+    killtcpdump()
+    if saveOnUsb == "1" then
+      local filePath = getUSBFileName()
+      remove(filePath)
+    end
+    remove(TCPDUMP_PCAP)
+    remove(TCPDUMP_LOG)
+  end
+end
+
+---------------------------------------------------------------------
+-- get/set/commit
+---------------------------------------------------------------------
+SYSTEM_TCPDUMP_.get = {
+  state = function(mapping, param)
+    if tcpdump_info.state == "Requested" then
+      -- incase tcpdump quit after <count>, touch "/tmp/.tcpdumpGUI.compl"
+      if pathexists(TCPDUMP_COMPL) then
+        killtcpdump()
+        remove(TCPDUMP_COMPL)
+        tcpdump_info.state = "Complete"
+      elseif pathexists(TCPDUMP_COMPL) ~= true and tcpdump_info.pid ~= 0 and pathexists("/proc/" .. tcpdump_info.pid) then
+        log:info("state = Requested")
+      else
+        killtcpdump()
+        tcpdump_info.state = "Error"
+      end
+    end
+    return tcpdump_info.state
+  end,
+  interface = function(mapping, param, value)
+    return tcpdump_info.interface
+  end,
+  refcount = getrefcount,
+  refcountusb = getrefcountusb,
+  count = function(mapping, param, value)
+    return tcpdump_info.count
+  end,
+  type = function(mapping, param, value)
+    return tcpdump_info.type
+  end,
+  intflist = getlist,
+  file = getFileName,
+  usbstatus = getUSBStatus,
+  saveonusb = getSaveOnUSB,
+}
+
+--[[
+"None"
+   -- Requested
+"Requested"
+   -- Complete
+"Complete"
+   -- Requested
+"Error"
+   -- Requested
+--]]
+SYSTEM_TCPDUMP_.set = {
+  state = function(mapping, param, value)
+    if (tcpdump_info.state == "None" and value == "Requested")
+      or (tcpdump_info.state == "Requested" and value == "Complete")
+      or ((tcpdump_info.state == "Complete" or tcpdump_info.state == "Error") and (value == "None" or value == "Requested")) then
+        tcpdump_info.state = value
+    else
+      return nil, "set state failed"
+    end
+  end,
+  interface = function(mapping, param, value)
+    getlist()
+    for w in gmatch(tcpdump_info.intflist, "%S+") do
+      if value == w then
+        tcpdump_info.interface = value
+        tcpdump_info.state = "None"
+        return true
+      end
+    end
+    return nil, "invalid interface "..value
+  end,
+  type = function(mapping, param, value)
+    tcpdump_info.type = value
+    tcpdump_info.state = "None"
+    if value == "pcap" then
+      tcpdump_info.file = TCPDUMP_PCAP
+    else
+      tcpdump_info.file = TCPDUMP_LOG
+    end
+  end,
+  count = function(mapping, param, value)
+    local count = tonumber(value)
+    if count == nil or count <= 0 or count > tonumber(MAX_COUNT) then
+      return nil, "invalid value " .. value .. " : [1, " .. MAX_COUNT .. "]"
+    else
+      tcpdump_info.count = value
+      tcpdump_info.state = "None"
+    end
+  end,
+  saveonusb = function(mapping, param, value)
+    if getUSBStatus() == "Disconnected" then
+      return nil, "USB is not connected, save on usb will not be enabled/disabled"
+    end
+    tcpdump_info.saveonusb = value
+  end,
+}
+
+SYSTEM_TCPDUMP_.commit = function()
+  statecommit()
+end
+
+---------------------------------------------------------------------
+-- register
+---------------------------------------------------------------------
+if pathexists("/usr/sbin/tcpdump") then
+  register(SYSTEM_TCPDUMP_)
+end

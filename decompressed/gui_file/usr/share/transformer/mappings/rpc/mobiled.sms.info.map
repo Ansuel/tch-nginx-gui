@@ -1,0 +1,48 @@
+local sms = {
+	objectType = {
+		name = "rpc.mobiled.sms.info.",
+		access = "readOnly",
+		minEntries = 1,
+		maxEntries = 1,
+		parameters = {
+			read_messages = {
+				access = "readOnly",
+				type = "unsignedInt",
+			},
+			unread_messages = {
+				access = "readOnly",
+				type = "unsignedInt",
+			},
+			max_messages = {
+				access = "readOnly",
+				type = "unsignedInt",
+			},
+			total_messages = {
+				access = "readOnly",
+				type = "unsignedInt",
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+function sms.getall(mapping)
+	local data = helper.getUbusData(conn, "mobiled.sms", "info")
+	if data.read_messages ~= "" and data.unread_messages ~= "" then
+		data.total_messages = tostring(tonumber(data.read_messages) + tonumber(data.unread_messages))
+	end
+	return data
+end
+
+function sms.get(mapping, paramName)
+	return sms.getall(mapping)[paramName]
+end
+
+register(sms)
+

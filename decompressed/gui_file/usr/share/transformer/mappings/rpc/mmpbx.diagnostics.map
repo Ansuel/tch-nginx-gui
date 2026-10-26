@@ -1,0 +1,75 @@
+local uci = require('uci')
+local uci_helper = mapper("ucihelper")
+local get_from_uci = uci_helper.get_from_uci
+local set_on_uci = uci_helper.set_on_uci
+local commit = uci_helper.commit
+local voipDiagnostics = { config = "mmpbx", sectionname = "voipdiagnostics" }
+
+
+local mmpbx_voip_diagnostics = {
+    objectType = {
+        name = 'rpc.mmpbx.voipdiagnostics.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            enabled = {
+                access = "readWrite",
+                type = "boolean"
+            },
+            path = {
+                access = "readWrite",
+                type = "string",
+                max = "256"
+            },
+            filename = {
+                access = "readWrite",
+                type = "string",
+                max = "256"
+            },
+            log_level = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                enumeration = {
+                    "low",
+                    "high"
+                },
+            },
+
+            action = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                enumeration = {
+                    "idle",
+                    "request",
+                    "processing",
+                    "completed",
+                    "failed"
+                },
+            }
+        }
+    }
+}
+mmpbx_voip_diagnostics.get = function(mapping, param)
+    voipDiagnostics.option = param
+    return get_from_uci(voipDiagnostics)
+end
+
+mmpbx_voip_diagnostics.set = function(mapping, param, paramvalue)
+    voipDiagnostics.option = param
+    set_on_uci(voipDiagnostics, paramvalue)
+    commit(voipDiagnostics)
+    if (param == "action") then
+        if (paramvalue == "idle") or ( paramvalue == "request") then
+            commitapply:newset("rpc.mmpbx.voipdiagnostics.action")
+        end
+    end
+    if (param == "log_level") then
+        commitapply:newset("rpc.mmpbx.voipdiagnostics.loglevel")
+    end
+    return true
+end
+
+register(mmpbx_voip_diagnostics)

@@ -1,0 +1,316 @@
+local register = register;
+
+local wireless_ap_station_ = {
+  objectType = {
+    name = "rpc.wireless.ap.@.station.@.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+        state = {
+            access = "readOnly",
+            type = "string",
+        },
+        flags = {
+            access = "readOnly",
+            type = "string",
+        },
+        capabilities = {
+            access = "readOnly",
+            type = "string",
+        },
+        authentication =  {
+            access = "readOnly",
+            type = "string",
+        },
+        encryption = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_auth_timestamp = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_authentication_status = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_assoc_timestamp = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_assoc_status = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_ssid = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_authentication = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_encryption = {
+            access = "readOnly",
+            type = "string",
+        },
+        num_associations = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_wpssession_timestamp = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_wps_version = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_wps_method = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_wps_status = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_wpahandshake_timestamp = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_wpahandshake_status = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_authorization_timestamp = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_disconnect_timestamp = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_disconnect_by = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_disconnect_reason = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_statistics_timestamp = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_rssi = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_rssi_history = {
+            access = "readOnly",
+            type = "string",
+        },
+        tx_packets = {
+            access = "readOnly",
+            type = "string",
+        },
+        tx_noack_failures = {
+            access = "readOnly",
+            type = "string",
+        },
+        tx_bytes = {
+            access = "readOnly",
+            type = "string",
+        },
+        tx_data_rate = {
+            access = "readOnly",
+            type = "string",
+        },
+        tx_data_rate_history = {
+            access = "readOnly",
+            type = "string",
+        },
+        tx_phy_rate = {
+            access = "readOnly",
+            type = "string",
+        },
+        tx_phy_rate_history = {
+            access = "readOnly",
+            type = "string",
+        },
+        rx_packets = {
+            access = "readOnly",
+            type = "string",
+        },
+        rx_sec_failures = {
+            access = "readOnly",
+            type = "string",
+        },
+        rx_bytes = {
+            access = "readOnly",
+            type = "string",
+        },
+        rx_data_rate = {
+            access = "readOnly",
+            type = "string",
+        },
+        rx_data_rate_history = {
+            access = "readOnly",
+            type = "string",
+        },
+        rx_phy_rate = {
+            access = "readOnly",
+            type = "string",
+        },
+        rx_phy_rate_history = {
+            access = "readOnly",
+            type = "string",
+        },
+        rssi = {
+            access = "readOnly",
+            type = "string",
+        },
+        rssi_history = {
+            access = "readOnly",
+            type = "string",
+        },
+        ps_off_on_transistions = {
+            access = "readOnly",
+            type = "string",
+        },
+        assoc_time = {
+            access = "readOnly",
+            type = "string",
+        },
+        idle_time = {
+            access = "readOnly",
+            type = "string",
+        },
+        last_measurement = {
+            access = "readOnly",
+            type = "string",
+        },
+        av_txbw_used = {
+            access = "readOnly",
+            type = "string",
+        },
+        av_rxbw_used = {
+            access = "readOnly",
+            type = "string",
+        },
+        av_txss_used = {
+            access = "readOnly",
+            type = "string",
+        },
+        av_rxss_used = {
+            access = "readOnly",
+            type = "string",
+        },
+        av_rx_phyrate_history = {
+            access = "readOnly",
+            type = "string",
+        },
+        av_tx_phyrate_history = {
+            access = "readOnly",
+            type = "string",
+        },
+        av_rx_rate_history = {
+            access = "readOnly",
+            type = "string",
+        },
+        av_tx_rate_history = {
+            access = "readOnly",
+            type = "string",
+        },
+        av_rssi = {
+            access = "readOnly",
+            type = "string",
+        },
+        av_ps_on_time = {
+            access = "readOnly",
+            type = "string",
+        },
+        ps_on_time_history = {
+            access = "readOnly",
+            type = "string",
+        },
+        signalStrength = {
+            access = "readOnly",
+            type = "int",
+        },
+        FriendlyName = {
+            access = "readWrite",
+            type = "string",
+        },
+    },
+  }
+}
+
+local network = require("transformer.shared.common.network")
+local wifi = require("transformer.shared.wifi")
+local pairs, tostring = pairs, tostring
+local isConfigChanged = false
+
+local function entries(mapping, parentkey)
+    local result = {}
+    local stations = network.getAccessPointStationInfo(parentkey)
+    for k in pairs(stations) do
+        result[#result+1] = {k,k .. "|" .. parentkey}
+    end
+    return result
+end
+
+local function getall(mapping, key, parentkey)
+    local apData = network.getAccessPointStationInfo(parentkey)
+    key = key:match("^([%x:]+)|")
+    local staData = apData[key] or {}
+    for k,v in pairs(staData) do
+      staData[k] = tostring(v)
+    end
+    staData["FriendlyName"] = wifi.getUserFriendlyName(key)
+    return staData
+end
+
+local function get(mapping, paramName, key, parentkey)
+    local apData = network.getAccessPointStationInfo(parentkey)
+    key = key:match("^([%x:]+)|")
+    local staData = apData[key] or {}
+    if paramName == "signalStrength" then
+        local rssi = staData["rssi"]
+        return wifi.getSignalStrength(rssi)
+    elseif paramName == "FriendlyName" then
+        return wifi.getUserFriendlyName(key)
+    end
+    return tostring(staData[paramName] or "")
+end
+
+wireless_ap_station_.entries = entries
+wireless_ap_station_.getall = getall
+wireless_ap_station_.get = get
+
+wireless_ap_station_.set = {
+  FriendlyName = function(mapping, param, value, key, parentkey)
+    key = key:match("^([%x:]+)|")
+    wifi.setUserFriendlyName(key, value, commitapply)
+    isConfigChanged = true
+  end,
+}
+
+wireless_ap_station_.commit = function()
+  if isConfigChanged then
+    local uci_helper = mapper("ucihelper")
+    uci_helper.commit({ config = "user_friendly_name" })
+  end
+  isConfigChanged = false
+end
+
+wireless_ap_station_.revert = function()
+  if isConfigChanged  then
+    local uci_helper = mapper("ucihelper")
+    uci_helper.revert({ config = "user_friendly_name" })
+  end
+  isConfigChanged = false
+end
+
+register(wireless_ap_station_)

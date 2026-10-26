@@ -1,0 +1,181 @@
+local conn = mapper("ubus").connect()
+local uci_helper = mapper("ucihelper")
+
+local mmpbx_mmpbxrvsipnet = {
+    objectType = {
+        name = "rpc.mmpbx.mmpbxrvsipnet.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            dtmf_relay = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "auto",
+                    "rfc2833",
+                    "sipinfo",
+                    "disabled",
+                },
+                default = "auto",
+            },
+        },
+    }
+}
+local binding = {}
+local transactions = {}
+local function dtmf_relay_Mode(paramvalue)
+   binding.config = "mmpbx"
+   binding.sectionname = "codec_filter"
+
+   local set_binding = {}
+   set_binding.config = "mmpbx"
+   set_binding.sectionname = "codec_filter"
+
+   if (paramvalue == "rfc2833" or paramvalue == "auto") then
+        uci_helper.foreach_on_uci(binding, function(s)
+          if s.name == "telephone-event" then
+             set_binding.sectionname = s[".name"]
+             set_binding.option = "allow"
+             uci_helper.set_on_uci(set_binding, "1", commitapply)
+             transactions[set_binding.config] = true
+          end
+        end)
+
+        set_binding.config = "mmpbxbrcmfxsdev"
+        set_binding.sectionname = "fxs_dev_0"
+        set_binding.option = "codec_black_list"
+        local list = uci_helper.get_from_uci(set_binding)
+        if (list ~= "") then
+            for index, value in ipairs(list) do
+                if value == "telephone-event" then
+                   table.remove(list,index)
+                   index = index - 1
+                end
+             end
+             uci_helper.set_on_uci(set_binding, list)
+             transactions[set_binding.config] = true
+        end
+
+        set_binding.sectionname = "fxs_dev_1"
+        set_binding.option = "codec_black_list"
+        local list = uci_helper.get_from_uci(set_binding)
+        if (list ~= "") then
+            for index, value in ipairs(list) do
+                if value == "telephone-event" then
+                   table.remove(list,index)
+                   index = index - 1
+                end
+             end
+             uci_helper.set_on_uci(set_binding, list)
+             transactions[set_binding.config] = true
+        end
+
+   elseif (paramvalue == "disabled" or paramvalue == "sipinfo" ) then
+        binding.config = "mmpbx"
+        binding.sectionname = "codec_filter"
+
+        set_binding.config = "mmpbx"
+        set_binding.sectionname = "codec_filter"
+        uci_helper.foreach_on_uci(binding, function(s)
+            if s.name == "telephone-event" then
+               set_binding.sectionname = s[".name"]
+               set_binding.option = "allow"
+               uci_helper.set_on_uci(set_binding, "0", commitapply)
+               transactions[set_binding.config] = true
+            end
+        end)
+
+        local check = 0
+        set_binding.config = "mmpbxbrcmfxsdev"
+        set_binding.sectionname = "fxs_dev_0"
+        set_binding.option = "codec_black_list"
+        local list = uci_helper.get_from_uci(set_binding)
+        if (list ~= "") then
+            check = 0
+            for index, value in ipairs(list) do
+                if value == "telephone-event" then
+                   check = 1
+                end
+             end
+             if (check ~= 1) then
+                table.insert(list, 1, "telephone-event")
+                uci_helper.set_on_uci(set_binding, list)
+                transactions[set_binding.config] = true
+             end
+        else
+             list = {}
+             table.insert(list, "telephone-event")
+             uci_helper.set_on_uci(set_binding, list)
+             transactions[set_binding.config] = true
+        end
+
+        set_binding.sectionname = "fxs_dev_1"
+        set_binding.option = "codec_black_list"
+        local list = uci_helper.get_from_uci(set_binding)
+        if (list ~= "") then
+            check = 0
+            for index, value in ipairs(list) do
+                if value == "telephone-event" then
+                   check = 1
+                end
+             end
+             if (check ~= 1) then
+                table.insert(list, 1, "telephone-event")
+                uci_helper.set_on_uci(set_binding, list)
+                transactions[set_binding.config] = true
+             end
+        else
+             list = {}
+             table.insert(list, "telephone-event")
+             uci_helper.set_on_uci(set_binding, list)
+             transactions[set_binding.config] = true
+        end
+   end
+    return nil
+end
+
+mmpbx_mmpbxrvsipnet.get = {
+    dtmf_relay = function(mapping, paramName, key)
+        return uci_helper.get_from_uci({config="mmpbxrvsipnet", sectionname="sip_net", option="dtmf_relay"})
+    end,
+}
+local dtmf_setmap = setmetatable({
+  rfc2833 = "rfc2833",
+  sipinfo = "sipinfo",
+  disabled = "disabled",
+  auto = "auto",
+}, { __index = function() return "" end })
+mmpbx_mmpbxrvsipnet.set = {
+    dtmf_relay = function(mapping, paramname, paramvalue, key)
+        if dtmf_setmap[paramvalue] then
+            binding.config = "mmpbxrvsipnet"
+            binding.sectionname = "sip_net"
+            binding.option = "dtmf_relay"
+            uci_helper.set_on_uci(binding, dtmf_setmap[paramvalue], commitapply)
+            transactions[binding.config] = true
+
+            dtmf_relay_Mode(paramvalue)
+        else
+            return nil, "invalid value"
+        end
+    end,
+}
+mmpbx_mmpbxrvsipnet.commit = function()
+    local binding = {}
+    for config in pairs(transactions) do
+        binding.config = config
+        uci_helper.commit(binding)
+    end
+    transactions = {}
+end
+
+mmpbx_mmpbxrvsipnet.revert = function()
+    local binding = {}
+    for config in pairs(transactions) do
+        binding.config = config
+        uci_helper.revert(binding)
+    end
+    transactions = {}
+end
+register(mmpbx_mmpbxrvsipnet)

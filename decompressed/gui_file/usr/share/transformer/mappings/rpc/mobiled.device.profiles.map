@@ -1,0 +1,102 @@
+local mobiled_device_profiles = {
+	objectType = {
+		name = 'rpc.mobiled.device.@.profile.@.',
+		access = 'readOnly',
+		numEntriesParameter = "ProfileNumberOfEntries",
+		minEntries = 0,
+		maxEntries = math.huge,
+		parameters = {
+			id = {
+				access = "readOnly",
+				type = "unsignedInt",
+			},
+			pdptype = {
+				access = "readOnly",
+				type = "string",
+				enumeration = {
+					"ipv4",
+					"ipv6",
+					"ipv4v6"
+				}
+			},
+			apn = {
+				access = "readOnly",
+				type = "string"
+			},
+			name = {
+				access = "readOnly",
+				type = "string"
+			},
+			editable = {
+				access = "readOnly",
+				type = "boolean"
+			},
+			visible = {
+				access = "readOnly",
+				type = "boolean"
+			},
+			username = {
+				access = "readOnly",
+				type = "string"
+			},
+			password = {
+				access = "readOnly",
+				type = "string"
+			},
+			authentication = {
+				access = "readOnly",
+				type = "string",
+				enumeration = {
+					"none",
+					"pap",
+					"chap",
+					"papchap"
+				}
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local helper = require("mobiled.scripthelpers")
+local cache = {}
+
+function mobiled_device_profiles.getall(mapping, key, parentkey)
+	local info = {}
+	if type(cache.profiles) == "table" then
+		local id = tonumber(string.match(key, 'deviceprofile(%d+)'))
+		if cache.profiles[id] then
+			info = cache.profiles[id]
+			info.visible = "1"
+			info.editable = "0"
+			if info.authentication == "PAP" or info.authentication == "CHAP" or info.authentication == "PAPCHAP" then
+				info.authentication = string.lower(info.authentication)
+			else
+				info.authentication = "none"
+			end
+		end
+	end
+	setmetatable(info, { __index = function() return "" end })
+	return info
+end
+
+function mobiled_device_profiles.get(mapping, paramName, key, parentkey)
+	return mobiled_device_profiles.getall(mapping, key, parentkey)[paramName]
+end
+
+function mobiled_device_profiles.entries(mapping, parentkey)
+	cache = helper.getUbusData(conn, "mobiled.device", "profiles", { dev_idx = tonumber(string.match(parentkey, '%d+')) })
+	local profiles = {}
+	if type(cache.profiles) == "table" then
+		for i in pairs(cache.profiles) do
+			table.insert(profiles, { tostring(i), parentkey .. "_deviceprofile" .. i })
+		end
+	end
+	return profiles
+end
+
+register(mobiled_device_profiles)

@@ -1,0 +1,12 @@
+local config_spdsvc = "bcm_spdsvc"
+
+mapper("uci_1to1").registerConfigMap(config_spdsvc)
+
+local spdsvc_globals = {
+  config = config_spdsvc,
+  section = "global",
+  type = "global",
+  options = { "enabled", "license" }
+}
+
+mapper("uci_1to1").registerSimpleMap(spdsvc_globals)

@@ -1,0 +1,133 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-contentsharing\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-10-27 13:44+0200\n"
+"PO-Revision-Date: 2019-02-02 14:57+0100\n"
+"Last-Translator: Dr. Uwe Meyer-Gruhl\n"
+"Language-Team: none\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Name: Deutsch\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.2.1\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+msgid "Changes saved successfully"
+msgstr "Änderungen wurden erfolgreich gespeichert"
+
+msgid "Content Sharing"
+msgstr "Inhalt teilen"
+
+msgid "<strong>%d</strong> connected devices"
+msgstr "<strong>%d</strong> verbundene Geräte"
+
+msgid "<strong>%d</strong> connected device"
+msgstr "<strong>%d</strong> verbundenes Gerät"
+
+msgid "DLNA disabled"
+msgstr "DLNA ausgeschaltet"
+
+msgid "DLNA enabled"
+msgstr "DLNA eingeschaltet"
+
+msgid "DLNA name: "
+msgstr "DLNA Name "
+
+msgid "Eject"
+msgstr "Auswerfen"
+
+msgid "Error while ejecting USB disk"
+msgstr "Fehler beim Auswerfen der USB-Platte"
+
+msgid "File System"
+msgstr "Dateisystem"
+
+msgid "Free Space"
+msgstr "Freier Platz"
+
+msgid "General status"
+msgstr "Allgemeiner Status"
+
+msgid "Attached Drive Info"
+msgstr "Festplatteninformation"
+
+msgid "Manufacturer"
+msgstr "Hersteller"
+
+msgid "Only alphanumeric, space, underscore and dash characters allowed"
+msgstr "Nur alphanumerische Zeichen, Leerzeichen, Unterstrich und Minuszeichen erlaubt"
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Power"
+msgstr "Strom"
+
+msgid "Product Name"
+msgstr "Produktname"
+
+msgid "Profiler status: "
+msgstr "Analysestatus "
+
+msgid "Restarting, please wait..."
+msgstr "Neustart, bitte warten..."
+
+msgid "SMB/CIFS Filesharing"
+msgstr "Samba Dateiserver"
+
+msgid "SMB/CIFS Filesharing disabled"
+msgstr "Samba Dateiserver nicht aktiv"
+
+msgid "SMB/CIFS Filesharing enabled"
+msgstr "Samba Dateiserver aktiv"
+
+msgid "SMB/CIFS description: "
+msgstr "Samba Beschreibung "
+
+msgid "SMB/CIFS name: "
+msgstr "Samba Name "
+
+msgid "SMB/CIFS workgroup: "
+msgstr "Samba Arbeitsgruppe "
+
+msgid "Share"
+msgstr "Teilen"
+
+msgid "Toggling USB3.1 support will reboot the Gateway"
+msgstr "Umschalten der USB-3.1-Unterstützung startet das Gateway neu"
+
+msgid "Total Space"
+msgstr "Gesamter Platz"
+
+msgid "Used Space"
+msgstr "Platz genutzt"
+
+msgid "Version"
+msgstr "Version"
+
+msgid "Volume"
+msgstr "Volume"
+
+msgid "Rebooting..."
+msgstr "Neu starten..."
+
+msgid "Profiling"
+msgstr "Messen"
+
+msgid "Ready"
+msgstr "Bereit"
+
+msgid "USB 3.1 Enabled"
+msgstr "USB 3.1 aktiviert"
+
+msgid "If Samba is not accessible in Windows 10, Configure the settings as per the URL - https://support.microsoft.com/en-us/help/4046019/guest-access-smb2-disabled-by-default-in-windows-10-server-2016"
+msgstr "Falls Samba unter Windows 10 nicht erreichbar ist, nutzen Sie die Einstellungen von dieser URL: https://support.microsoft.com/en-us/help/4046019/guest-access-smb2-disabled-by-default-in-windows-10-server-2016"
+
+msgid "It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 standard can remarkably affect the Wi-Fi performance at 2.4 GHz band."
+msgstr "Es wird empfohlen, USB 2.0 zu verwenden. Nutzung von USB 3.1 kann die WiFi Leistung im 2.4 GHz Band stark beeinträchtigen."
+
+msgid "Idle"
+msgstr "Inaktiv"

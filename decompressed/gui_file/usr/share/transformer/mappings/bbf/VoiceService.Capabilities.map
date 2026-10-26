@@ -1,0 +1,317 @@
+local lfs = require("lfs")
+
+if lfs.attributes("/etc/config/mmpbx", "mode") ~= "file" then
+  return
+end
+
+local uci_helper = mapper("ucihelper")
+
+local Multi_Services_VoiceService_i_Capabilities_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.Capabilities.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            MaxProfileCount = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            MaxLineCount = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            MaxSessionsPerLine = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            MaxSessionCount = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            SignalingProtocols = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                list = true,
+                max = "256",
+                type = "string",
+            },
+            Regions = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                list = true,
+                max = "256",
+                type = "string",
+            },
+            RTCP = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            SRTP = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            --      SRTPKeyingMethods = {
+            --        access = "readOnly",
+            --        activeNotify = "canDeny",
+            --        list = true,
+            --        max = "256",
+            --        type = "string",
+            --        enumeration = {
+            --          "Null",
+            --          "Static",
+            --          "SDP",
+            --          "IKE",
+            --        },
+            --      },
+            --      SRTPEncryptionKeySizes = {
+            --        access = "readOnly",
+            --        activeNotify = "canDeny",
+            --        list = true,
+            --        max = "256",
+            --        type = "unsignedInt",
+            --      },
+            RTPRedundancy = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            DSCPCoupled = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            EthernetTaggingCoupled = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            PSTNSoftSwitchOver = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            FaxT38 = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            FaxPassThrough = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            ModemPassThrough = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            ToneGeneration = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            ToneDescriptionsEditable = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            PatternBasedToneGeneration = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            FileBasedToneGeneration = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            ToneFileFormats = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                list = true,
+                max = "256",
+                type = "string",
+                enumeration = {
+                  "G.711MuLaw",
+                  "G.711ALaw",
+                  "MP3",
+                  "WAV",
+                  "AMR",
+                },
+            },
+            RingGeneration = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            RingDescriptionsEditable = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            PatternBasedRingGeneration = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            RingPatternEditable = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            FileBasedRingGeneration = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            RingFileFormats = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                list = true,
+                max = "256",
+                type = "string",
+                enumeration = {
+                  "MIDI",
+                  "SMAF",
+                  "RTTTL",
+                  "MP3",
+                  "WAV",
+                  "AMR",
+                },
+            },
+            DigitMap = {
+                access = "readOnly",
+                default = "0",
+                type = "boolean",
+            },
+            NumberingPlan = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            ButtonMap = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            VoicePortTests = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+        }
+    }
+}
+
+local servicebinding = { config = "mmpbx", sectionname = "service" }
+local conn = mapper("ubus").connect()
+local binding = {}
+local transactions = {}
+local table = table
+
+Multi_Services_VoiceService_i_Capabilities_.get = {
+    MaxProfileCount = "1",
+    MaxLineCount = "30",
+    MaxSessionCount = "4",
+    MaxSessionsPerLine = function()
+        local res = "1"
+        uci_helper.foreach_on_uci(servicebinding, function(s)
+            if s.type == "CONFERENCE" and s.activated == "1" then
+                res = "2"
+                return false
+            end
+        end)
+        return res
+    end,
+    SignalingProtocols = "SIP",
+    Regions = function()
+        local reg = ""
+        local regs
+        binding.config = "mmpbxbrcmcountry"
+        binding.sectionname = "global"
+        binding.option = "region"
+        regs = uci_helper.get_from_uci(binding)
+        if regs and type(regs) == "table" then
+            reg = table.concat(regs, ",")
+            return reg
+        end
+        local calls = conn:call("mmbrcm.countries", "get", {}) or {}
+        if calls and type(calls) == "table" then
+            for i,j in pairs(calls) do
+                reg = reg .. calls[i]["ISOStandard"] .. " "
+            end
+        end
+        return reg
+    end,
+    RTCP = "1",
+    SRTP = "0",
+    RTPRedundancy = "0",
+    DSCPCoupled = "0",
+    EthernetTaggingCoupled = "0",
+    PSTNSoftSwitchOver = "0",
+    FaxPassThrough = "1",
+    FaxT38 = function ()
+        local res = 0
+        binding.config = "mmpbxbrcmfxsdev"
+        binding.sectionname = "global"
+        binding.option = "fax_transport"
+        res = uci_helper.get_from_uci(binding)
+        if res == "t38" then
+            return "1"
+        else
+            return "0"
+        end
+    end,
+    ModemPassThrough = "1",
+    ToneGeneration = function(mapping)
+      if mapping.objectType.parameters["ToneDescriptionsEditable"] and
+		mapping.objectType.parameters["PatternBasedToneGeneration"] and
+        mapping.objectType.parameters["FileBasedToneGeneration"] and
+        mapping.objectType.parameters["ToneFileFormats"] then
+        -- It's possible the parameters have been removed at loadtime due to the blacklist option of Transformer.
+        -- Only return '1' if all parameters are still present.
+        return "1"
+      else
+        return "0"
+      end
+	end,
+	ToneDescriptionsEditable = "1",
+    PatternBasedToneGeneration = "1",
+    FileBasedToneGeneration = "1",
+    ToneFileFormats = "1",
+    RingGeneration = function(mapping)
+      if mapping.objectType.parameters["RingDescriptionsEditable"] and
+		mapping.objectType.parameters["PatternBasedRingGeneration"] and
+        mapping.objectType.parameters["RingPatternEditable"] and
+        mapping.objectType.parameters["FileBasedRingGeneration"] and
+        mapping.objectType.parameters["RingFileFormats"] then
+        -- It's possible the parameters have been removed at loadtime due to the blacklist option of Transformer.
+        -- Only return '1' if all parameters are still present.
+        return "1"
+      else
+        return "0"
+      end
+	end,
+	RingDescriptionsEditable = "1",
+    PatternBasedRingGeneration = "1",
+    RingPatternEditable = "1",
+    FileBasedRingGeneration = "1",
+    RingFileFormats = "1",
+    DigitMap = "1",
+    NumberingPlan = "1",
+    ButtonMap = "0",
+    VoicePortTests = "1"
+}
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Services_VoiceService_i_Capabilities_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

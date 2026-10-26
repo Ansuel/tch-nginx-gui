@@ -1,0 +1,106 @@
+local igmpproxy_interface_group_i_ = {
+  objectType = {
+    name = "rpc.igmpproxy.interface.@.group.{i}.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      address = {
+        access = "readOnly",
+        type = "string",
+      },
+      filter_mode = {
+        access = "readOnly",
+        type = "string",
+      },
+      hosts = {
+        access = "readOnly",
+        type = "string",
+      }
+    },
+  }
+}
+local uci_helper = mapper("ucihelper")
+local conn = mapper("ubus").connect()
+local nw_common = mapper("nwcommon")
+local split_key = nw_common.split_key
+
+local binding = {
+  config="igmpproxy",
+  sectionname="noproxy",
+}
+
+
+local function entriesInterfaces(mapping, parentkey) -- filter out uci.igmpproxy noproxy groups
+  local groups = {}
+  local ubus_info = conn:call("igmpproxy.interface", "get", { interface = parentkey })
+  if ( ubus_info ~= nil ) then
+    for k,v in pairs(ubus_info) do
+      v = v and v['group-info']
+      if v then
+        for i, val in ipairs(v) do
+          local found = false
+          uci_helper.foreach_on_uci(binding, function(s)
+            if s.interface == parentkey and s.mcastrange == val['group'] then
+              found = true
+            end
+          end)
+          if found == false then
+            groups[#groups+1] = parentkey .. "|" .. val['group']
+          end
+        end
+      end
+    end
+  end
+  return groups
+end
+
+local function get_group(key, parentkey)
+  local ifname, group = split_key(key)
+  local ubus_info = conn:call("igmpproxy.interface", "get", { interface = parentkey })
+  if ( ubus_info ~= nil ) then
+    for k,v in pairs(ubus_info) do
+      v = v and v['group-info']
+      if v then
+        for i, val in ipairs(v) do
+          if (group ==  val['group']) then
+            return val
+          end
+        end
+      end
+    end
+  end
+  return nil
+end
+
+local function getParam(paramid)
+  return function(mapping, param, key, parentkey)
+    local v = get_group(key, parentkey)
+
+    v = v and v[paramid]
+    if "table" == type(v) and paramid == "host-info" then
+      local hosts = ""
+      for hi, hv in ipairs(v) do
+        if hosts == "" then
+          hosts = hv['address']
+        else
+          hosts = hosts .. ", " .. hv['address']
+        end
+      end
+      return hosts
+    else
+      return v
+    end
+  end
+end
+
+igmpproxy_interface_group_i_.get = {
+  address = function(mapping, param, key)
+    local ifname, group = split_key(key)
+    return group
+  end,
+  filter_mode = getParam("filter_mode"),
+  hosts = getParam("host-info"),
+}
+igmpproxy_interface_group_i_.entries = entriesInterfaces
+register(igmpproxy_interface_group_i_)

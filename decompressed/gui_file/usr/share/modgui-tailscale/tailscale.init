@@ -1,0 +1,68 @@
+#!/bin/sh /etc/rc.common
+
+START=95
+STOP=10
+USE_PROCD=1
+
+start_service() {
+	local enabled
+	enabled="$(uci -q get tailscale.service.enabled)"
+	[ "$enabled" = "1" ] || return 0
+
+	# Runtime provisioning can take longer than Transformer's 30 second
+	# commit/apply limit. Keep it entirely inside procd so saving the modal
+	# returns immediately, even after a reboot when /tmp is empty.
+	procd_open_instance daemon
+	procd_set_param command /usr/share/modgui-tailscale/tailscale.bootstrap
+	procd_set_param respawn 3600 5 5
+	procd_set_param stdout 1
+	procd_set_param stderr 1
+	procd_close_instance
+
+	# This one-shot worker waits for the daemon and creates the authorization
+	# URL without holding the Transformer apply process open.
+	procd_open_instance connect
+	procd_set_param command /usr/share/modgui-tailscale/tailscale.connect
+	procd_set_param stdout 1
+	procd_set_param stderr 1
+	procd_close_instance
+}
+
+stop_service() {
+	rm -f /tmp/modgui-tailscale-runtime-status /tmp/modgui-tailscale-connect-status
+}
+
+service_stopped() {
+	# rc.common calls stop_service before terminating the procd instances.
+	# Cleaning a live daemon lets it recreate the rules during shutdown.
+	local attempt=0
+	while pidof tailscaled >/dev/null 2>&1; do
+		[ "$attempt" -lt 10 ] || return 1
+		sleep 1
+		attempt=$((attempt + 1))
+	done
+	[ -x /usr/sbin/tailscaled ] && /usr/sbin/tailscaled --cleanup >/dev/null 2>&1
+	cleanup_policy_rules
+}
+
+cleanup_policy_rules() {
+	# Legacy policy managers can leave duplicate Tailscale rules. Delete every
+	# matching copy, preserving unrelated rules even at the same priority.
+	local family
+	for family in -4 -6; do
+		ip "$family" rule show | while read -r priority from all selector value action table; do
+			case "$priority" in 5210:|5230:|5250:|5270:) ;; *) continue ;; esac
+			[ "$from $all" = 'from all' ] || continue
+			if [ "$selector $value" = 'fwmark 0x80000/0xff0000' ]; then
+				case "$action $table" in
+					'lookup main'|'lookup default')
+						ip "$family" rule del pref "${priority%:}" fwmark "$value" table "$table" || break ;;
+					'unreachable ')
+						ip "$family" rule del pref "${priority%:}" fwmark "$value" unreachable || break ;;
+				esac
+			elif [ "$selector $value" = 'lookup 52' ] && [ -z "$action$table" ]; then
+				ip "$family" rule del pref "${priority%:}" table 52 || break
+			fi
+		done
+	done
+}

@@ -1,0 +1,11 @@
+local sys_class_ = {
+  objectType = {
+    name = "sys.class.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {},
+  }
+}
+
+register(sys_class_)

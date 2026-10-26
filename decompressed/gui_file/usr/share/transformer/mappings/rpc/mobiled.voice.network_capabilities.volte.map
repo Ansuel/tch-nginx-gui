@@ -1,0 +1,40 @@
+local mobiled_voice_network_capabilities_volte_ = {
+    objectType = {
+        name = 'rpc.mobiled.device.@.voice.network_capabilities.volte.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            emergency = {
+                access = "readOnly",
+                type = "boolean"
+            }
+        }
+    }
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+    return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local function getall(mapping, key)
+    local result = {}
+    setmetatable(result, { __index = function() return "" end })
+    local data = helper.getUbusData(conn, "mobiled.voice", "network_capabilities", { dev_idx = tonumber(string.match(key, '%d+')) })
+    if type(data.volte) == "table" then
+        for k, v in pairs(data.volte) do result[k] = v end
+    end
+    return result
+end
+
+local function get(mapping, paramName, key)
+    return getall(mapping, key)[paramName]
+end
+
+mobiled_voice_network_capabilities_volte_.getall = getall
+mobiled_voice_network_capabilities_volte_.get = get
+
+register(mobiled_voice_network_capabilities_volte_)

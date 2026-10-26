@@ -1,0 +1,2 @@
+^network%.[^%.]+%.voice /etc/init.d/network reload
+^network%.[^%.]+%.internet /etc/init.d/network reload

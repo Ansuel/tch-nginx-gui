@@ -1,0 +1,18 @@
+local mapper = mapper
+local config_ucidefaults = "ucidefaults"
+
+local uci_1to1 = mapper("uci_1to1")
+-- uci.ucidefaults
+uci_1to1.registerConfigMap(config_ucidefaults)
+
+-- uci.ucidefaults.interface
+local ucidefaults_interface = {
+    config = config_ucidefaults,
+    type = "interface",
+    options = {
+        "ipaddr", "netmask", "ipv6", "start", "limit", "leasetime", "dhcpv4", "dhcpv6", "ra"
+    },
+    lists = { "dhcp_option" }
+}
+
+uci_1to1.registerNamedMultiMap(ucidefaults_interface)

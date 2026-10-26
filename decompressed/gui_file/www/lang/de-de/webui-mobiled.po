@@ -1,0 +1,956 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-mobiled\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-06-21 15:33+0200\n"
+"PO-Revision-Date: 2019-02-02 14:57+0100\n"
+"Last-Translator: Dr. Uwe Meyer-Gruhl\n"
+"Language-Team: none\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Name: Deutsch\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.2.1\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+msgid "0 device connected"
+msgstr "0 Geräte verbunden"
+
+msgid "Access Technology"
+msgstr "Zugriffstechnologie"
+
+msgid "Add new profile"
+msgstr "Neues Profil hinzufügen"
+
+msgid "Airplane mode"
+msgstr "Flugzeugmodus"
+
+msgid "Allow Roaming"
+msgstr "Roaming erlauben"
+
+msgid "Allowed LTE Bands"
+msgstr "Erlaubte LTE-Bänder"
+
+msgid "Antenna Selection"
+msgstr "Antennenauswahl"
+
+msgid "Authenticating"
+msgstr "Authentifizieren"
+
+msgid "Authentication Type"
+msgstr "Athentifizerungstyp"
+
+msgid "Blocked"
+msgstr "Gesperrt"
+
+msgid "Cancel"
+msgstr "Abbruch"
+
+msgid "Change"
+msgstr "Ändern"
+
+msgid "Change PIN"
+msgstr "PIN ändern"
+
+msgid "Configuration"
+msgstr "Konfiguration"
+
+msgid "Configuring device"
+msgstr "Gerät konfigurieren"
+
+msgid "Confirm"
+msgstr "Bestätigen"
+
+msgid "Confirm new PIN"
+msgstr "Neue PIN bestätigen"
+
+msgid "Connect"
+msgstr "Verbinden"
+
+msgid "Connected"
+msgstr "Verbunden"
+
+msgid "Connecting"
+msgstr "Verbinden"
+
+msgid "Description"
+msgstr "Beschreibung"
+
+msgid "Device Information"
+msgstr "Geräteinformation"
+
+msgid "Device Status"
+msgstr "Gerätezustand"
+
+msgid "Disable"
+msgstr "Ausschalten"
+
+msgid "Disable PIN"
+msgstr "PIN deaktivieren"
+
+msgid "Disabled"
+msgstr "Ausgeschaltet"
+
+msgid "Disconnected"
+msgstr "Getrennt"
+
+msgid "Disconnecting"
+msgstr "Trennen"
+
+msgid "Enable"
+msgstr "Einschalten"
+
+msgid "Enable PIN"
+msgstr "PIN einschalten"
+
+msgid "Enabled"
+msgstr "Eingeschaltet"
+
+msgid "Error"
+msgstr "Fehler"
+
+msgid "External"
+msgstr "Extern"
+
+msgid "Failed to change the PIN code. ( %d retry left ) Please make sure you entered the correct PIN."
+msgid_plural "Failed to change the PIN code. ( %d retries left ) Please make sure you entered the correct PIN."
+msgstr[0] "Fehler beim Ändern der PIN (%d Versuch verbleibend). Bitte stellen Sie sicher, dass Sie die richtige PIN eingegeben haben."
+msgstr[1] "Fehler beim Ändern der PIN (%d Versuche verbleibend). Bitte stellen Sie sicher, dass Sie die richtige PIN eingegeben haben."
+
+msgid "Failed to disable the PIN code. ( %d retry left ) Please make sure you entered the correct PIN."
+msgid_plural "Failed to disable the PIN code. ( %d retries left ) Please make sure you entered the correct PIN."
+msgstr[0] "Fehler beim Abschalten der PIN (%d Versuch verbleibend). Bitte stellen Sie sicher, dass Sie die richtige PIN eingegeben haben."
+msgstr[1] "Fehler beim Abschalten der PIN (%d Versuche verbleibend). Bitte stellen Sie sicher, dass Sie die richtige PIN eingegeben haben."
+
+msgid "Failed to enable the PIN code. ( %d retry left ) Please make sure you entered the correct PIN."
+msgid_plural "Failed to enable the PIN code. ( %d retries left ) Please make sure you entered the correct PIN."
+msgstr[0] "Fehler beim Einschalten der PIN (%d Versuch verbleibend). Bitte stellen Sie sicher, dass Sie die richtige PIN eingegeben haben."
+msgstr[1] "Fehler beim Einschalten der PIN (%d Versuche verbleibend). Bitte stellen Sie sicher, dass Sie die richtige PIN eingegeben haben."
+
+msgid "Failed to verify the PIN code. ( %d retry left ) Please make sure you entered the correct PIN."
+msgid_plural "Failed to verify the PIN code. ( %d retries left ) Please make sure you entered the correct PIN."
+msgstr[0] "Fehler beim Verifizieren der PIN (%d Versuch verbleibend). Bitte stellen Sie sicher, dass Sie die richtige PIN eingegeben haben."
+msgstr[1] "Fehler beim Verifizieren der PIN (%d Versuche verbleibend). Bitte stellen Sie sicher, dass Sie die richtige PIN eingegeben haben."
+
+msgid "Failed to verify the PUK code. ( %d retry left ) Please make sure you entered the correct PUK."
+msgid_plural "Failed to verify the PUK code. ( %d retries left ) Please make sure you entered the correct PUK."
+msgstr[0] "Fehler beim Verifizieren der PUK (%d Versuch verbleibend). Bitte stellen Sie sicher, dass Sie den richtige PUK eingegeben haben."
+msgstr[1] "Fehler beim Verifizieren der PUK (%d Versuche verbleibend). Bitte stellen Sie sicher, dass Sie den richtige PUK eingegeben haben."
+
+msgid "Fair"
+msgstr "Ausreichend"
+
+msgid "Forbidden"
+msgstr "Verboten"
+
+msgid "From"
+msgstr "Von"
+
+msgid "Good"
+msgstr "Gut"
+
+msgid "IPv4 Address"
+msgstr "IPv4-Adresse"
+
+msgid "IPv4 Primary DNS"
+msgstr "IPv4 Primärer DNS"
+
+msgid "IPv4 Secondary DNS"
+msgstr "IPv4 Sekundärer DNS"
+
+msgid "IPv6 Address"
+msgstr "IPv6-Adresse"
+
+msgid "Idle"
+msgstr "Ruhend"
+
+msgid "In use"
+msgstr "In Benutzung"
+
+msgid "Interface"
+msgstr "Schnittstelle"
+
+msgid "Interfaces"
+msgstr "Schnittstellen"
+
+msgid "Internal"
+msgstr "Intern"
+
+msgid "Invalid value"
+msgstr "Ungültiger Wert"
+
+msgid "Limited regional service"
+msgstr "Eingeschränkter regionaler Dienst"
+
+msgid "Limited service"
+msgstr "Eingeschränkter Dienst"
+
+msgid "Linked Profile"
+msgstr "Verknüpftes Profil"
+
+msgid "Low-power mode"
+msgstr "Niedrigenergiemodus"
+
+msgid "Manual"
+msgstr "Manuell"
+
+msgid "Manufacturer"
+msgstr "Hersteller"
+
+msgid "Message"
+msgstr "Meldung"
+
+msgid "Mobile"
+msgstr "Mobil"
+
+msgid "Model"
+msgstr "Modell"
+
+msgid "Name"
+msgstr "Name"
+
+msgid "Network Scan"
+msgstr "Netzwerksuche"
+
+msgid "Network Selection"
+msgstr "Netzwerkauswahl"
+
+msgid "New PIN"
+msgstr "Neue PIN"
+
+msgid "New PIN code and confirmed PIN code don't match."
+msgstr "Neue PIN und bestätigte PIN stimmen nicht überein."
+
+msgid "No network scan results"
+msgstr "Keine Ergebnisse bei der Netzwerksuche"
+
+msgid "No service"
+msgstr "Kein Dienst"
+
+msgid "None"
+msgstr "Keiner"
+
+msgid "Normal service"
+msgstr "Normaler Dienst"
+
+msgid "Not initialized"
+msgstr "Uninitialisiert"
+
+msgid "Not registered"
+msgstr "Unregistriert"
+
+msgid "Not verified"
+msgstr "Unverifiziert"
+
+msgid "Online"
+msgstr "Online"
+
+msgid "PDP Type"
+msgstr "PDP Typ"
+
+msgid "PIN Protection"
+msgstr "PIN Schutz"
+
+msgid "Permanently blocked"
+msgstr "Permanent gesperrt"
+
+msgid "Please enter PIN"
+msgstr "Bitte geben Sie die PIN ein"
+
+msgid "Please enter PUK"
+msgstr "Bitte geben Sie die PUK ein"
+
+msgid "Please enter a valid PIN."
+msgstr "Bitte geben Sie eine gültige PIN ein."
+
+msgid "Please note that you are changing the PIN code"
+msgstr "Bitte nehmen Sie zur Kenntnis, dass Sie die PIN ändern"
+
+msgid "Please note that you are disabling the PIN code"
+msgstr "Bitte nehmen Sie zur Kenntnis, dass Sie die PIN abschalten"
+
+msgid "Poor"
+msgstr "Schlecht"
+
+msgid "Preferred"
+msgstr "Bevorzugt"
+
+msgid "Previous network scan results"
+msgstr "Vorhergehende Ergebnisse der Netzwerksuche"
+
+msgid "Profiles"
+msgstr "Profile"
+
+msgid "Quality"
+msgstr "Qualität"
+
+msgid "Radio Technology"
+msgstr "Funktechnologie"
+
+msgid "Radio Type"
+msgstr "Funktyp"
+
+msgid "Read messages"
+msgstr "Gelesene Meldungen"
+
+msgid "Received"
+msgstr "Empfangen"
+
+msgid "Received an invalid string"
+msgstr "Ungültige Zeichenkette erhalten"
+
+msgid "Registered"
+msgstr "Registriert"
+
+msgid "Registration denied"
+msgstr "Registrierung abgelehnt"
+
+msgid "Remove"
+msgstr "Entfernen"
+
+msgid "SIM Not Present"
+msgstr "SIM nicht vorhanden"
+
+msgid "SIM Permanently Blocked"
+msgstr "SIM dauerhaft gesperrt"
+
+msgid "SIM error"
+msgstr "SIM-Fehler"
+
+msgid "SIM locked"
+msgstr "SIM gesperrt"
+
+msgid "SIM not present"
+msgstr "SIM nicht vorhanden"
+
+msgid "SIM permanently blocked"
+msgstr "SIM dauerhaft gesperrt"
+
+msgid "SIM ready"
+msgstr "SIM bereit"
+
+msgid "Scan Networks"
+msgstr "Durchsuche Netzwerke"
+
+msgid "Scan completed after"
+msgstr "Suche beendet nach"
+
+msgid "Scanning for networks, please wait. This can take a few minutes..."
+msgstr "Suche nach Netzwerken, bitte warten Sie, dies kann ein paar Minuten dauern..."
+
+msgid "Scanning networks"
+msgstr "Durchsuche Netzwerke"
+
+msgid "Searching for network"
+msgstr "Suche nach Netzwerk"
+
+msgid "Selected Antenna"
+msgstr "Ausgewählte Antenne"
+
+msgid "Session Duration"
+msgstr "Sitzungsdauer"
+
+msgid "Sleeping"
+msgstr "Schlafend"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Storage used"
+msgstr "Speicher genutzt"
+
+msgid "Store PIN"
+msgstr "Speichere PIN"
+
+msgid "Superb"
+msgstr "Exzellent"
+
+msgid "Suspended"
+msgstr "Schwebend"
+
+msgid "Temperature"
+msgstr "Temperatur"
+
+msgid "The PIN code must be composed of 4 to 8 digits."
+msgstr "Die PIN muss aus 4 bis 8 Ziffern bestehen."
+
+msgid "The PUK code must be composed of 8 to 16 digits."
+msgstr "Die PUK muss aus 8 bis 16 Ziffern bestehen."
+
+msgid "The maximum APN size is %d characters"
+msgstr "Die maximale Länge des APN-Namens beträgt %d Zeichen"
+
+msgid "Unblock"
+msgstr "Entsperren"
+
+msgid "Unblock PIN"
+msgstr "PIN entsperren"
+
+msgid "Unlock"
+msgstr "Entsperren"
+
+msgid "Unlock PIN"
+msgstr "PIN entsperren"
+
+msgid "Unplugged"
+msgstr "Ausgesteckt"
+
+msgid "Unread messages"
+msgstr "Ungelesene Meldungen"
+
+msgid "Upgrading firmware"
+msgstr "Aktualisiere Firmware"
+
+msgid "Username"
+msgstr "Benutzername"
+
+msgid "Verified"
+msgstr "Verifiziert"
+
+msgid "Weak"
+msgstr "Schwach"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "You currently don't have any messages"
+msgstr "Sie haben aktuell keine Meldungen"
+
+msgid "seconds"
+msgstr "Sekunden"
+
+msgid "LTE Doctor"
+msgstr "LTE Doktor"
+
+msgid "IPv6"
+msgstr "IPv6"
+
+msgid "Rx Packet Errors"
+msgstr "Rx Paket Fehler"
+
+msgid "National"
+msgstr "National"
+
+msgid "Rx Packets"
+msgstr "Rx Pakete"
+
+msgid "Tx Packet Errors"
+msgstr "Tx Paket Fehler"
+
+msgid "GSM Only"
+msgstr "Nur GSM"
+
+msgid "LTE"
+msgstr "LTE"
+
+msgid "MSISDN"
+msgstr "MSISDN"
+
+msgid "LTE Only"
+msgstr "Nur LTE"
+
+msgid "SMS"
+msgstr "SMS"
+
+msgid "UMTS Preferred"
+msgstr "Bevorzugt UMTS"
+
+msgid "Tx Packets"
+msgstr "Tx Pakete"
+
+msgid "PIN"
+msgstr "PIN"
+
+msgid "IPv4"
+msgstr "IPv4"
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "GSM"
+msgstr "GSM"
+
+msgid "International"
+msgstr "International"
+
+msgid "Device Status And Settings"
+msgstr "Gerätezustand und -einstellungen"
+
+msgid "GSM Preferred"
+msgstr "Bevorzugt GSM"
+
+msgid "IPv4v6"
+msgstr "IPv4v6"
+
+msgid "IMSI"
+msgstr "IMSI"
+
+msgid "IMEI"
+msgstr "IMEI"
+
+msgid "PAP"
+msgstr "PAP"
+
+msgid "MNC"
+msgstr "MNC"
+
+msgid "UMTS Only"
+msgstr "Nur UMTS"
+
+msgid "LTE Preferred"
+msgstr "Bevorzugt LTE"
+
+msgid "UMTS"
+msgstr "UMTS"
+
+msgid "Rx Bytes"
+msgstr "Rx Bytes"
+
+msgid "CHAP"
+msgstr "CHAP"
+
+msgid "ICCID"
+msgstr "ICCID"
+
+msgid "CDMA"
+msgstr "CDMA"
+
+msgid "MCC"
+msgstr "MCC"
+
+msgid "PUK"
+msgstr "PUK"
+
+msgid "Password"
+msgstr "Kennwort"
+
+msgid "Unknown PIN action"
+msgstr "Unbekannte PIN-Aktion"
+
+msgid "Tx Bytes"
+msgstr "Tx Bytes"
+
+msgid "SIM"
+msgstr "SIM"
+
+msgid "APN"
+msgstr "APN"
+
+msgid "SIM Card"
+msgstr "SIM-Karte"
+
+msgid "No"
+msgstr "Kein"
+
+msgid "PAP/CHAP"
+msgstr "PAP/CHAP"
+
+msgid "Last 24 Hours"
+msgstr "Letzte 24 Stunden"
+
+msgid "Last Five Minutes"
+msgstr "Letzte fünf Minuten"
+
+msgid "Last Twenty Minutes"
+msgstr "Letzte zwanzig Minuten"
+
+msgid "Last Hour"
+msgstr "Letzte Stunde"
+
+msgid "Last Month"
+msgstr "Letzter Monat"
+
+msgid "Last Week"
+msgstr "Letzte Woche"
+
+msgid "Session"
+msgstr "Sitzung"
+
+msgid "RSCP"
+msgstr "RSCP"
+
+msgid "Event"
+msgstr "Ereignis"
+
+msgid "Internet"
+msgstr "Internet"
+
+msgid "Physical Cell ID"
+msgstr "Physische Zellen-ID"
+
+msgid "Uplink Frequency"
+msgstr "Uplink Frequenz"
+
+msgid "Uplink EARFCN"
+msgstr "Uplink EARFCN"
+
+msgid "csv"
+msgstr "csv"
+
+msgid "Exporting failed; please try again."
+msgstr "Export gescheitert; bitte versuchen Sie es erneut."
+
+msgid "New ECGI"
+msgstr "Neuer ECGI"
+
+msgid "Cell ID"
+msgstr "Zellen-ID"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "Network"
+msgstr "Netzwerk"
+
+msgid "SIM Ready"
+msgstr "SIM Bereit"
+
+msgid "All"
+msgstr "Alle"
+
+msgid "Info"
+msgstr "Info"
+
+msgid "Interface Down"
+msgstr "Schnittstelle inaktiv"
+
+msgid "Exporting configuration, please wait..."
+msgstr "Exportiere Konfiguration, bitte warten..."
+
+msgid "PDN"
+msgstr "PDN"
+
+msgid "RSRP"
+msgstr "RSRP"
+
+msgid "ECIO"
+msgstr "ECIO"
+
+msgid "Active Band"
+msgstr "Aktives Band"
+
+msgid "Path Loss"
+msgstr "Pfadverlust"
+
+msgid "Power Mode"
+msgstr "Energiemodus"
+
+msgid "Tracking Area Code Changed"
+msgstr "Verfolgungsbereichskode geändert"
+
+msgid "Active Devices"
+msgstr "Aktive Geräte"
+
+msgid "No events for the selected period"
+msgstr "Keine Ereignisse im gewählten Zeitraum"
+
+msgid "The device does not support the authentication of the selected profile."
+msgstr "Das Gerät unterstützt die Autentifizierung des gewählten Profils nicht."
+
+msgid "Network Status"
+msgstr "Netzwerkstatus"
+
+msgid "Carrier Aggregation"
+msgstr "Trägerzusammenfassung"
+
+msgid "Signal Quality"
+msgstr "Signalqualität"
+
+msgid "Voice"
+msgstr "Stimme"
+
+msgid "Tracking Area Code Changes"
+msgstr "Verfolgungsbereichskode Änderungen"
+
+msgid "Unlock Retries Left"
+msgstr "Übrige Entsperrversuche"
+
+msgid "Downlink Frequency"
+msgstr "Downlink Frequenz"
+
+msgid "Downlink Bandwidth"
+msgstr "Downlink Bandbreite"
+
+msgid "Cell Global ID Changes"
+msgstr "Globale Zellen-ID Änderungen"
+
+msgid "Cell Info"
+msgstr "Zelleninfo"
+
+msgid "RSRQ"
+msgstr "RSRQ"
+
+msgid "json"
+msgstr "json"
+
+msgid "Major"
+msgstr "Haupt"
+
+msgid "Uplink Bandwidth"
+msgstr "Uplink Bandbreite"
+
+msgid "Remove Settings"
+msgstr "Entferne Einstellungen"
+
+msgid "Operator"
+msgstr "Betreiber"
+
+msgid "Uplink ARFCN"
+msgstr "Uplink ARFCN"
+
+msgid "Downlink EARFCN"
+msgstr "Downlink EARFCN"
+
+msgid "Tracking Area Code"
+msgstr "Verfolgungsbereichskode"
+
+msgid "Service Status"
+msgstr "Dienststatus"
+
+msgid "RSSI"
+msgstr "RSSI"
+
+msgid "Radio Bearer"
+msgstr "Radioträger"
+
+msgid "Network Deregistered"
+msgstr "Netzwerk deregistiert"
+
+msgid "Radio Interface Changed"
+msgstr "Radioschnittstelle geändert"
+
+msgid "SNR"
+msgstr "SNR"
+
+msgid "Interface Up"
+msgstr "Schnittstelle aktiv"
+
+msgid "Session Activated"
+msgstr "Sitzung aktiviert"
+
+msgid "New CGI"
+msgstr "Neues CGI"
+
+msgid "Search"
+msgstr "Suche"
+
+msgid "Deactivated"
+msgstr "Deaktiviert"
+
+msgid "Firmware Version"
+msgstr "Firmware Version"
+
+msgid "Operator Info"
+msgstr "Betreiberinfo"
+
+msgid "Downlink ARFCN"
+msgstr "Downlink ARFCN"
+
+msgid "Downlink UARFCN"
+msgstr "Downlink UARFCN"
+
+msgid "Minor"
+msgstr "Unter"
+
+msgid "TX Power"
+msgstr "TX Leistung"
+
+msgid "Success"
+msgstr "Erfolg"
+
+msgid "Uplink UARFCN"
+msgstr "Uplink UARFCN"
+
+msgid "Use Device Profiles"
+msgstr "Nutze Geräteprofile"
+
+msgid "Session Deactivated"
+msgstr "Sitzung deaktiviert"
+
+msgid "Location Area Code Changed"
+msgstr "Bereichskode geändert"
+
+msgid "Location Area Code Changes"
+msgstr "Bereichskodeänderungen"
+
+msgid "No signal quality history available for the selected period"
+msgstr "Keine Historie der Signalqualität für den gewählten Zeitraum vorhanden"
+
+msgid "Network Registered"
+msgstr "Netzwerk registriert"
+
+msgid "Reject Cause"
+msgstr "Ablehnungsgrund"
+
+msgid "Radio Interface Changes"
+msgstr "Radioschnittstelle Änderungen"
+
+msgid "New TAC"
+msgstr "Neuer TAC"
+
+msgid "SINR"
+msgstr "SINR"
+
+msgid "Session Connected"
+msgstr "Sitzung verbunden"
+
+msgid "Events"
+msgstr "Ereignisse"
+
+msgid "EUTRA Cell Global ID Changes"
+msgstr "EUTRA Zellen-ID Änderungen"
+
+msgid "Network Deregistrations"
+msgstr "Netzwerk Deregistrierungen"
+
+msgid "Critical"
+msgstr "Kritisch"
+
+msgid "Statistics"
+msgstr "Statistik"
+
+msgid "Unknown"
+msgstr "Unbekannt"
+
+msgid "Session Disconnected"
+msgstr "Sitzung getrennt"
+
+msgid "Hardware Version"
+msgstr "Hardware Version"
+
+msgid "Editing not possible for inactive devices"
+msgstr "Änderung für inaktive Geräte nicht möglich"
+
+msgid "New LAC"
+msgstr "Neuer LAC"
+
+msgid "Cell Changed"
+msgstr "Zelle geändert"
+
+msgid "Unblock Retries Left"
+msgstr "Übrige Entsperrversuche"
+
+msgid "RRC State"
+msgstr "RRC Zustand"
+
+msgid "CINR"
+msgstr "CINR"
+
+msgid "Inactive Devices"
+msgstr "Inaktive Geräte"
+
+msgid "New Radio Interface"
+msgstr "Neue Radioschnittstelle"
+
+msgid "Access Technology:"
+msgstr "Zugriffstechnologie:"
+
+msgid "Network Status:"
+msgstr "Netzwerkzustand:"
+
+msgid "Uplink Frequency:"
+msgstr "Uplink Frequenz:"
+
+msgid "SNR:"
+msgstr "SNR:"
+
+msgid "RSRP:"
+msgstr "RSRP:"
+
+msgid "Uplink Bandwidth:"
+msgstr "Uplink Bandbreite:"
+
+msgid "Radio Bearer:"
+msgstr "Funkträger:"
+
+msgid "RSRQ:"
+msgstr "RSRQ:"
+
+msgid "Path loss:"
+msgstr "Pfadverluste:"
+
+msgid "Downlink EARFCN:"
+msgstr "Downlink EARFCN:"
+
+msgid "RRC State:"
+msgstr "RRC Zustand:"
+
+msgid "Last five minutes"
+msgstr "Letzte fünf Minuten"
+
+msgid "Physical Cell ID:"
+msgstr "Physische Zellen-ID:"
+
+msgid "SINR:"
+msgstr "SINR:"
+
+msgid "Downlink Bandwidth:"
+msgstr "Downlink Bandbreite:"
+
+msgid "Most recent values"
+msgstr "Aktuellste Werte"
+
+msgid "Uplink EARFCN:"
+msgstr "Uplink EARFCN:"
+
+msgid "Operator:"
+msgstr "Betreiber:"
+
+msgid "Uplink UARFCN:"
+msgstr "Uplink UARFCN:"
+
+msgid "Downlink Frequency:"
+msgstr "Downlink Frequenz:"
+
+msgid "Last twenty minutes"
+msgstr "Letzte zwanzig Minuten"
+
+msgid "ECIO:"
+msgstr "ECIO:"
+
+msgid "Cell ID:"
+msgstr "Zellen-ID:"
+
+msgid "RSSI:"
+msgstr "RSSI:"
+
+msgid "Service Status:"
+msgstr "Dienstzustand:"
+
+msgid "Downlink ARFCN:"
+msgstr "Downlink ARFCN:"
+
+msgid "RSCP:"
+msgstr "RSCP:"
+
+msgid "Tracking Area Code:"
+msgstr "Verfolgungsbereichskode:"
+
+msgid "Last hour"
+msgstr "Letzte Stunde"
+
+msgid "Downlink UARFCN:"
+msgstr "Downlink UARFCN:"
+
+msgid "Active Band:"
+msgstr "Aktives Band:"
+
+msgid "MNC:"
+msgstr "MNC:"
+
+msgid "MCC:"
+msgstr "MCC:"
+
+msgid "CINR:"
+msgstr "CINR:"
+
+msgid "Choose A Band"
+msgstr "Band wählen"
+
+msgid "TX Power:"
+msgstr "Sendeleistung:"
+
+msgid "Uplink ARFCN:"
+msgstr "Uplink ARFCN:"

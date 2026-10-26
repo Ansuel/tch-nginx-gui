@@ -1,0 +1,1 @@
+^system%.system%.[^%.]+%.timezone /usr/share/transformer/scripts/uci_system.sh

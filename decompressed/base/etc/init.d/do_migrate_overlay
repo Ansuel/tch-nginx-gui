@@ -1,0 +1,168 @@
+#!/bin/ash /etc/rc.common
+
+START=00
+EXTRA_COMMANDS="preserve_files"
+EXTRA_HELP="        preserve_files  Transfer files from modoverlay to bank"
+
+upperdir=/modoverlay/bank_mod
+overlay_bank=/overlay/bank_2
+
+logging_file=/overlay/modgui_log/migrate_log_$(date +"%H-%M_%m-%d-%y")
+
+create_modgui_log() {
+  [ ! -d /overlay/modgui_log ] && mkdir /overlay/modgui_log
+  touch $logging_file
+}
+
+kecho() {
+  echo mount_root-mod: "$@"
+  echo mount_root-mod: "$@" > /dev/kmsg
+  echo mount_root-mod: "$@" >> $logging_file
+}
+
+preserve_files() {
+    #these files should be moved back to bank_2 overlay to allow our mount hook to take place (and preserve root after boot)
+    local preserve_list="/etc/init.d/rootdevice /etc/rc.d/S94rootdevice /usr/sbin/random_seed /sbin/insmod \
+    /lib/mount_modroot/05_transfer_basefiles /etc/init.d/do_migrate_overlay /usr/sbin/mount_modoverlay /sbin/mount_root-mod"
+
+    if ! mount | grep /modoverlay/bank_mod > /dev/null ; then
+      kecho "Modroot not found. Can't preserve files."
+      exit 1
+    fi
+
+    update_file_if_needed() { # <file> <source> <dest>
+      cmp -s "$2$1" "$3$1" || cp -a "$2$1" "$3$1"
+    }
+
+    for f in $preserve_list; do
+      mkdir -p $overlay_bank$(dirname "$f")
+      # kecho "update_file_if_needed $f"
+      update_file_if_needed "$f" "$upperdir" $overlay_bank
+    done
+
+    sync
+}
+
+boot() {
+  local ram_dir=/tmp/migrate_overlay
+  local upperdir_backup=/tmp/upperdir_backup
+  local files_to_del=/files_to_del
+  local need_reboot="0"
+
+  # Disable watchdog before any operation since it looks to cause crash for some old router
+  /etc/init.d/watchdog-tch stop
+
+  tranfer_file() { # $source $dest
+
+    local source=$1
+    local dest=$2
+
+    kecho "copying $source/* to $dest/ ..."
+
+    for d in $(find $source/ -xdev -type d ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+      # kecho "creating $dest/$d"
+      mkdir -p "$dest/$d" 2>/dev/kmsg
+    done
+
+    for f in $(find $source/ -xdev -type f ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+      # kecho "copying $source/$f to $dest/$f"
+      cp -dp "$source/$f" "$dest/$f" 2>/dev/kmsg
+    done
+
+    for l in $(find $source/ -xdev -type l ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+      # kecho "copying $source/$l to $dest/$l"
+      cp -dp "$source/$l" "$dest/$l" 2>/dev/kmsg
+    done
+  }
+
+  gen_file_to_del_list() { # $source $path_to_save_list
+
+    local source=$1
+    local path_to_save_list=$2
+
+    touch $path_to_save_list
+
+    # Now scan for file to be deleted... depending on the system these can be char type file
+    # In new system the cp fails to copy this file. To fix this put the file in a txt file and then remove them by reading it
+    for c in $(find $source/ -xdev -type c ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+      # kecho "setting /"$c" to be flagged as deleted"
+      echo /"$c" >> $path_to_save_list
+    done
+  }
+
+  check_files_to_delete() {
+    # Since we are doing a double overlay, we can't remove file that are already flagged as deleted...
+    # To transfer deleted file across overlay (using the easy way instead of unmounting) we need to
+    # 1. Create a list of the file to delete
+    # 2. Clean the deleted file from the old overlay
+    # 3. Reboot to make the accessible from the new overlay
+    # 4. Remove the file again in the new mounted overlay
+    kecho "checking if there are files to be removed..."
+    if [ -f $files_to_del ]; then
+      kecho "there are files scheduled to be removed..."
+
+      # Actually remove the file flagged as removed in the old overlay
+      while read -r file; do
+        # kecho "setting "$file" as deleted in the new overlay"
+        rm "$file" 2>/dev/kmsg
+      done < "$files_to_del"
+
+      sync
+    fi
+
+    rm $files_to_del
+  }
+
+  move_overlay() {
+    kecho "checking if overlay must be transfered..."
+    #use the config folder as check to know that we should populate the modoverlay (mtd3) and cleanup real overlay (mtd2)
+    # Other process can write some config file before modoverlay is mounted, checking the config dir is not enough
+    # Try to check if modgui exist and assume the migration is needed if present
+    if [ -f $overlay_bank/etc/config/modgui ]; then
+      mkdir $ram_dir $upperdir_backup
+
+      #copy all file from overlay_bank to ram keeping all attributes and links
+      tranfer_file $overlay_bank $ram_dir
+
+      gen_file_to_del_list $overlay_bank $files_to_del
+
+      sync
+
+      #copy all file from ram to modoverlay keeping all attributes and links
+      tranfer_file $ram_dir $upperdir
+
+      #at this point we should remove all empty folders in bank_2 overlay, except the modoverlay mountpoint
+      for f in "$overlay_bank/"*; do
+        # kecho "check-for-rm $f"
+        [ "$f" != "$overlay_bank/modoverlay" ] && [ "$f" != "$overlay_bank/saferoot" ] && rm -rf "$f"
+      done
+
+      sync
+
+      kecho "migration done!"
+
+      need_reboot="1"
+    fi
+  }
+
+  reboot_if_needed(){
+    if [ "$need_reboot" = "1" ]; then
+      [ -f /proc/prozone/bootcounter ] && {
+        # Simulate the bank_1 failed 3 times
+        echo 1 > /proc/prozone/bootfail
+        echo 2 > /proc/prozone/bootcounter
+        echo 0 > /proc/prozone/bootbank
+      }
+      reboot && sleep 30
+    fi
+  }
+
+  if mount | grep /modoverlay/bank_mod > /dev/null ; then
+    { check_files_to_delete; move_overlay; preserve_files; reboot_if_needed; }
+  else
+    kecho "modoverlay not mounted! Aborting migration!"
+  fi
+
+  # Restart watchdog
+  /etc/init.d/watchdog-tch start
+}

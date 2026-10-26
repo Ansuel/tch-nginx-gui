@@ -1,0 +1,206 @@
+local optical = require("transformer.shared.optical")
+local flag = optical.getBoardtype()
+if flag == "none" then
+  return
+end
+
+local register, mapper, eventsource = register, mapper, eventsource
+local upper, match = string.upper, string.match
+local posix = require("tch.posix")
+local getClockTime = posix.clock_gettime
+local lastStateChangeTime = getClockTime(posix.CLOCK_MONOTONIC)
+
+-- Manually generated Multi_Optical_Interface_i_
+local Multi_Optical_Interface_i_ = {
+  objectType = {
+    name = "#ROOT",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = math.huge,
+    numEntriesParameter = "InterfaceNumberOfEntries",
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+      },
+      OpticalSignalLevel = {
+        access = "readOnly",
+        type = "int",
+      },
+      TransmitOpticalLevel = {
+        access = "readOnly",
+        type = "int",
+      },
+      Alias = {
+        access = "readWrite",
+        type = "string",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      LastChange = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LowerLayers = {
+        access = "readOnly",
+        type = "string",
+        max = "1024",
+      },
+      Upstream = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      LowerOpticalThreshold = {
+        access = "readOnly",
+        type = "int",
+      },
+      UpperOpticalThreshold = {
+        access = "readOnly",
+        type = "int",
+      },
+      LowerTransmitPowerThreshold = {
+        access = "readOnly",
+        type = "int",
+      },
+      UpperTransmitPowerThreshold = {
+        access = "readOnly",
+        type = "int",
+      },
+      VendorName = {
+        access = "readOnly",
+        type = "string",
+      },
+    },
+  }
+}
+
+-- Currently by default single entry is formed
+Multi_Optical_Interface_i_.entries = function(mapping)
+  return { "1" }
+end
+
+local function getLastChange()
+  local value = getClockTime(posix.CLOCK_MONOTONIC) - lastStateChangeTime
+  return tostring(value)
+end
+
+Multi_Optical_Interface_i_.get = {
+  Enable = function()
+    return optical.getEnable()
+  end,
+  Status = function()
+    return optical.getStatus()
+  end,
+  OpticalSignalLevel = function()
+    return optical.getLevel("OpticalSignalLevel")
+  end,
+  TransmitOpticalLevel = function()
+    return optical.getLevel("TransmitOpticalLevel")
+  end,
+  Name = "OPTICAL",
+  LastChange = getLastChange,
+  LowerLayers = "",
+  Upstream = "1",
+  LowerOpticalThreshold = function(mapping, param)
+    return optical.getThresholdValues(param)
+  end,
+  UpperOpticalThreshold = function(mapping, param)
+    return optical.getThresholdValues(param)
+  end,
+  LowerTransmitPowerThreshold = function(mapping, param)
+    return optical.getThresholdValues(param)
+  end,
+  UpperTransmitPowerThreshold = function(mapping, param)
+    return optical.getThresholdValues(param)
+  end,
+  VendorName = function()
+    return optical.getVendorName()
+  end,
+}
+
+Multi_Optical_Interface_i_.set = {
+  Enable = function(mapping, param, value, key)
+    optical.setEnable(value)
+  end,
+}
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Optical_Interface_i_, "#ROOT", { "rpc.optical.Interface.{i}.", "Device.Optical.Interface.{i}." })
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Optical_Interface_i_Stats_ = {
+  objectType = {
+    name = "#ROOT",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      BytesSent = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      BytesReceived = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      PacketsSent = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      PacketsReceived = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      ErrorsSent = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      ErrorsReceived = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      DiscardPacketsSent = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      DiscardPacketsReceived = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      reset = {
+        access = "readWrite",
+        type = "boolean",
+      },
+    },
+  }
+}
+
+Multi_Optical_Interface_i_Stats_.get = function(mapping, param)
+  if param == "reset" then
+    return "0"
+  end
+  return optical.getStats(param)
+end
+
+Multi_Optical_Interface_i_Stats_.set = function(mapping, paramName, paramValue, key)
+  if paramName == "reset" and paramValue == "1" then
+    return optical.resetStatsGponSFP()
+  end
+end
+
+duplicator = mapper("multiroot").duplicate
+duplicates = duplicator(Multi_Optical_Interface_i_Stats_, "#ROOT", { "rpc.optical.Interface.{i}.Stats.", "Device.Optical.Interface.{i}.Stats." })
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

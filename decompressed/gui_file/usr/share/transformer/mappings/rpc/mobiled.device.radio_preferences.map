@@ -1,0 +1,63 @@
+local mobiled_device_radio_preferences = {
+	objectType = {
+		name = 'rpc.mobiled.device.@.radio_preference.@.',
+		access = 'readOnly',
+		numEntriesParameter = "RadioPreferenceNumberOfEntries",
+		minEntries = 0,
+		maxEntries = math.huge,
+		parameters = {
+			name = {
+				access = "readOnly",
+				type = "string",
+			},
+			radios = {
+				access = "readOnly",
+				type = "string",
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local function getRadioPreferenceData(key, parent_key)
+	local info = {}
+	local radio_preference_id = tonumber(string.match(key, "_radio_preference(%d+)"))
+	if radio_preference_id and radio_preference_id >= 1 then
+		local data = helper.getUbusData(conn, "mobiled.device", "radio_preferences", { dev_idx = tonumber(string.match(parent_key, "%d+")) })
+		if type(data.radio_preferences) == "table" then
+			local radio_preference = data.radio_preferences[radio_preference_id]
+			if type(radio_preference) == "table" then
+				info = radio_preference
+			end
+		end
+	end
+	setmetatable(info, { __index = function() return "" end })
+	return info
+end
+
+function mobiled_device_radio_preferences.getall(_, key, parent_key)
+	return getRadioPreferenceData(key, parent_key)
+end
+
+function mobiled_device_radio_preferences.get(_, paramName, key, parent_key)
+	return mobiled_device_radio_preferences.getall(_, key, parent_key)[paramName]
+end
+
+function mobiled_device_radio_preferences.entries(_, parentkey)
+	local data = helper.getUbusData(conn, "mobiled.device", "radio_preferences", { dev_idx = tonumber(string.match(parentkey, "%d+")) })
+	local radio_preferences = {}
+	if type(data.radio_preferences) == "table" then
+		for i=1, #data.radio_preferences do
+			table.insert(radio_preferences, { tostring(i), parentkey.. "_radio_preference" .. i })
+		end
+	end
+	return radio_preferences
+end
+
+register(mobiled_device_radio_preferences)

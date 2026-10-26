@@ -1,0 +1,55 @@
+local mobiled_device_network_stats_ = {
+	objectType = {
+		name = 'rpc.mobiled.device.@.stats.network.',
+		access = 'readOnly',
+		minEntries = 1,
+		maxEntries = 1,
+		parameters = {
+			deregistered = {
+				access = "readOnly",
+				type = "unsignedInt"
+			},
+			radio_interface_changed = {
+				access = "readOnly",
+				type = "unsignedInt"
+			},
+			tracking_area_code_changed = {
+				access = "readOnly",
+				type = "unsignedInt"
+			},
+			location_area_code_changed = {
+				access = "readOnly",
+				type = "unsignedInt"
+			},
+			cgi_changed = {
+				access = "readOnly",
+				type = "unsignedInt"
+			},
+			ecgi_changed = {
+				access = "readOnly",
+				type = "unsignedInt"
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+function mobiled_device_network_stats_.getall(mapping, key)
+	local data = helper.getUbusData(conn, "mobiled.device", "stats", { dev_idx = tonumber(string.match(key, '%d+')) })
+	if data then
+		return data.network or {}
+	end
+	return {}
+end
+
+function mobiled_device_network_stats_.get(mapping, paramName, key)
+	return mobiled_device_network_stats_.getall(mapping, key)[paramName] or ""
+end
+
+register(mobiled_device_network_stats_)

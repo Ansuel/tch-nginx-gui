@@ -1,0 +1,98 @@
+local mapper = mapper
+local config_qos = "qos"
+
+-- uci.qos
+mapper("uci_1to1").registerConfigMap(config_qos)
+
+--uci.qos.label
+local qos_label = {
+  config = config_qos,
+  type = "label",
+  options = { "trafficid", "tos", "dscp", "pcp" },
+}
+mapper("uci_1to1").registerNamedMultiMap(qos_label)
+
+--uci.qos.class
+local qos_class = {
+  config = config_qos,
+  type = "class",
+  options = { "priority", "weight", "min_bit_rate", "max_bit_rate", "max_burst_size", "drop_profile" },
+  lists = { "trafficid" },
+}
+mapper("uci_1to1").registerNamedMultiMap(qos_class)
+
+--uci.qos.profile_RED
+local profile_RED = {
+  config = config_qos,
+  type = "profile_RED",
+  options = { "drop_probability", "tcp_only", "min_threshold", "max_threshold" },
+}
+mapper("uci_1to1").registerNamedMultiMap(profile_RED)
+
+-- uci.qos.classify
+local qos_classify = {
+  config = config_qos,
+  type = "classify",
+  options = { "target", "family", "proto", "srchost", "dsthost", "ports", "srcports",
+              "dstports", "mark", "helper", "layer7", "srcmac", "order" },
+  lists = { "srcif", "dstif", "proto_option", "tos", "dscp" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(qos_classify)
+
+-- uci.qos.rule
+local qos_rule = {
+  config = config_qos,
+  type = "rule",
+  options = { "voip_signaling", "target", "family", "proto", "srchost", "dsthost", "ports", "srcports",
+              "dstports", "mark", "helper", "layer7", "srcmac" },
+  lists = { "srcif", "dstif", "proto_option", "tos", "dscp" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(qos_rule)
+
+-- uci.qos.reclassify
+local qos_reclassify = {
+  config = config_qos,
+  type = "reclassify",
+  options = { "target", "family", "proto", "srchost", "dsthost", "ports", "srcports",
+              "dstports", "mark", "helper", "layer7" },
+  lists = { "srcif", "dstif", "proto_option", "tos", "dscp" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(qos_reclassify)
+
+-- uci.qos.l2classify
+local qos_l2classify = {
+  config = config_qos,
+  type = "l2classify",
+  options = { "target", "proto", "macsrc", "macdst", "pkttype", "limit",
+              "limitburst"},
+  lists = { "srcif", "dstif"  }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(qos_l2classify)
+
+--uci.qos.interface
+local qos_interface = {
+  config = config_qos,
+  type = "interface",
+  options = { "classgroup", "enable", "pcp" }
+}
+mapper("uci_1to1").registerNamedMultiMap(qos_interface)
+
+--uci.qos.classgroup
+local qos_classgroup = {
+  config = config_qos,
+  type = "classgroup",
+  options = { "classes", "policy", "default" }
+}
+mapper("uci_1to1").registerNamedMultiMap(qos_classgroup)
+
+--uci.qos.device
+local qos_device = {
+  config = config_qos,
+  type = "device",
+  options = { "enable", "classgroup", "switchclassification", "pcp", "force_pcp" }
+}
+mapper("uci_1to1").registerNamedMultiMap(qos_device)

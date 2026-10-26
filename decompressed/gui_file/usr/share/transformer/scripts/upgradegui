@@ -1,0 +1,272 @@
+#!/bin/sh
+
+#
+#
+#	 Custom Gui for Technicolor Modem: utility script and modified gui for the Technicolor Modem
+#	 								   interface based on OpenWrt
+#
+#    Copyright (C) 2018  Christian Marangi <ansuelsmth@gmail.com>
+#
+#    This file is part of Custom Gui for Technicolor Modem.
+#
+#    Custom Gui for Technicolor Modem is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Custom Gui for Technicolor Modem is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Custom Gui for Technicolor Modem.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+
+LIGHT_RED='\033[1;31m'
+NC='\033[0m'
+
+print_logo() {
+  echo -e "${LIGHT_RED}
+
+ █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗
+██╔══██╗████╗  ██║██╔════╝██║   ██║██╔════╝██║
+███████║██╔██╗ ██║███████╗██║   ██║█████╗  ██║
+██╔══██║██║╚██╗██║╚════██║██║   ██║██╔══╝  ██║
+██║  ██║██║ ╚████║███████║╚██████╔╝███████╗███████╗
+╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚══════╝
+(Modified Gui UpgradeScript)               (Christo)
+${NC}
+"
+}
+
+bzcat=/usr/bin/bzcat
+tar=/bin/tar
+rootdevice_call="debug"
+
+############TRANSFORMER UTILITY##################
+set_transformer() {
+  cmd="require('datamodel').set('$1','$2')"
+  lua -e "$cmd"
+}
+#################################################
+
+logecho() {
+  logger -t "Upgrade Script" "$1"
+  echo "Upgrade Script" "$1"
+}
+
+if [ "$1" ]; then
+  if [ "$1" == "SetTime" ]; then
+    time="$(uci get modgui.gui.autoupgrade_hour)"
+    hour="$(echo $time | sed "s|:.*||")"
+    minute="$(echo $time | sed "s|.*:||")"
+    autoupgrade="$(uci get modgui.gui.autoupgrade)"
+    if [ "$(cat /etc/crontabs/root | grep upgradegui)" ]; then
+      sed -i '/upgradegui/d' /etc/crontabs/root
+    fi
+    if [ "$autoupgrade" == "1" ]; then
+      echo "$minute $hour * * * /usr/share/transformer/scripts/upgradegui AutoUpgrade >/dev/null 2>&1" >>/etc/crontabs/root
+    fi
+    exit 0
+  fi
+
+  if [ "$1" == "AutoUpgrade" ]; then
+    /usr/share/transformer/scripts/checkver || exit 1
+    if [ "$(uci get modgui.gui.outdated_ver)" == "0" ]; then
+      logecho "Already at latest version. Aborting upgrade."
+      exit 0
+    fi
+    # Enabling alert for the gui about the autoupgrade
+    uci set modgui.gui.autoupgradeview=auto
+    uci commit modgui
+  fi
+
+else
+  print_logo
+  # Enabling alert for the gui about the manual upgrade
+  uci set modgui.gui.autoupgradeview=manual
+fi
+
+# Check update_branch
+if [ ! "$(uci get -q modgui.gui.update_branch)" ] || [ "$(uci get modgui.gui.update_branch)" == "stable" ]; then
+  update_branch=""
+elif [ "$(uci get modgui.gui.update_branch)" == "preview" ]; then
+  update_branch="_preview"
+else
+  update_branch="_dev"
+fi
+
+version_gt() {
+  awk -v a="$1" -v b="$2" 'BEGIN {
+    split(a, x, "."); split(b, y, ".")
+    for (i = 1; i <= 3; i++) {
+      if (x[i] + 0 > y[i] + 0) exit 0
+      if (x[i] + 0 < y[i] + 0) exit 1
+    }
+    exit 1
+  }'
+}
+
+#Check if stable have a new version
+
+ubus send fwupgrade '{"state":"upgrading"}'
+
+WORKING_DIR="/tmp"
+PERMANENT_STORE_DIR="/root"
+TARGET_DIR="/"
+FILE_NAME='GUI'$update_branch'.tar.bz2'
+STABLE_FILE_NAME='GUI.tar.bz2'
+FORCE_SAVE_GUI=0
+
+overlay_available_space=$(df /overlay | sed -n 2p | awk {'{print $4}'})
+if [ "$overlay_available_space" -lt 3000 ]; then
+  logecho "ERROR: not enough space to complete operation" >&2
+  #Should probably implement some sort of erase here <kevdagoat>
+  ubus send fwupgrade '{"state":"done"}'
+  exit 1
+fi
+
+if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload is now present
+
+  set_transformer "rpc.system.modgui.executeCommand.state" "Downloading"
+
+  logecho "Downloading GUI file..."
+  # Enter /tmp folder
+  if ! cd "$WORKING_DIR"; then
+    logecho "ERROR: Can't access $WORKING_DIR" >&2
+    ubus send fwupgrade '{"state":"done"}'
+    exit 1
+  fi
+
+  # Pin the channel once, and let checkver enforce exact-name checksum checks.
+  channel=${update_branch#_}
+  [ -n "$channel" ] || channel=stable
+  if ! dev_version=$(/usr/share/transformer/scripts/checkver ReleaseVersion "$channel") ||
+    ! /usr/share/transformer/scripts/checkver DownloadVersion "$dev_version" "$FILE_NAME" "$WORKING_DIR/$FILE_NAME"; then
+    logecho "ERROR: Can't download and verify GUI file" >&2
+    ubus send fwupgrade '{"state":"done"}'
+    exit 1
+  fi
+
+  if [ -n "$update_branch" ]; then
+    stable_version=$(/usr/share/transformer/scripts/checkver ReleaseVersion stable)
+    stable_lookup_status=$?
+    if [ "$stable_lookup_status" -eq 3 ]; then
+      logecho "Stable channel not published. Continuing with verified $update_branch GUI."
+    else
+      # Keep the existing recovery-copy behavior, even if stable is older.
+      rm -f "$WORKING_DIR/$STABLE_FILE_NAME"
+      if [ "$stable_lookup_status" -ne 0 ] ||
+        ! /usr/share/transformer/scripts/checkver DownloadVersion "$stable_version" "$STABLE_FILE_NAME" "$WORKING_DIR/$STABLE_FILE_NAME"; then
+        logecho "ERROR: Can't download and verify stable GUI file" >&2
+        rm -f "$WORKING_DIR/$FILE_NAME" "$WORKING_DIR/$STABLE_FILE_NAME"
+        ubus send fwupgrade '{"state":"done"}'
+        exit 1
+      fi
+      if version_gt "$stable_version" "$dev_version"; then
+        logecho "Found newer version in stable branch, using it..."
+        rm -f "$WORKING_DIR/$FILE_NAME"
+        FILE_NAME="$STABLE_FILE_NAME"
+        FORCE_SAVE_GUI=1
+      else
+        if [ -f "$PERMANENT_STORE_DIR/$STABLE_FILE_NAME" ]; then
+          downloaded_md5=$(md5sum "$WORKING_DIR/$STABLE_FILE_NAME")
+          saved_md5=$(md5sum "$PERMANENT_STORE_DIR/$STABLE_FILE_NAME")
+          if [ "${downloaded_md5%% *}" != "${saved_md5%% *}" ]; then
+            cp "$WORKING_DIR/$STABLE_FILE_NAME" "$PERMANENT_STORE_DIR/$STABLE_FILE_NAME" || exit 1
+          fi
+        fi
+        rm -f "$WORKING_DIR/$STABLE_FILE_NAME"
+      fi
+    fi
+  fi
+else
+  logecho "Found file in /tmp dir... doing offline upgrade!"
+  #Save gui always as STABLE in offline upgrade as we can't check or download it.
+  FORCE_SAVE_GUI=1
+fi
+
+set_transformer "rpc.system.modgui.executeCommand.state" "Clearing"
+
+#NOT NEEDED ANYMORE
+#logecho "Stopping nginx..."
+#/etc/init.d/nginx stop
+
+logecho "Cleaning www dir"
+#clean old www dir
+
+for dir in /www/*; do
+  if [ "$dir" = "/www/docroot" ]; then
+    for subdir in /www/docroot/*; do
+      if [ "$subdir" = "/www/docroot/aria" ] ||
+        [ "$subdir" = "/www/docroot/transmission" ]; then
+        continue
+      elif [ "$subdir" = "/www/docroot/ajax" ]; then
+        for file in /www/docroot/ajax/*; do
+          #We need this file to handle rootdevice log in gui
+          if [ "$file" != "/www/docroot/ajax/commandlogread.lua" ]; then
+            rm "$file"
+          fi
+        done
+      else
+        rm -rf "$subdir"
+      fi
+    done
+  else
+    rm -rf "$dir"
+  fi
+done
+
+set_transformer "rpc.system.modgui.executeCommand.state" "Extracting"
+
+logecho "Extracting file..."
+# Extract new GUI to /
+bzcat "$WORKING_DIR/$FILE_NAME" |
+  tar -C "$TARGET_DIR" -xvf - |
+  while read -r line; do
+    nfile_extracted=$((nfile_extracted + 1))
+    if [ $(($nfile_extracted % 100)) -eq 0 ]; then
+      logecho "Extracted $nfile_extracted files"
+    fi
+  done
+
+#Remove deprecated GUI packages if found in /root
+if [ -f /root/GUI_dev.tar.bz2 ]; then
+  logecho "Deleting /root/GUI_dev.tar.bz2..."
+  rm /root/GUI_dev.tar.bz2
+fi
+if [ -f /root/GUI.tar.gz ]; then
+  logecho "Deleting GUI.tar.gz..."
+  rm /root/GUI.tar.gz
+fi
+
+if [ -z "$update_branch" ] || [ $FORCE_SAVE_GUI == 1 ]; then
+  logecho "Copying file to permanent dir..."
+  #Copy GUI file to permanent dir
+  if [ -f "$PERMANENT_STORE_DIR/$FILE_NAME" ]; then
+    rm "$PERMANENT_STORE_DIR/$FILE_NAME"
+  fi
+  cp "$WORKING_DIR/$FILE_NAME" "$PERMANENT_STORE_DIR/$STABLE_FILE_NAME"
+fi
+
+if [ "$update_branch" == "_dev" ] || [ "$update_branch" == "_preview" ]; then
+  logecho "Saving md5sum of dev gui to /root ..."
+  md5sum "$WORKING_DIR/$FILE_NAME" | cut -d' ' -f1 >/root/gui_dev.md5sum
+fi
+
+sync
+
+logecho "Running rootdevice script"
+# Run init.d script
+set_transformer "rpc.system.modgui.executeCommand.state" "In Progress"
+/etc/init.d/rootdevice "$rootdevice_call"
+/etc/init.d/do_migrate_overlay preserve_files
+
+if [ -f "$WORKING_DIR/$FILE_NAME" ]; then
+  rm "$WORKING_DIR/$FILE_NAME"
+fi
+
+ubus send fwupgrade '{"state":"done"}'
+logecho "Upgrade Done"

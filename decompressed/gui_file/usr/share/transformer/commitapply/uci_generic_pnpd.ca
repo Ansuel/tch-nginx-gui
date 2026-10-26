@@ -1,0 +1,1 @@
+^generic_app%..+%.url uci -q delete generic_app.pnpserver.registered; uci commit generic_app; /usr/share/transformer/scripts/ispConfigHelper.sh pnp

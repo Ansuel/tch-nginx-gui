@@ -1,0 +1,200 @@
+local register = register
+
+--Manually generated
+local ra_interfacesetting_ = {
+  objectType = {
+    name = "rpc.ra_interface.@.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      ra_enable = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "disabled",
+          "server",
+          "relay",
+          "hybrid"
+        },
+        default = "disabled",
+      },
+      adv_managed_flag = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      adv_other_config_flag = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      adv_default_lifetime = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            max = "65535",
+          },
+       },
+       default = "1800",
+      },
+      adv_link_mtu = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "0",
+      },
+      max_rtr_adv_interval = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "4",
+            max = "1800",
+          },
+        },
+        default = "600",
+      },
+      min_rtr_adv_interval = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "3",
+            max = "1350",
+          },
+        },
+        default = "200",
+      },
+    }
+  }
+}
+
+local mapper = mapper
+local nwCommon = mapper("nwcommon")
+local uciHelper = mapper("ucihelper")
+local dhcpBinding = { config = "dhcp" }
+local configChanged
+
+local paramMap = {
+  ra_enable             = "ra",
+  adv_managed_flag      = "ra_management",
+  adv_other_config_flag = "ra_management",
+  adv_default_lifetime  = "ra_lifetime",
+  adv_link_mtu          = "ra_mtu",
+  max_rtr_adv_interval  = "ra_maxinterval",
+  min_rtr_adv_interval  = "ra_mininterval"
+}
+
+local defaultValues = {
+  ra_enable            = "disabled",
+  adv_managed_flag     = "1",
+  adv_other_config_flag = "1",
+  adv_default_lifetime = "1800",
+  adv_link_mtu         = "0",
+  max_rtr_adv_interval = "1800",
+  min_rtr_adv_interval = "1350"
+}
+
+ra_interfacesetting_.entries = function()
+  local entries = {}
+  local lanInterfaces = {}
+  for _,v in pairs(nwCommon.findLanWanInterfaces(false)) do
+    lanInterfaces[v] = true
+  end
+  dhcpBinding.sectionname = "dhcp"
+  uciHelper.foreach_on_uci(dhcpBinding, function(s)
+    if lanInterfaces[s.interface] and s.dhcpv6 then
+      entries[#entries + 1] = s[".name"]
+    end
+  end)
+  return entries
+end
+
+local function getUciValue(param, key)
+  dhcpBinding.sectionname = key
+  dhcpBinding.option = paramMap[param]
+  dhcpBinding.default = defaultValues[param]
+  return uciHelper.get_from_uci(dhcpBinding)
+end
+
+ra_interfacesetting_.get = {
+  ra_enable = function(mapping, param, key)
+    return getUciValue(param, key)
+  end,
+  adv_managed_flag = function(mapping, param, key)
+    local value = getUciValue(param, key)
+    return value ~= "0" and "1" or "0"
+  end,
+  adv_other_config_flag = function(mapping, param, key)
+    local value = getUciValue(param, key)
+    return value == "2" and "0" or "1"
+  end,
+  adv_default_lifetime = function(mapping, param, key)
+    return getUciValue(param, key)
+  end,
+  adv_link_mtu = function(mapping, param, key)
+    return getUciValue(param, key)
+  end,
+  max_rtr_adv_interval = function(mapping, param, key)
+    return getUciValue(param, key)
+  end,
+  min_rtr_adv_interval = function(mapping, param, key)
+    return getUciValue(param, key)
+  end,
+}
+
+ra_interfacesetting_.getall = function(mapping, key)
+  dhcpBinding.sectionname = key
+  local allValues = uciHelper.getall_from_uci(dhcpBinding)
+  return {
+    ra_enable = allValues["ra_enable"] or defaultValues["ra_enable"],
+    adv_managed_flag = allValues["ra_management"] and (allValues["ra_management"] ~= "0" and "1" or "0") or defaultValues["adv_managed_flag"],
+    adv_other_config_flag = allValues["ra_management"] and (allValues["ra_management"] == "2" and "0" or "1") or defaultValues["adv_other_config_flag"],
+    adv_default_lifetime = allValues["ra_lifetime"] and allValues["ra_lifetime"] or defaultValues["adv_default_lifetime"],
+    adv_link_mtu = allValues["ra_mtu"] and allValues["ra_mtu"] or defaultValues["adv_link_mtu"],
+    max_rtr_adv_interval = allValues["ra_maxinterval"] and allValues["ra_maxinterval"] or defaultValues["max_rtr_adv_interval"],
+    min_rtr_adv_interval = allValues["ra_mininterval"] and allValues["ra_mininterval"] or defaultValues["min_rtr_adv_interval"],
+  }
+end
+
+ra_interfacesetting_.set = function(mapping, param, value, key)
+  -- ra_management: 0 - no M-Flag but A-Flag, 1 - both M and A, 2 - M but not A
+  -- M - adv_managed_flag, A - adv_other_config_flag
+  if param == "adv_managed_flag" then
+    local mgmtValue = getUciValue(param, key)
+    if value == "1" then
+      -- to enable adv_managed_flag, set ra_management to "2" if ra_management is already "2" otherwise "1"
+      value = (mgmtValue == "2") and "2" or "1"
+    end
+  elseif param == "adv_other_config_flag" then
+    local mgmtValue = getUciValue(param, key)
+    -- to disable adv_other_config_flag, set ra_management to "2"
+    if value == "0" then
+      value = "2"
+    -- to enable adv_other_config_flag, set ra_management to "0" if ra_management is already "0" otherwise "1"
+    else
+      value = (mgmtValue == "0") and "0" or "1"
+    end
+  end
+  dhcpBinding.sectionname = key
+  dhcpBinding.option = paramMap[param]
+  uciHelper.set_on_uci(dhcpBinding, value, commitapply)
+  configChanged = true
+end
+
+ra_interfacesetting_.commit = function()
+  if configChanged then
+    uciHelper.commit(dhcpBinding)
+  end
+  configChanged = false
+end
+
+ra_interfacesetting_.revert = function()
+  if configChanged then
+    uciHelper.revert(dhcpBinding)
+  end
+  configChanged = false
+end
+
+register(ra_interfacesetting_)

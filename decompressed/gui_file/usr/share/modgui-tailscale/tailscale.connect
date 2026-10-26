@@ -1,0 +1,86 @@
+#!/bin/sh
+
+connect_status=/tmp/modgui-tailscale-connect-status
+auth_file=/tmp/modgui-tailscale-auth
+
+set_status() {
+	printf 'state=%s\nmessage=%s\n' "$1" "$2" > "$connect_status"
+}
+
+set_status waiting "Waiting for Tailscale daemon"
+attempt=0
+while [ "$attempt" -lt 180 ]; do
+	[ "$(uci -q get tailscale.service.enabled)" = 1 ] || exit 0
+	# On some Technicolor ARMv7 builds the CLI prints a valid status response
+	# but exits non-zero afterwards. The daemon socket is the reliable readiness
+	# signal and avoids holding authorization behind that firmware quirk.
+	if [ -x /usr/sbin/tailscale ] && [ -S /var/run/tailscale/tailscaled.sock ]; then
+		break
+	fi
+	attempt=$((attempt + 1))
+	sleep 1
+done
+
+if [ "$attempt" -ge 180 ]; then
+	set_status error "Timed out waiting for Tailscale daemon"
+	exit 1
+fi
+
+if [ "$(uci -q get tailscale.service.connect)" != 1 ]; then
+	/usr/sbin/tailscale down >/dev/null 2>&1
+	rm -f "$auth_file"
+	set_status stopped "Connection disabled"
+	exit 0
+fi
+
+hostname="$(uci -q get tailscale.service.hostname)"
+advertise_routes="$(uci -q get tailscale.service.advertise_routes)"
+advertise_exit_node="$(uci -q get tailscale.service.advertise_exit_node)"
+accept_routes="$(uci -q get tailscale.service.accept_routes)"
+ssh_enabled="$(uci -q get tailscale.service.ssh)"
+
+set -- up --reset "--hostname=$hostname" "--accept-routes=$accept_routes" \
+	"--advertise-exit-node=$advertise_exit_node" "--ssh=$ssh_enabled" \
+	--netfilter-mode=off --timeout=10s
+[ -n "$advertise_routes" ] && set -- "$@" "--advertise-routes=$advertise_routes"
+
+set_status connecting "Connecting to Tailscale"
+umask 077
+if /usr/sbin/tailscale "$@" > "$auth_file" 2>&1; then
+	rm -f "$auth_file"
+	set_status connected "Connected"
+	exit 0
+fi
+# Under severe memory pressure the ARMv7 CLI can time out before echoing the
+# URL even though tailscaled has already logged the successful AuthURL reply.
+# Recover only the canonical HTTPS URL emitted by the local daemon.
+if ! grep -q 'https://login.tailscale.com/' "$auth_file"; then
+	auth_url="$(logread | sed -n 's|.*AuthURL is \(https://login\.tailscale\.com/[^[:space:]]*\).*|\1|p' | tail -n 1)"
+	if [ -n "$auth_url" ]; then
+		printf '\nTo authenticate, visit:\n\n\t%s\n' "$auth_url" >> "$auth_file"
+	fi
+fi
+chown root:nogroup "$auth_file" 2>/dev/null || true
+chmod 640 "$auth_file"
+if grep -q 'https://login.tailscale.com/' "$auth_file"; then
+	set_status authorization_required "Authorization required"
+	# The control connection remains active while the user opens the URL.
+	# Detect authorization through the lightweight interface address instead
+	# of repeatedly launching the memory-hungry Go CLI on 512 MB gateways.
+	attempt=0
+	while [ "$attempt" -lt 300 ]; do
+		[ "$(uci -q get tailscale.service.enabled)" = 1 ] || exit 0
+		[ "$(uci -q get tailscale.service.connect)" = 1 ] || exit 0
+		if ip -4 addr show dev tailscale0 2>/dev/null | grep -q 'inet '; then
+			rm -f "$auth_file"
+			set_status connected "Connected"
+			exit 0
+		fi
+		attempt=$((attempt + 1))
+		sleep 2
+	done
+	exit 0
+fi
+set_status error "Tailscale connection failed"
+cat "$auth_file" >&2
+exit 1

@@ -1,0 +1,329 @@
+-- Enable localization
+gettext.textdomain('webui-core')
+
+local content_helper = require("web.content_helper")
+local ui_helper = require("web.ui_helper")
+local proxy = require("datamodel")
+local json = require("dkjson")
+local post_helper = require("web.post_helper")
+local ngx = ngx
+local datatype
+
+if ngx.req.get_method() == "POST" then
+	datatype = ngx.req.get_uri_args().datatype
+end
+
+local data= {}
+
+if datatype and datatype== "xdsl" then
+	local sub, format, floor = string.sub, string.format, math.floor
+
+	data = {
+		status = "sys.class.xdsl.@line0.LinkStatus",
+		dsl_linerate_up_max = "sys.class.xdsl.@line0.UpstreamMaxRate",
+		dsl_linerate_down_max = "sys.class.xdsl.@line0.DownstreamMaxRate",
+		dsl_linerate_up = "sys.class.xdsl.@line0.UpstreamCurrRate",
+		dsl_linerate_down = "sys.class.xdsl.@line0.DownstreamCurrRate",
+		dsl_margin_up = "sys.class.xdsl.@line0.UpstreamNoiseMargin",
+		dsl_margin_down = "sys.class.xdsl.@line0.DownstreamNoiseMargin",
+		dsl_attenuation_up = "sys.class.xdsl.@line0.UpstreamAttenuation",
+		dsl_attenuation_down = "sys.class.xdsl.@line0.DownstreamAttenuation",
+		dsl_power_up = "sys.class.xdsl.@line0.UpstreamPower",
+		dsl_power_down = "sys.class.xdsl.@line0.DownstreamPower",
+		dsl_type = "sys.class.xdsl.@line0.ModulationType",
+		dsl_margin_SNRM_up = "sys.class.xdsl.@line0.UpstreamSNRMpb",
+		dsl_margin_SNRM_down = "sys.class.xdsl.@line0.DownstreamSNRMpb",
+	}
+
+	content_helper.getExactContent(data)
+
+	local function formatRate(value)
+		local rate = tonumber(value)
+		if not rate then
+			return T"Can't recover data"
+		end
+		return floor(rate / 10) / 100 .. " Mbps"
+	end
+
+	local has_xdsl = data.status and data.status ~= ""
+		or tonumber(data.dsl_linerate_up)
+		or tonumber(data.dsl_linerate_down)
+		or tonumber(data.dsl_linerate_up_max)
+		or tonumber(data.dsl_linerate_down_max)
+
+	if not has_xdsl then
+		-- This endpoint is also installed on Ethernet/GPON-only devices.
+		data = {}
+	elseif data.dsl_linerate_down ~= "0" then
+		-- DSLAM identity is only displayed when the line has a nonzero rate.
+		-- Avoid asking the driver for fields discarded on an idle line.
+		local dslam = {
+			dslam_chipset = "rpc.xdslctl.DslamChipset",
+			dslam_version = "rpc.xdslctl.DslamVersion",
+			dsl_profile = "rpc.xdslctl.DslProfile",
+			dsl_port = "rpc.xdslctl.DslamPort",
+			dslam_version_raw = "rpc.xdslctl.DslamVersionRaw",
+			dsl_serial = "rpc.xdslctl.DslamSerial",
+		}
+		content_helper.getExactContent(dslam)
+		for key, value in pairs(dslam) do data[key] = value end
+			data.dsl_linerate_up = formatRate(data.dsl_linerate_up)
+			data.dsl_linerate_down = formatRate(data.dsl_linerate_down)
+			data.dsl_linerate_up_max = formatRate(data.dsl_linerate_up_max)
+			data.dsl_linerate_down_max = formatRate(data.dsl_linerate_down_max)
+
+			if not string.match(data.dsl_type or "", "ADSL") then
+				data.dsl_margin_down = data.dsl_margin_SNRM_down
+				data.dsl_margin_up = data.dsl_margin_SNRM_up
+			end
+
+			if string.match(data.dslam_chipset or "", "BDCM") then
+				data.dslam_chipset = "Broadcom" .. " ( " .. data.dslam_chipset .. " )"
+			elseif string.match(data.dslam_chipset or "", "IFTN") then
+				data.dslam_chipset = "Infineon" .. " ( " .. data.dslam_chipset .. " )"
+			end
+
+			data.dslam_version_raw = data.dslam_version_raw or ""
+			if not ( string.sub(data.dslam_version_raw, 1, 2) == "0x" ) then
+				if data.dslam_version_raw == "" then
+					data.dslam_chipset = T"Can't recover DSLAM version."
+			else
+				data.dslam_chipset = format(T"Invalid version, can't convert. Raw value: %s", data.dslam_version_raw)
+			end
+		end
+
+		data.dslam_version_raw = nil
+
+			if string.match(data.status or "", "Showtime") then
+				data["status"] = T"Connected"
+			elseif not data.status or data.status == "" then
+				data["status"] = T"Disconnected"
+		else
+			data["status"] = T(data.status)
+		end
+	else
+		for _, key in ipairs({"dslam_chipset", "dslam_version", "dsl_profile",
+			"dsl_port", "dslam_version_raw", "dsl_serial"}) do data[key] = "N/A" end
+		for index in pairs(data) do
+			if not ( index == "status" ) then
+				data[index] = "N/A"
+			end
+		end
+	end
+else
+	local ppp_status, ppp_light, ppp_state, ipv6_light, ipv6_state
+
+	local table = table
+	local format = string.format
+	local content_uci = {
+		wan_proto = "uci.network.interface.@wan.proto",
+		wan_auto = "uci.network.interface.@wan.auto",
+		wan_ipv6 = "uci.network.interface.@wan.ipv6",
+		wan_ifname = "uci.network.interface.@wan.ifname",
+		wan_mode = "uci.network.config.wan_mode",
+	}
+	content_helper.getExactContent(content_uci)
+
+	local wan_interface = "wan"
+	local internethelper = require("internethelper")
+	local connection_mode = internethelper.getConnectionMode(content_uci.wan_mode, content_uci.wan_proto)
+	if connection_mode == "bridge" then
+		connection_mode = content_uci.wan_proto
+		if not connection_mode or connection_mode == "" then connection_mode = "bridge" end
+	end
+
+	if content_uci.wan_mode == "bridge" and connection_mode == "bridge" and content_uci.wan_ifname and content_uci.wan_ifname ~= "" then
+		wan_interface = content_uci.wan_ifname
+	end
+
+	local content_rpc = {
+		wan_ppp_state = "rpc.network.interface.@wan.ppp.state",
+		wan_ppp_error = "rpc.network.interface.@wan.ppp.error",
+		ipaddr = "rpc.network.interface.@wan.ipaddr",
+		wan_uptime = "rpc.network.interface.@wan.uptime",
+		up = "rpc.network.interface.@".. wan_interface ..".up",
+		nexthop = "rpc.network.interface.@wan.nexthop",
+		dns_wan = "rpc.network.interface.@wan.dnsservers",
+		concentrator_name = "rpc.network.interface.@wan.ppp.access_concentrator_name",
+	}
+
+	for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
+		content_rpc[v6Key] = v6Value
+	end
+
+	internethelper.getOptionalContent(content_rpc)
+	-- Bridge ifname may be a kernel device (e.g. br-lan), whereas RPC
+	-- network.interface exposes logical interfaces. Preserve a real down
+	-- value, but use the WAN status if the device has no RPC entry.
+	if content_rpc.up == "" and wan_interface ~= "wan" then
+		content_rpc.up = internethelper.getValue("rpc.network.interface.@wan.up")
+	end
+	content_rpc.ip6addr = content_rpc.ip6addr or ""
+	content_rpc.ip6prefix = content_rpc.ip6prefix or ""
+
+	if content_rpc.dns_wan:match(",") then
+		content_rpc.dns_wan = content_rpc.dns_wan:gsub(","," , ")
+	end
+
+	if content_rpc.up == "1" then
+		content_rpc.up = T"Connected"
+	else
+		content_rpc.up = T"Disconnected"
+	end
+
+	local IPv6State = "none"
+
+	if content_uci.wan_ipv6 ~= "1" then
+		IPv6State = "disabled"
+	elseif content_rpc.ip6prefix ~= "" then
+		IPv6State = "prefix"
+	elseif content_rpc.ip6prefix == "" then
+		IPv6State = "noprefix"
+	end
+
+	local untaint_mt = require("web.taint").untaint_mt
+	local ipv6_state_map = {
+		none = T"IPv6 Disabled",
+		noprefix = T"IPv6 Connecting",
+		prefix = T"IPv6 Connected",
+	}
+
+	setmetatable(ipv6_state_map, untaint_mt)
+
+	local ipv6_light_map = {
+		none = "off",
+		noprefix = "orange",
+		prefix = "green",
+	}
+	setmetatable(ipv6_light_map, untaint_mt)
+
+	local status_light
+	local attributes = { light = { } ,span = { } }
+
+	if connection_mode == "pppoe" or connection_mode == "pppoa" then
+		local ppp_state_map = {
+			disabled = T"PPP disabled",
+			disconnecting = T"PPP disconnecting",
+			connected = T"PPP connected",
+			connecting = T"PPP connecting",
+			disconnected = T"PPP disconnected",
+			error = T"PPP error",
+			AUTH_TOPEER_FAILED = T"PPP authentication failed",
+			NEGOTIATION_FAILED = T"PPP negotiation failed",
+		}
+
+		local untaint_mt = require("web.taint").untaint_mt
+		setmetatable(ppp_state_map, untaint_mt)
+
+		local ppp_light_map = {
+			disabled = "0",--"off"
+			disconnected = "4",--"red"
+			disconnecting = "2",--"orange"
+			connecting = "2",--"orange"
+			connected = "1",--"green"
+			error = "4",--"red"
+			AUTH_TOPEER_FAILED = "4",--"red"
+			NEGOTIATION_FAILED = "4",--"red"
+		}
+
+		setmetatable(ppp_light_map, untaint_mt)
+
+		if content_uci.wan_auto ~= "0" then
+		-- WAN enabled
+		content_uci.wan_auto = "1"
+		ppp_status = format("%s", content_rpc.wan_ppp_state) -- untaint
+		if ppp_status == "" or ppp_status == "authenticating" then
+			ppp_status = "connecting"
+		elseif not ppp_state_map[ppp_status] then
+			ppp_status = "error"
+		end
+
+		if not (content_rpc.wan_ppp_error == "" or content_rpc.wan_ppp_error == "USER_REQUEST") then
+			if ppp_state_map[content_rpc.wan_ppp_error] then
+				ppp_status = content_rpc.wan_ppp_error
+			else
+				ppp_status = "error"
+			end
+		end
+		else
+		-- WAN disabled
+		ppp_status = "disabled"
+		end
+
+		local WAN_IP
+		if ppp_status then
+			ppp_light = ppp_light_map[ppp_status]
+			ppp_state = ppp_state_map[ppp_status]
+			if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
+				WAN_IP = content_rpc["ipaddr"]
+			elseif content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
+				WAN_IP = content_rpc["ip6addr"]
+			end
+			if ppp_status == "connected" and IPv6State ~= "disabled" then
+				ipv6_light = ipv6_light_map[IPv6State]
+				ipv6_state = ipv6_state_map[IPv6State]
+			end
+		end
+
+		status_light = ui_helper.createSimpleLight(ppp_light_map[ppp_status], ppp_state_map[ppp_status] , attributes , "fa-at")
+	elseif connection_mode == "static" then
+
+		-- Figure out interface state
+		local static_state = "disabled"
+		local static_state_map = {
+			disabled = T"Static disabled",
+			connected = T"Static on",
+		}
+
+		local static_light_map = {
+		disabled = "0",--"off",
+		connected = "1",--"green",
+		}
+
+		if content_uci.wan_auto ~= "0" and content_rpc["ipaddr"]:len() > 0 then
+			static_state = "connected"
+		end
+
+		status_light = ui_helper.createSimpleLight(static_light_map[static_state], static_state_map[static_state] , attributes , "fa-at")
+	elseif connection_mode == "dhcp" then
+		local state, light = T"DHCP connecting", "2"
+		if content_uci.wan_auto == "0" then
+			state, light = T"DHCP disabled", "0"
+		elseif content_rpc.ipaddr ~= "" or content_rpc.ip6addr ~= "" then
+			state, light = T"DHCP on", "1"
+		end
+		status_light = ui_helper.createSimpleLight(light, state, attributes, "fa-at")
+	end
+
+	local wan_uptime = tonumber(content_rpc["wan_uptime"]) or 0
+	local wan_uptime_time = post_helper.secondsToTimeShort(wan_uptime)
+
+	data = {
+		status_light = status_light or "",
+		WAN_IP_text = not ( content_rpc["ipaddr"] == "" ) and format(T'WAN IP is <strong>%s</strong>'..'<br/>', content_rpc["ipaddr"]) or "",
+		WAN_IPv6_text = not ( content_rpc["ip6addr"] == "" ) and format(T'WAN IPv6 is <strong>%s</strong>'..'<br/>', content_rpc["ip6addr"]) or "",
+		uptime_text = wan_uptime_time and format(T"Uptime" .. ": <strong>%s</strong>",wan_uptime_time) or "",
+		wan_uptime = wan_uptime_time or "",
+		wan_uptime_extended = post_helper.secondsToTime(wan_uptime) or "",
+		ppp_status = ppp_status or "",
+		ppp_light = ppp_light or "" ,
+		ppp_state = ppp_state or "",
+		WAN_IP = content_rpc["ipaddr"] or "",
+		WAN_IPv6 = content_rpc["ip6addr"] or "",
+		concentrator_name = content_rpc["concentrator_name"] or "",
+		ipv6_light = ipv6_light or "",
+		ipv6_state = ipv6_state or "",
+		status = content_rpc["up"],
+		wangateway = content_rpc["nexthop"],
+		wandns = content_rpc["dns_wan"]
+	}
+end
+
+
+local buffer = {}
+if json.encode (data, { indent = false, buffer = buffer }) then
+ ngx.say(buffer)
+else
+ ngx.say("{}")
+end
+ngx.exit(ngx.HTTP_OK)

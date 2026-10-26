@@ -1,0 +1,41 @@
+local mapper = mapper
+local config_mmpbxbrcmfxs = "mmpbxbrcmfxsdev"
+
+-- uci.mmpbxbrcmfxs
+mapper("uci_1to1").registerConfigMap(config_mmpbxbrcmfxs)
+
+--uci.mmpbxbrcmfxs.global
+local mmpbxbrcmfxs_global = {
+  config = config_mmpbxbrcmfxs,
+  section = "global",
+  type = "mmpbxbrcmfxsdev",
+  options = {
+      "fax_transport",
+  }
+}
+mapper("uci_1to1").registerSimpleMap(mmpbxbrcmfxs_global)
+
+--uci.mmpbxbrcmfxs.device
+local mmpbxbrcmfxs_device = {
+  config = config_mmpbxbrcmfxs,
+  type = "device",
+  options = {
+      "user_friendly_name",
+      "comfort_noise",
+      "echo_cancellation",
+      "fax_transport",
+      "relay_state",
+      "rtcp_interval",
+      "comfort_noise"
+  },
+  lists = {"codec_black_list"}
+}
+mapper("uci_1to1").registerNamedMultiMap(mmpbxbrcmfxs_device)
+
+--uci.mmpbxbrcmfxs.mmpbxbrcmfxsdev
+local mmpbxbrcmfxs_mmpbxbrcmfxsdev = {
+  config = config_mmpbxbrcmfxs,
+  type = "mmpbxbrcmfxsdev",
+  options = { "trace_level" },
+}
+mapper("uci_1to1").registerNamedMultiMap(mmpbxbrcmfxs_mmpbxbrcmfxsdev)

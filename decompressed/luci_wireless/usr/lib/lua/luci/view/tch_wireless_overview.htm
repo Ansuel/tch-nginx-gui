@@ -1,0 +1,97 @@
+<%# Technicolor backend; layout and controls follow LuCI wireless overview. %>
+<% local url = require('luci.dispatcher').build_url %>
+<style>
+.tch-wireless-table, .tch-stations { display:table; width:100%; }
+.tch-wireless-table > .tr, .tch-stations > .tr { display:table-row; }
+.tch-wireless-table > .tr > .td, .tch-stations > .tr > .td, .tch-stations > .tr > .th { display:table-cell; padding:8px; }
+.tch-wireless-table .cbi-section-actions { width:1%; text-align:right; white-space:nowrap; }
+.tch-wireless-table .cbi-section-actions .cbi-button { display:inline-block; width:auto; margin:0 0 0 4px; }
+.tch-wireless-table .tch-wireless-note { display:block; width:240px; white-space:normal; margin-top:6px; }
+.tch-stations-wrap { overflow-x:auto; }
+.tch-stations .td { vertical-align:top; }
+.tch-stations small { display:block; overflow-wrap:anywhere; }
+.tch-client-details { margin:12px 0; padding:10px; }
+.tch-client-details summary { cursor:pointer; }
+.tch-client-details dl { margin:12px 0; display:grid; grid-template-columns:minmax(120px,1fr) minmax(0,2fr); gap:8px 15px; }
+.tch-client-details dt { font-weight:bold; }
+.tch-client-details dd { margin:0 0 7px; overflow-wrap:anywhere; }
+</style>
+<form method="post" action="<%=url('admin','network','wireless')%>">
+<input type="hidden" name="token" value="<%=token or ''%>" />
+<input type="hidden" name="cbi.submit" value="1" />
+<h2><%:Wireless Overview%></h2>
+<% if self.errmessage then %><div class="alert-message warning"><%=pcdata(self.errmessage)%></div><% end %>
+<% if self.message then %><div class="alert-message notice"><%=pcdata(self.message)%></div><% end %>
+<% for _, r in ipairs(self.snapshot.radios) do %>
+<div class="table cbi-section-table tch-wireless-table">
+  <div class="tr cbi-section-table-row">
+    <div class="td" style="width:40px"><img src="<%=resource%>/icons/wifi<%=r.up and '' or '_disabled'%>.png" alt="" /></div>
+    <div class="td"><strong><%=pcdata(r.id)%></strong> — <%=pcdata(r.band or '')%><br />
+      <%:Channel%>: <%=pcdata(tostring(r.channel or '?'))%> | <%=pcdata(r.width or '?')%> | <%=r.up and translate('Active') or translate('Inactive')%>
+    </div>
+    <div class="td cbi-section-actions">
+      <% if self.creation.radios[r.id] then %><a class="cbi-button cbi-button-add" href="<%=url('admin','network','wireless','add',r.id)%>"><%:Add%></a><% end %>
+      <% if self.creation.unavailable[r.id] then %><button class="cbi-button cbi-button-add" type="button" disabled="disabled" title="<%=pcdata(translate(self.creation.unavailable[r.id]))%>"><%:Add%></button><small class="tch-wireless-note"><%:Additional networks unavailable on this radio.%></small><% end %>
+    </div>
+  </div>
+  <% for _, n in ipairs(r.networks) do %>
+  <div class="tr cbi-section-table-row">
+    <div class="td"><img src="<%=resource%>/icons/signal-<%=n.up and '75-100' or 'none'%>.png" alt="<%=n.up and translate('Active') or translate('Inactive')%>" /></div>
+    <div class="td"><strong><%:SSID%>:</strong> <%=pcdata(n.ssid or n.id)%> | <strong><%:Mode%>:</strong> <%:Master%><br />
+      <strong><%:Encryption%>:</strong> <%=pcdata(n.security or '?')%> | <em><%=n.up and translate('Active') or translate('Wireless is disabled')%></em>
+    </div>
+    <div class="td cbi-section-actions">
+      <button class="cbi-button cbi-button-apply" type="submit" name="toggle" value="<%=pcdata(n.id)%>"><%=n.enabled == '1' and translate('Disable') or translate('Enable')%></button>
+      <a class="cbi-button cbi-button-edit" href="<%=url('admin','network','wireless',n.id)%>"><%:Edit%></a>
+      <% if n.owned then %><button class="cbi-button cbi-button-remove" type="submit" name="remove" value="<%=pcdata(n.id)%>" onclick="return confirm('<%:Remove this wireless network?%>')"><%:Remove%></button><% end %>
+    </div>
+  </div>
+  <% end %>
+</div>
+<% end %>
+<h2><%:Associated Stations%></h2>
+<% local backend=require('luci.model.tch_wireless'); local client_details={} %>
+<div class="tch-stations-wrap"><div class="table cbi-section-table tch-stations">
+  <div class="tr cbi-section-table-titles"><div class="th"><%:Network%></div><div class="th"><%:MAC-Address%></div><div class="th"><%:Host%></div><div class="th"><%:Signal%></div><div class="th"><%:RX Rate%> / <%:TX Rate%></div><div class="th"><%:Details%></div></div>
+  <% local count = 0; for _, r in ipairs(self.snapshot.radios) do for _, n in ipairs(r.networks) do %>
+    <% if n.station_error then count = count + 1 %><div class="tr"><div class="td"><%=pcdata(n.id)%></div><div class="td"><%=pcdata(n.station_error)%></div></div><% end %>
+    <% for _, s in ipairs(n.stations) do count = count + 1 %>
+    <div class="tr cbi-section-table-row">
+      <div class="td"><%=pcdata(n.ssid or n.id)%><small><%=pcdata(n.id)%></small></div>
+      <div class="td"><%=pcdata(s.mac)%></div>
+      <div class="td"><%=pcdata(s.hostname or '?')%><% for _,family in ipairs({'ipv4','ipv6'}) do for _,ip in ipairs(s[family] or {}) do %><small><%=pcdata(ip)%></small><% end end %></div>
+      <div class="td"><%=s.signal and pcdata(tostring(s.signal)..' dBm') or '?'%></div>
+      <div class="td"><%=s.rx and pcdata(string.format('%.1f Mbit/s',s.rx/1000)) or '?'%> / <%=s.tx and pcdata(string.format('%.1f Mbit/s',s.tx/1000)) or '?'%></div>
+      <% local detail_id='client-'..n.id..'-'..s.mac:gsub(':',''); client_details[#client_details+1]={id=detail_id,station=s,network=n} %>
+      <div class="td"><a class="cbi-button cbi-button-neutral" href="#<%=pcdata(detail_id)%>" onclick="document.getElementById('<%=detail_id%>').open=true"><%:Details%></a></div>
+    </div>
+    <% end %>
+  <% end end; if count == 0 then %><div class="tr"><div class="td"><em><%:No information available%></em></div></div><% end %>
+</div></div>
+<% for _,client in ipairs(client_details) do local s=client.station %>
+<details class="cbi-section tch-client-details" id="<%=pcdata(client.id)%>">
+  <summary><strong><%:Details%>: <%=pcdata(s.hostname or s.mac)%></strong> — <%=pcdata(client.network.ssid or client.network.id)%> (<%=pcdata(s.mac)%>)</summary>
+  <dl>
+      <% local details={}
+         local function add(label,value) if value~=nil then details[#details+1]={label,tostring(value)} end end
+         local function pair(label,a,b) if a~=nil or b~=nil then add(label,tostring(a or '?')..' / '..tostring(b or '?')) end end
+         if s.assoc_time then add('Connected',backend.format_duration(s.assoc_time)) end
+         if s.idle_time then add('Idle',backend.format_duration(s.idle_time)) end
+         if s.rx_bytes or s.tx_bytes then pair('RX / TX traffic',backend.format_bytes(s.rx_bytes),backend.format_bytes(s.tx_bytes)) end
+         pair('RX / TX packets',s.rx_packets,s.tx_packets)
+         pair('RX / TX failures',s.rx_failures,s.tx_failures)
+         add('TX retries',s.retransmission_count)
+         add('TX no ACK',s.tx_noack_failures)
+         add('RX security failures',s.rx_sec_failures)
+         if s.rx_data_rate or s.tx_data_rate then pair('RX / TX data rate',s.rx_data_rate and string.format('%.1f Mbit/s',s.rx_data_rate/1000),s.tx_data_rate and string.format('%.1f Mbit/s',s.tx_data_rate/1000)) end
+         add('Authentication',s.authentication); add('Encryption',s.encryption)
+         add('Link',s.flags); add('Capabilities',s.capabilities)
+         pair('RX / TX PHY info',s.rx_phy_rate_coded,s.tx_phy_rate_coded)
+         for _,detail in ipairs(details) do %><dt><%=pcdata(translate(detail[1]))%></dt><dd><%=pcdata(detail[2])%></dd><% end %>
+         <% if #details==0 then %><dd><%:No additional data available%></dd><% end %>
+
+  </dl>
+</details>
+<% end %>
+<div class="cbi-page-actions"><a class="cbi-button cbi-button-neutral" href="<%=url('admin','network','wireless')%>"><%:Refresh%></a></div>
+</form>

@@ -1,0 +1,18 @@
+local mapper = mapper
+local config_version = "version"
+
+-- uci.version
+mapper("uci_1to1").registerConfigMap(config_version)
+
+-- uci.version.version.{i}
+local version_version = {
+  config = config_version,
+  type = "version",
+  options = { "version", "mask", "timestamp", "product", "config",
+                 "openwrt", "kernel",
+                 "package", "technicolor", "custo", "marketing_name",
+                 "marketing_version", "oid" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(version_version)
+

@@ -1,0 +1,200 @@
+--pretranslated: do not change this file
+ 
+-- Enable localization
+gettext.textdomain('webui-core')
+
+local proxy = require("datamodel")
+local content_helper = require("web.content_helper")
+local post_helper = require("web.post_helper")
+local ui_helper = require("web.ui_helper")
+
+local find, sub, format, floor = string.find, string.sub, string.format, math.floor
+
+local content = {
+  status = "sys.class.xdsl.@line0.LinkStatus",
+  version = "rpc.xdsl.dslversion",
+  dsl_linerate_up_max = "sys.class.xdsl.@line0.UpstreamMaxRate",
+  dsl_linerate_down_max = "sys.class.xdsl.@line0.DownstreamMaxRate",
+  dsl_linerate_up = "sys.class.xdsl.@line0.UpstreamCurrRate",
+  dsl_linerate_down = "sys.class.xdsl.@line0.DownstreamCurrRate",
+  dsl_margin_up = "sys.class.xdsl.@line0.UpstreamNoiseMargin",
+  dsl_margin_down = "sys.class.xdsl.@line0.DownstreamNoiseMargin",
+  dsl_attenuation_up = "sys.class.xdsl.@line0.UpstreamAttenuation",
+  dsl_attenuation_down = "sys.class.xdsl.@line0.DownstreamAttenuation",
+  dsl_power_up = "sys.class.xdsl.@line0.UpstreamPower",
+  dsl_power_down = "sys.class.xdsl.@line0.DownstreamPower",
+  dsl_type = "sys.class.xdsl.@line0.ModulationType",
+  dsl_margin_SNRM_up = "sys.class.xdsl.@line0.UpstreamSNRMpb",
+  dsl_margin_SNRM_down = "sys.class.xdsl.@line0.DownstreamSNRMpb",
+  dslam_chipset = "rpc.xdslctl.DslamChipset",
+  dslam_version = "rpc.xdslctl.DslamVersion",
+  dslam_version_raw = "rpc.xdslctl.DslamVersionRaw",
+  dsl_profile = "rpc.xdslctl.DslProfile",
+  dsl_port = "rpc.xdslctl.DslamPort",
+  dsl_serial = "rpc.xdslctl.DslamSerial",
+}
+
+content_helper.getExactContent(content)
+
+-- xDSL is not available on this device (fibre/gpon): skip the card instead of crashing the stats page
+local xdslAvailable = false
+for _, value in pairs(content) do
+	if value ~= nil and value ~= "" then
+		xdslAvailable = true
+		break
+	end
+end
+if not xdslAvailable then
+	return
+end
+
+local function formatRate(rate)
+	local value = tonumber(rate)
+	if not value then
+		return "Can't recover data"
+	end
+	return floor(value / 10) / 100 .. " Mbps"
+end
+
+if not ( content.dsl_linerate_down == "0" ) then
+content.max_upstream = nil
+content.dsl_linerate_up = formatRate(content.dsl_linerate_up)
+content.dsl_linerate_down = formatRate(content.dsl_linerate_down)
+content.dsl_linerate_up_max = formatRate(content.dsl_linerate_up_max)
+content.dsl_linerate_down_max = formatRate(content.dsl_linerate_down_max)
+
+if not ( (content.dsl_type or ""):match("ADSL") ) then
+	content.dsl_margin_down = content.dsl_margin_SNRM_down
+	content.dsl_margin_up = content.dsl_margin_SNRM_up
+end
+
+content.dslam_chipset = content.dslam_chipset or ""
+if content.dslam_chipset:match("BDCM") then
+	content.dslam_chipset = "Broadcom" .. " ( " .. content.dslam_chipset .. " )"
+elseif content.dslam_chipset:match("IFTN") then
+	content.dslam_chipset = "Infineon" .. " ( " .. content.dslam_chipset .. " )"
+end
+
+if (content["status"] or ""):match("Showtime") then
+	content["status"] = T"Connected"
+elseif (content["status"] or "") == "" then
+	content["status"] = T"Disconnected"
+else
+	content["status"] = T(content.status or "")
+end
+
+  ngx.print('\
+\
+<div class="infocard" id="xdsltab">\
+  <div class="smallcard">\
+    ');  ngx.print( ui_helper.createCardHeader(T"xDSL Info", nil, nil, nil, nil) ); ngx.print('\
+    <div class="content card_bg" data-bg-text="&#xf022;">\
+	<div class="divtable">\
+	<form class="form-horizontal">\
+	<fieldset>');
+	
+	local basic = {
+      span = {
+        class = "span3"
+      },
+    }
+	
+	local html = {}
+	
+	basic.span["data-bind"] = "text: status"
+	html[#html + 1] = ui_helper.createLabel(T"Status", content["status"], basic)
+	basic.span["data-bind"] = nil
+	html[#html + 1] = ui_helper.createLabel(T"xDSL Version", content["version"], basic)
+	basic.span["data-bind"] = "text: dslam_chipset"
+	html[#html + 1] = ui_helper.createLabel(T"DSLAM Chipset",content.dslam_chipset, basic )
+	basic.span["data-bind"] = "text: dslam_version"
+	if (content.dslam_version_raw or ""):sub(0,2) == "0x" then
+		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format("%s ( %s )", content.dslam_version , content.dslam_version_raw) , basic )
+	elseif content.dslam_version_raw == "" then
+		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",T"Can't recover DSLAM version." , basic )
+	else
+		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , basic )
+	end
+	if (content.dsl_profile ~= "Not Found") then
+		basic.span["data-bind"] = "text: dsl_profile"
+		html[#html + 1] = ui_helper.createLabel(T"VDSL Profile", content.dsl_profile, basic )
+	end
+	if ( content.dsl_port ~= "" ) then
+		basic.span["data-bind"] = "text: dsl_port"
+		html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Port", content.dsl_port, basic )
+	end
+	if ( content.dsl_serial ~= "" ) then
+		basic.span["data-bind"] = "text: dsl_serial"
+		html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Serial", content.dsl_serial, basic )
+	end
+
+	html[#html + 1] = '<div class="control-group">'
+	html[#html + 1] =   '<label class="control-label">' .. T("Max Rate") .. '</label>'
+	html[#html + 1] =   '<div class="controls">'
+	html[#html + 1] =     '<span id="Rate" class=" simple-desc span3">'
+	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> <span data-bind="text: dsl_linerate_down_max">%s</span>',content["dsl_linerate_down_max"])
+	html[#html + 1] =		'<br/>'
+	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> <span data-bind="text: dsl_linerate_up_max">%s</span>', content["dsl_linerate_up_max"])
+	html[#html + 1] =	  '</span>'
+	html[#html + 1] =   '</div>'
+	html[#html + 1] = '</div>'
+	
+	html[#html + 1] = '<div class="control-group">'
+	html[#html + 1] =   '<label class="control-label">' .. T("Rate") .. '</label>'
+	html[#html + 1] =   '<div class="controls">'
+	html[#html + 1] =     '<span id="Rate" class=" simple-desc span3">'
+	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> <span data-bind="text: dsl_linerate_down">%s</span>',content["dsl_linerate_down"])
+	html[#html + 1] =		'<br/>'
+	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> <span data-bind="text: dsl_linerate_up">%s</span>', content["dsl_linerate_up"])
+	html[#html + 1] =	  '</span>'
+	html[#html + 1] =   '</div>'
+	html[#html + 1] = '</div>'
+	
+	html[#html + 1] = '<div class="control-group">'
+	html[#html + 1] =   '<label class="control-label">' .. T("Noise Margin") .. '</label>'
+	html[#html + 1] =   '<div class="controls">'
+	html[#html + 1] =     '<span id="Rate" class=" simple-desc span3">'
+	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> <span data-bind="text: dsl_margin_down">%s</span> dB',content["dsl_margin_down"])
+	html[#html + 1] =		'<br/>'
+	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> <span data-bind="text: dsl_margin_up">%s</span> dB', content["dsl_margin_up"])
+	html[#html + 1] =	  '</span>'
+	html[#html + 1] =   '</div>'
+	html[#html + 1] = '</div>'
+	
+	html[#html + 1] = '<div class="control-group">'
+	html[#html + 1] =   '<label class="control-label">' .. T("Attenuation") .. '</label>'
+	html[#html + 1] =   '<div class="controls">'
+	html[#html + 1] =     '<span id="Rate" class=" simple-desc span3">'
+	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> <span data-bind="text: dsl_attenuation_down">%s</span> dB',content["dsl_attenuation_down"])
+	html[#html + 1] =		'<br/>'
+	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> <span data-bind="text: dsl_attenuation_up">%s</span> dB', content["dsl_attenuation_up"])
+	html[#html + 1] =	  '</span>'
+	html[#html + 1] =   '</div>'
+	html[#html + 1] = '</div>'
+	
+	html[#html + 1] = '<div class="control-group">'
+	html[#html + 1] =   '<label class="control-label">' .. T("Power") .. '</label>'
+	html[#html + 1] =   '<div class="controls">'
+	html[#html + 1] =     '<span id="Rate" class=" simple-desc span3">'
+	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> <span data-bind="text: dsl_power_down">%s</span> dBm',content["dsl_power_down"])
+	html[#html + 1] =		'<br/>'
+	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> <span data-bind="text: dsl_power_up">%s</span> dBm', content["dsl_power_up"])
+	html[#html + 1] =	  '</span>'
+	html[#html + 1] =   '</div>'
+	html[#html + 1] = '</div>'
+	
+	ngx.print(html)
+ngx.print('\
+	  </fieldset>\
+	  </form>\
+	  </div>\
+    </div>\
+  </div>\
+</div>\
+<script>\
+$(document).ready(function () {\
+	new modgui.createAjaxUpdateCard("xdsltab","/ajax/internet.lua?datatype=xdsl","InfoXdslCardInterval",5000);\
+})\
+</script>\
+'); 
+end

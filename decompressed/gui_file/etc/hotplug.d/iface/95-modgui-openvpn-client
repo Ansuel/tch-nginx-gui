@@ -1,0 +1,5 @@
+#!/bin/sh
+
+case "$ACTION" in ifup | ifdown) ;; *) exit 0 ;; esac
+[ -x /usr/share/transformer/scripts/openvpnClientRoute.sh ] &&
+    /usr/share/transformer/scripts/openvpnClientRoute.sh refresh >/dev/null 2>&1

@@ -1,0 +1,77 @@
+local obj = {
+	objectType = {
+		name = 'rpc.mobiled.device.@.radio.signal_quality.additional_carriers.@.',
+		access = 'readOnly',
+		minEntries = 1,
+		maxEntries = math.huge,
+		numEntriesParameter = "AdditionalCarriersNumberOfEntries",
+		parameters = {
+			rsrq = {
+				access = "readOnly",
+				type = "string"
+			},
+			rssi = {
+				access = "readOnly",
+				type = "string"
+			},
+			rsrp = {
+				 access = "readOnly",
+				 type = "string"
+			},
+			sinr = {
+				 access = "readOnly",
+				 type = "string"
+			},
+			phy_cell_id = {
+				 access = "readOnly",
+				 type = "string"
+			},
+			dl_earfcn = {
+				access = "readOnly",
+				type = "string"
+			},
+			lte_band = {
+				access = "readOnly",
+				type = "string"
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+local helper = require("mobiled.scripthelpers")
+local mobiled_mapping_helper = require("transformer.shared.mobiled_helper")
+
+function obj.getall(_, key, parentKey)
+	local dev_idx = tonumber(string.match(parentKey, '%d+'))
+	local id = tonumber(string.match(key, "^additional_carrier(%d+)$"))
+	local data = helper.getUbusData(conn, "mobiled.radio", "signal_quality", { dev_idx = dev_idx, max_age = mobiled_mapping_helper.getDataMaxAge(dev_idx) })
+	if type(data.additional_carriers) == "table" then
+		local carrier = data.additional_carriers[id]
+		if carrier then
+			setmetatable(carrier, { __index = function() return "" end })
+			return carrier
+		end
+	end
+	local result = {}
+	setmetatable(result, { __index = function() return "" end })
+	return result
+end
+
+function obj.get(mapping, paramName, key, parentKey)
+	return obj.getall(mapping, key, parentKey)[paramName]
+end
+
+function obj.entries(_, parentKey)
+	local dev_idx = tonumber(string.match(parentKey, '%d+'))
+	local data = helper.getUbusData(conn, "mobiled.radio", "signal_quality", { dev_idx = dev_idx })
+	local carriers = {}
+	if type(data.additional_carriers) == "table" then
+		for i in pairs(data.additional_carriers) do
+			table.insert(carriers, { tostring(i), "additional_carrier" .. i })
+		end
+	end
+	return carriers
+end
+
+register(obj)

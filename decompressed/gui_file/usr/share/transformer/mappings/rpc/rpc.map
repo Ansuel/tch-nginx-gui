@@ -1,0 +1,14 @@
+-- This file provides a top level rpc. node
+-- This is needed as otherwise "get rpc." will not work
+
+local RPC_ = {
+    objectType = {
+        name = 'rpc.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {}
+    }
+}
+
+register(RPC_)

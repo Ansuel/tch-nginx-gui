@@ -1,0 +1,50 @@
+local sms = {
+	objectType = {
+		name = "rpc.mobiled.sms.",
+		access = "readOnly",
+		minEntries = 1,
+		maxEntries = 1,
+		parameters = {
+			delete = {
+				access = "readWrite",
+				type = "unsignedInt",
+			},
+			markread = {
+				access = "readWrite",
+				type = "unsignedInt",
+			},
+			markunread = {
+				access = "readWrite",
+				type = "unsignedInt",
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+function sms.get()
+	return ""
+end
+
+function sms.set(mapping, paramName, paramValue)
+	if #paramValue > 0 then
+		if paramName == "markread" then
+			conn:call("mobiled.sms", "set_status", { id = tonumber(paramValue), status = "read" })
+			return true
+		elseif paramName == "markunread" then
+			conn:call("mobiled.sms", "set_status", { id = tonumber(paramValue), status = "unread" })
+			return true
+		elseif paramName == "delete" then
+			conn:call("mobiled.sms", "delete", { id = tonumber(paramValue) })
+			return true
+		end
+	end
+	return false
+end
+
+register(sms)
+

@@ -1,0 +1,17 @@
+local mapper = mapper
+local openvpn = {
+    config = "openvpn",
+    type = "openvpn",
+    options = {
+        "enabled", "client", "port", "proto", "dev", "ca", "cert", "key",
+        "dh", "server", "ifconfig_pool_persist", "duplicate_cn", "allow_lan", "keepalive",
+        "cipher", "auth", "persist_key", "persist_tun", "user", "status",
+        "verb", "script_security", "auth_user_pass_verify", "username_as_common_name",
+        "config", "remote_host", "remote_port", "remote_proto", "username",
+        "client_cipher", "client_auth"
+    },
+    lists = { "remote", "push" }
+}
+
+mapper("uci_1to1").registerConfigMap("openvpn")
+mapper("uci_1to1").registerNamedMultiMap(openvpn)

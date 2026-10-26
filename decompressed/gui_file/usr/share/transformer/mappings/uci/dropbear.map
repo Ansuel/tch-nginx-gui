@@ -1,0 +1,13 @@
+local mapper = mapper
+local configStr = "dropbear"
+mapper("uci_1to1").registerConfigMap(configStr)
+
+local dropbear_dropbear = {
+  config = configStr,
+  type = "dropbear",
+  options = {
+    "enable", "Port", "RootPasswordAuth", "PasswordAuth", "IdleTimeout", "Interface", "AllowedClientIPs"
+  }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(dropbear_dropbear)

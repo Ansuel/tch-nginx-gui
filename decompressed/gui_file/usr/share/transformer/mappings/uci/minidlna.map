@@ -1,0 +1,40 @@
+local check_bin = io.open("/usr/sbin/minidlnad", "r")
+
+if check_bin then
+
+check_bin:close()
+
+local config_minidlna = "minidlna"
+
+-- uci.minidlna
+mapper("uci_1to1").registerConfigMap(config_minidlna)
+
+--config minidlna config
+--        option enabled '1'
+--        option port '8200'
+--        option interface 'br-lan'
+--        option friendly_name 'OpenWrt DLNA Server'
+--        option db_dir '/var/run/minidlna'
+--        option log_dir '/var/log'
+--        option inotify '1'
+--        option enable_tivo '0'
+--        option strict_dlna '0'
+--        option presentation_url ''
+--        option notify_interval '900'
+--        option serial '12345678'
+--        option model_number '1'
+--        option root_container '.'
+--        list media_dir '/mnt'
+--        option album_art_names 'Cover.jpg/cover.jpg/AlbumArtSmall.jpg/albumartsmall.jpg/AlbumArt.jpg/albumart.'config minidlna
+local minidlna_config = {
+  config = config_minidlna,
+  section = "config",
+  type = "minidlna",
+  options = { "enabled", "friendly_name", "start_dir", "auto_share" },
+  lists = {"media_dir"}
+}
+--  options = {  "enabled", "port", "interface", "friendly_name", "media_dir"}
+
+mapper("uci_1to1").registerSimpleMap(minidlna_config)
+
+end

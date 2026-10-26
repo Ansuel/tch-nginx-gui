@@ -1,0 +1,11 @@
+local mobiled_voice_info_ = {
+    objectType = {
+        name = 'rpc.mobiled.device.@.voice.info.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {}
+    }
+}
+
+register(mobiled_voice_info_)

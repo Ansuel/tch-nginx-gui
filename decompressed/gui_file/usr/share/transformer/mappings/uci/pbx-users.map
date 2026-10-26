@@ -1,0 +1,21 @@
+local uci = mapper("uci_1to1")
+
+uci.registerConfigMap("pbx-users")
+
+uci.registerNamedMultiMap({
+  config = "pbx-users",
+  type = "user",
+  options = { "ipaddr" },
+})
+
+uci.registerNamedMultiMap({
+  config = "pbx-users",
+  type = "local_user",
+  options = {
+    "fullname",
+    "defaultuser",
+    "secret",
+    "ring",
+    "can_call",
+  },
+})

@@ -1,0 +1,902 @@
+local uci_helper = mapper("ucihelper")
+local set_on_uci = uci_helper.set_on_uci
+local foreach_on_uci = uci_helper.foreach_on_uci
+local commit = uci_helper.commit
+local au_binding = { config = "mmpbx", sectionname = "audionotification" }
+local tone_binding = { config = "mmpbx", sectionname = "tone" }
+local binding = { config = "mmpbx"}
+local content_entries = {}
+local entries = {}
+local transactions = {}
+local function Commit()
+    local binding = {}
+    for config in pairs(transactions) do
+        binding.config = config
+        commit(binding)
+    end
+    transactions = {}
+end
+
+local function Revert()
+    local binding = {}
+    for config in pairs(transactions) do
+        binding.config = config
+        uci_helper.revert(binding)
+    end
+    transactions = {}
+end
+
+local magic = 1
+local Multi_Services_VoiceService_i_VoiceProfile_i_Tone_ = {
+  objectType = {
+    name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Tone.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      -- EventNumberOfEntries
+      -- automatically created when Multi.Services.VoiceService.{i}.VoiceProfile.{i}.Tone.Event.{i}. is loaded
+      -- DescriptionNumberOfEntries
+      -- automatically created when Multi.Services.VoiceService.{i}.VoiceProfile.{i}.Tone.Description.{i}. is loaded
+      -- PatternNumberOfEntries
+      -- automatically created when Multi.Services.VoiceService.{i}.VoiceProfile.{i}.Tone.Pattern.{i}. is loaded
+    }
+  }
+}
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Tone_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Tone_Event_i_ = {
+  objectType = {
+    name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Tone.Event.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "EventNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+     -- Alias = {
+     --   access = "readWrite",
+     --   activeNotify = "canDeny",
+     --   type = "string",
+     -- },
+      Function = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+        enumeration = {
+          "Busy",
+          "Confirmation",
+          "Dial",
+          "MessageWaiting",
+          "OffHookWarning",
+          "RingBack",
+          "ReOrder",
+          "Stutterdial",
+          "CallWaiting1",
+          "CallWaiting2",
+          "CallWaiting3",
+          "CallWaiting4",
+          "AlertingSignal",
+          "SpecialDial",
+          "SpecialInfo",
+          "Release",
+          "Congestion",
+          "UserDefined1",
+          "UserDefined2",
+          "UserDefined3",
+          "UserDefined4",
+        },
+      },
+      ToneID = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local function Entries(mapping,parentkey)
+    entries = {}
+    local notificationname = {}
+    local tone = 0
+    local entry = 0
+    foreach_on_uci(au_binding, function(section)
+        entries[#entries+1] = string.format("%s@%s",section[".name"],parentkey)
+        tone = tone + 1
+        if (not section.toneID) then
+            binding.sectionname = section[".name"]
+            binding.option = "toneID"
+            set_on_uci(binding,tonumber(tone),commitapply)
+            commit(binding)
+        end
+    local name_s = section[".name"]
+    content_entries [name_s] = section
+    end)
+    foreach_on_uci(tone_binding, function(section)
+        entry =entry + 1
+        if (not section._entryID) then
+            binding.sectionname = section[".name"]
+            binding.option = "_entryID"
+            set_on_uci(binding, tonumber(entry) , commitapply)
+            commit(binding)
+        end
+    local sectionname = section[".name"]
+    content_entries [sectionname] = section
+    end)
+    return entries
+end
+
+local object = {}
+
+local au_map = {
+  value = {
+    Function = ".name",
+    ToneID = "toneID",
+    },
+  default = {
+    Function = "NA",
+    ToneId = "0"
+    },
+}
+
+local tone_map = {
+  value = {
+    EntryID = "toneID",
+    ToneName = function(object)
+       return object[".name"]
+    end,
+    ToneFile = function(object)
+    if (object.play) and type(object.play) == "table" then
+      for i=1 ,#object.play do
+         if object.play[i] and (object.play[i]):match("^file_") then
+             return object.play[i]
+         else
+             return " "
+         end
+      end
+    end
+    return ""
+    end,
+    ToneRepetitions = function(object)
+        local rep_flag = false
+        local rep
+        if (object.duration) and type(object.duration) == "table" then
+        for i=1 ,#object.duration do
+           if (object.duration[i]== "-1" and not object.loop_iterations) then
+               rep_flag = true
+               rep = "0"
+           else
+               if (not object.loop_iterations and object.play[1] == "^file") then
+                   rep_flag = true
+                   rep = tostring(object.duration[i])
+               end
+           end
+        end
+           if (object.loop_iterations) and type(object.loop_iterations) == "table" then
+               rep_flag = true
+               if (tonumber(object.loop_iterations[1]) > 0 and tonumber(object.loop_iterations[1]) <= 255) then
+                   rep = tostring(object.loop_iterations[1])
+               else
+                   rep = "0"
+               end
+           end
+           if rep_flag then
+               return rep
+           else
+               return "1"
+           end
+        end
+        return ""
+    end,
+    TonePattern = function(object)
+    if (object.play) and type(object.play) == "table" then
+       for i=1 ,#object.play do
+           if object.play[i] and (object.play[i]):match("^file_") then
+               return "0"
+           end
+       end
+       local begin = object.play[1]
+       if begin and (begin:match("-(.*)$")) then
+           begin = begin:match("^(.*)-(.*)")
+       end
+       if begin then
+           local pattern = content_entries[begin]
+           return pattern._entryID
+       else
+           return " "
+       end
+    end
+    return ""
+    end,
+},
+  default = {
+    EntryID = "0",
+    TonePattern = "0",
+    ToneFile = " ",
+    ToneRepetitions = "0"
+},
+}
+
+local pattern_map = {
+  value = {
+    EntryID = function(object)
+       return object._entryID
+    end,
+    Frequency1 = function(object)
+       return object.frequency[1] or "0"
+    end,
+    Frequency2 = function(object)
+       return object.frequency[2] or "0"
+    end,
+    Frequency3 = function(object)
+       return object.frequency[3] or "0"
+    end,
+    Frequency4 = function(object)
+       return object.frequency[4] or "0"
+    end,
+    Power1 = function(object)
+       return object.power[1] or "0"
+    end,
+    Power2 = function(object)
+       return object.power[2] or "0"
+    end,
+    Power3 = function(object)
+       return object.power[3] or "0"
+    end,
+    Power4 = function(object)
+       return object.power[4] or "0"
+    end,
+    Duration = function(object, index)
+      if (object.duration[tonumber(index)]=="-1") then
+          return "0"
+      else
+          return (object.duration[tonumber(index)]) or "0"
+      end
+    end,
+    NextEntryID = function(object, index, name)
+      if (object.duration[1]=="-1") then
+          local object = content_entries[name]
+          return object._entryID
+      else
+         if (object.loop_from and object.loop_to[1] and object.loop_iterations[1]) then
+             if (object.loop_from[1]==name) then
+                 local tone_name = object.play[1]
+                 local identity
+                 if tone_name and (tone_name:match("-(.*)$")) then
+                     tone_name,identity = tone_name:match("^(.*)-(.*)")
+                 end
+             local object = content_entries[tone_name]
+             if object then
+                return object._entryID
+             end
+             else
+                local tone_name = object.play[index+1] or object.play[1]
+                local identity
+                if tone_name and (tone_name:match("-(.*)$")) then
+                    tone_name,identity = tone_name:match("^(.*)-(.*)")
+                end
+                local object = content_entries[tone_name]
+                return object._entryID
+             end
+         else
+             return "0"
+         end
+      end
+    end,
+},
+  default ={
+    EntryID = "0",
+    Frequency1 = "0",
+    Frequency2 = "0",
+    Frequency3 = "0",
+    Frequency4 = "0",
+    Power1 = "0",
+    Power2 = "0",
+    Power3 = "0",
+    Power4 = "0",
+    Duration = "0",
+    NextEntryID = "0"
+}
+}
+
+local function Get(mapping, param, key)
+   local key,parentkey = key:match("^(.*)@(.*)")
+   object = content_entries[key]
+   local map = au_map
+   if object then
+      if map.value[param] then
+          return object[map.value[param]]
+      else
+          return map.default[param]
+      end
+   end
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Tone_Event_i_.get = Get
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Tone_Event_i_.set = function(mapping, param, value, key)
+  return nil, "Not implemented Currently"
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Tone_Event_i_.entries = Entries
+
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Tone_Event_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Tone_Description_i_ = {
+  objectType = {
+    name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Tone.Description.{i}.",
+--  access = "readWrite",
+    access = "readOnly",
+    numEntriesParameter = "DescriptionNumberOfEntries",
+    enableParameter = "ToneEnable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+   --   Alias = {
+   --     access = "readWrite",
+   --     activeNotify = "canDeny",
+   --     type = "string",
+   --   },
+      EntryID = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+--      ToneEnable = {
+--        access = "readWrite",
+--        type = "boolean",
+--        default = "false",
+--      },
+      ToneName = {
+--      access = "readWrite",
+        access = "readOnly",
+        type = "string",
+        max = "64",
+        default = "",
+      },
+      TonePattern = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "0",
+      },
+      ToneFile = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        default = "",
+      },
+      ToneRepetitions = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "255",
+          },
+        },
+        default = "0",
+      },
+--     ToneText = {
+--        access = "readWrite",
+--        type = "string",
+--        max = "64",
+--        default = "",
+--      },
+    }
+  }
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Tone_Description_i_.entries = Entries
+
+local set_description_map = {
+     TonePattern = function(object, value, key)
+         local playlist = object.play
+         local new_pattern, set_flag, previous_play
+         binding.sectionname = key
+         foreach_on_uci(tone_binding, function(section)
+             if (section._entryID and section._entryID ==value) then
+                     new_pattern = section[".name"]
+                     set_flag = true
+             end
+         end)
+         if set_flag then
+             previous_play = playlist[1]
+             if previous_play:match("^file") then
+                 return nil, "File cannot be replaced with Tone Pattern -- yet to implement"
+             end
+             playlist[1] = new_pattern
+             binding.option = "play"
+             set_on_uci(binding,playlist,commitapply)
+             commit(binding)
+             if (object.loop_from and object.loop_to and loop_iterations) then
+                 if (object.loop_from[1]==previous_play) then
+                     local loop_list = {}
+                     loop_list[1] = new_pattern
+                     binding.option = "loop_from"
+                     set_on_uci(binding, loop_list, commitapply)
+                     commit(binding)
+                 end
+                 if (object.loop_to[1]==previous_play) then
+                     local loop_list = {}
+                     loop_list[1] = new_pattern
+                     binding.option = "loop_to"
+                     set_on_uci(binding, loop_list, commitapply)
+                     commit(binding)
+                 end
+             end
+         else
+             return nil, "No equivalent pattern found"
+         end
+     end,
+     ToneRepetitions = function(object, value, key)
+         binding.sectionname = key
+         if not (object.loop_iterations) then
+             local playlist = object.play
+             local durations = object.duration
+             for i=1, #playlist do
+                 if (value == "0") then
+                     value ="-1"
+                 end
+                 durations[i] = value
+                 binding.option = "duration"
+                 set_on_uci(binding, durations, commitapply)
+                 commit(binding)
+             end
+         else
+              local iterations = object.loop_iterations
+              if (value == "0") then
+                  value ="-1"
+              end
+              iterations [1] = value
+              binding.option = "loop_iterations"
+              set_on_uci(binding, iterations, commitapply)
+              commit(binding)
+         end
+     end,
+     ToneFile = function(object, value, key)
+         local playfile = object.play
+         binding.sectionname = key
+         if (value):match("^file_") then
+             for i=1, #playfile do
+                  if (playfile[i]):match("^file_") then
+                      playfile[i] = value
+                      binding.option = "play"
+                      set_on_uci(binding, playfile, commitapply)
+                      commit(binding)
+                      return true
+                  end
+             end
+         else
+             if value == "" then
+                 local isSilenceExisting = false
+                 foreach_on_uci(tone_binding, function(section)
+                     if section._entryID and (section[".name"] == "silence") then
+                         value = section[".name"]
+                         isSilenceExisting = true
+                     end
+                 end)
+                 if isSilenceExisting then
+                     for i=1, #playfile do
+                         if (playfile[i]):match("^file_") then
+                             playfile[i] = value
+                             binding.option = "play"
+                             set_on_uci(binding, playfile, commitapply)
+                             commit(binding)
+                             return true
+                         end
+                     end
+                 end
+             end
+             return nil, "invalid value is passed"
+         end
+         return nil, "should not be set as already pattern is existing for it"
+     end,
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Tone_Description_i_.get = function (mapping, param, key)
+    local key,parentkey = key:match("^(.*)@(.*)")
+    object = content_entries[key]
+    local map = tone_map
+    if object then
+        if map.value[param] then
+            if (type(map.value[param])) == "function" then
+               return map.value[param](object, keyid)
+            else
+               return object[map.value[param]]
+            end
+        else
+           return map.default[param]
+        end
+    end
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Tone_Description_i_.set = function(mapping, param, value, key)
+    local key,parentkey = key:match("^(.*)@(.*)")
+    local set_map = set_description_map
+    local object = content_entries[key]
+    local msg,err
+    if set_map[param] then
+       if (type(set_map[param])=="function") then
+           msg ,err = set_map[param](object,value,key)
+           transactions[binding.config] = true
+           if err then
+               return nil, err
+           end
+       elseif type(map.value[param]) == "string" then
+           binding.option = map.value[param]
+           set_on_uci(binding, value, commitapply)
+           transactions[binding.config] = true
+       end
+     end
+     return true
+end
+
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Tone_Description_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Tone_Pattern_i_ = {
+  objectType = {
+    name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Tone.Pattern.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "PatternNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+ --    Alias = {
+ --       access = "readWrite",
+ --       activeNotify = "canDeny",
+ --       type = "string",
+ --     },
+      EntryID = {
+--      access = "readWrite",
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+--      ToneOn = {
+--        access = "readWrite",
+--        type = "boolean",
+--        default = "false",
+--      },
+      Frequency1 = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "4095",
+          },
+        },
+        default = "0",
+      },
+      Power1 = {
+        access = "readWrite",
+        type = "int",
+        default = "0",
+      },
+      Frequency2 = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "4095",
+          },
+        },
+        default = "0",
+      },
+      Power2 = {
+        access = "readWrite",
+        type = "int",
+        default = "0",
+      },
+      Frequency3 = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "4095",
+          },
+        },
+        default = "0",
+      },
+      Power3 = {
+        access = "readWrite",
+        type = "int",
+        default = "0",
+      },
+      Frequency4 = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "4095",
+          },
+        },
+        default = "0",
+      },
+      Power4 = {
+        access = "readWrite",
+        type = "int",
+        default = "0",
+      },
+--      ModulationFrequency = {
+--        access = "readWrite",
+--        type = "unsignedInt",
+--        range = {
+--          {
+--            min = "0",
+--            max = "4095",
+--          },
+--        },
+--        default = "0",
+--      },
+--      ModulationPower = {
+--        access = "readWrite",
+--        type = "int",
+--        default = "0",
+--      },
+      Duration = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "0",
+      },
+      NextEntryID = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "0",
+      },
+    }
+  }
+}
+
+
+local function set_freq_power(object, value, param)
+     local num
+     local temptable ={}
+     local binding = {config = "mmpbx"}
+     if (param:match("^F")) then
+        binding.option = "frequency"
+        temptable = object.frequency
+     else
+        binding.option = "power"
+        temptable = object.power
+     end
+     local table = object.binding
+     num = param:sub(#param)
+     for i,j in pairs(content_entries) do
+         if((tostring(j)) == (tostring(object))) then
+            binding.sectionname = i
+         end
+     end
+     temptable [tonumber(num)] = tostring(value)
+     set_on_uci(binding, temptable, commitapply)
+     commit(binding)
+end
+
+local set_pattern_map = {
+     Frequency1 = set_freq_power,
+     Frequency2 = set_freq_power,
+     Frequency3 = set_freq_power,
+     Frequency4 = set_freq_power,
+     Power1 = set_freq_power,
+     Power2 = set_freq_power,
+     Power3 = set_freq_power,
+     Power4 = set_freq_power,
+     Duration = function(object1, object2, playid, value)
+         if object1.duration then
+            for i,j in pairs(content_entries) do
+                if((tostring(j)) == (tostring(object1))) then
+                    binding.sectionname = i
+                end
+            end
+            binding.option = "duration"
+            local durations = object1.duration
+            if (value == "0") then
+               value = "-1"
+            end
+            durations [tonumber(playid)] = value
+            set_on_uci(binding, durations, commitapply)
+            commit(binding)
+         end
+     end,
+     NextEntryID = function(object1, object2, playid, value)
+         local entry_flag =false
+         local new_play
+         local tone_binding = {config = "mmpbx", sectionname = "tone"}
+         local new_binding = {config = "mmpbx"}
+         foreach_on_uci(tone_binding,function(section)
+             if tonumber(section._entryID) == tonumber(value) then
+                 entry_flag=true
+                 new_play = section[".name"]
+             end
+         end)
+         if entry_flag then
+             local new_binding = {config = "mmpbx"}
+             for i,j in pairs(content_entries) do
+                  if((tostring(j)) == (tostring(object1))) then
+                     binding.sectionname = i
+                  end
+             end
+             if object1.play then
+                 binding.option = "play"
+                 local playlist = object1.play
+                 local eq_tone_section
+                 if (new_play:match("-(.*)$")) then
+                     eq_tone_section,identity = new_play:match("^(.*)-(.*)")
+                 else
+                     eq_tone_section = new_play
+                 end
+
+                 local newobj = content_entries[eq_tone_section]
+                 local play_list = object1.play
+                 local previous_play = play_list[tonumber(playid + 1)]
+                 if play_list[tonumber(playid+1)] then
+                     play_list[tonumber(playid+1)] = new_play
+                     binding.option = "play"
+                     set_on_uci(binding, play_list, commitapply)
+                     commit(binding)
+
+                     local au_binding = { config = "mmpbx", sectionname = "audionotification" }
+                     foreach_on_uci(au_binding,function(section)
+                         if (section.play) then
+                             for i=1, #section.play do
+                                 if ((section.play[i] == eq_tone_section) and (section[".name"] == object1[".name"])) then
+                                     local newobj = content_entries[eq_tone_section]
+                                     local add_binding = {config = "mmpbx"}
+                                     add_binding.sectionname = "tone_"..magic..binding.sectionname..i+magic+math.random(100)
+                                     set_on_uci(add_binding,"tone",commitapply)
+                                     commit(add_binding)
+                                     tone_binding = { config = "mmpbx"}
+                                     tone_binding.sectionname = section[".name"]
+                                     local temp_object = content_entries[eq_tone_section]
+                                     local tempfreq = temp_object.frequency
+                                     local temppower = temp_object.power
+                                     tone_binding.sectionname = add_binding.sectionname
+                                     new_play = add_binding.sectionname
+                                     tone_binding.option = "frequency"
+                                     set_on_uci(tone_binding, tempfreq, commitapply)
+                                     commit(tone_binding)
+                                     tone_binding.option = "power"
+                                     set_on_uci(tone_binding, temppower, commitapply)
+                                     commit(tone_binding)
+                                 end
+                             end
+                         end
+                     end)
+
+  -- While changing an entry in list play, we should update loop_from and loop_to also if it is existing in that list
+
+                     if (object1.loop_from and object1.loop_to) then
+                         if (object1.loop_from[1]==previous_play) then
+                             local loop_list = {}
+                             loop_list[1] = new_play
+                             binding.option = "loop_from"
+                             set_on_uci(binding, loop_list, commitapply)
+                             commit(binding)
+                         end
+                         if (object1.loop_to[1]==previous_play) then
+                             local loop_list = {}
+                             loop_list[1] = new_play
+                             binding.option = "loop_to"
+                             set_on_uci(binding, loop_list, commitapply)
+                             commit(binding)
+                         end
+                     end
+                 else
+                      return nil, "Cannot be set, as next tone is not available, nextEntryID might be displayed because of loop"
+                 end
+             end
+         end
+         magic = magic + 1
+end
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Tone_Pattern_i_.get = function(mapping, param, key)
+    local au_section, playid, tone_section,parentkey = key:match("^(.*)|(.*)|(.*)@(.*)")
+    local eq_tone_section,identity
+    if (tone_section:match("-(.*)$")) then
+        eq_tone_section,identity = tone_section:match("^(.*)-(.*)")
+    else
+        eq_tone_section = tone_section
+    end
+    local object_tone = content_entries[eq_tone_section]
+    local object_au_notify = content_entries[au_section]
+    local map = pattern_map
+    if object_tone and object_au_notify then
+        if map.value[param] then
+            if type(map.value[param]) == "function" then
+               if (param == "Duration" or param =="NextEntryID") then
+                   return map.value[param](object_au_notify, playid, tone_section)
+               else
+                   return map.value[param](object_tone)
+               end
+            else
+                return object_tone[map.value[param]]
+            end
+        else
+            return map.default[param]
+        end
+    end
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Tone_Pattern_i_.set = function(mapping, param, value, key)
+   local au_section, playid, tone_section = key:match("^(.*)|(.*)|(.*)@(.*)")
+   local eq_tone_section,identity, msg, err
+   if (tone_section:match("-(.*)$")) then
+       eq_tone_section,identity = tone_section:match("^(.*)-(.*)")
+   else
+       eq_tone_section = tone_section
+   end
+   local set_map = set_pattern_map
+   if set_map[param] then
+      if type(set_map[param]) == "function" then
+          if (param == "Duration" or param =="NextEntryID") then
+              local au_object = content_entries[au_section]
+              local tone_object = content_entries[eq_tone_section]
+              msg, err = set_map[param](au_object, tone_object, playid, value)
+              if err then
+                  return nil, err
+              end
+          else
+              object = content_entries[eq_tone_section]
+              msg,err = set_map[param](object, value, param)
+              if err then
+                  return nil, err
+              end
+          end
+          return true
+      end
+   end
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Tone_Pattern_i_.entries = function(mapping, parentkey)
+    local entries1 = { }
+    local entry1 = Entries(mapping, parentkey)
+    local entry = 0
+    foreach_on_uci(tone_binding, function(section)
+        entry =entry + 1
+        if (not section._entryID) then
+            tone_binding.sectionname = section[".name"]
+            tone_binding.option = "_entryID"
+            set_on_uci(tone_binding, entry , commitapply)
+        end
+    local sectionname = section[".name"]
+    content_entries [sectionname] = section
+    end)
+    local new_binding = { config = "mmpbx", sectionname = "audionotification" }
+    foreach_on_uci(new_binding,function(section)
+    if (section.play) then
+        for i=1, #section.play do
+            if section.play[i] and (not ((section.play[i]):match("file"))) then
+               entries1[#entries1+1]= string.format("%s|%d|%s@%s",section[".name"] ,i,(section.play[i]),parentkey)
+            end
+        end
+    end
+    end)
+return entries1
+end
+
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Tone_Pattern_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

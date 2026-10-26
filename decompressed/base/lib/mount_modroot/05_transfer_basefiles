@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Activate migrate script
+/etc/init.d/do_migrate_overlay enable

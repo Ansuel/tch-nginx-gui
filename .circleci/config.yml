@@ -1,0 +1,17 @@
+version: 2.1
+
+# Builds, tests and releases run in .github/workflows/build.yml.
+# Keep the legacy CircleCI integration successful without duplicating them.
+jobs:
+  noop:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - run:
+          name: CI runs on GitHub Actions
+          command: echo "Builds, tests and releases run on GitHub Actions."
+
+workflows:
+  legacy-integration:
+    jobs:
+      - noop

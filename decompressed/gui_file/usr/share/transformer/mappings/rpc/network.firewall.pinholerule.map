@@ -1,0 +1,201 @@
+-- DESCRIPTION:
+--   provide rpc.network.firewall.pinholerule table from the uci data model
+--   firewall.pinholerule
+--   This adds some fields to provide more control in the WebUI.
+--   It also zero's out the IP address so that it can be dynamically generated
+--   from the MAC address.
+--
+
+-- global functions used
+local mapper, register, string = mapper, register, string
+
+-- library helpers
+local fw_helper = require("transformer.shared.firewall_helper")
+local ubus_connect = mapper("ubus").connect()
+
+-- uci.firewall.pinholerule.{i}
+-- This is how the uci table we are duplicating in rpc is laid out
+local mapinfo_rule_uci = {
+    config = "firewall",
+    type = "pinholerule",
+    options = {
+        "enabled", "name", "family", "src", "dest", "ipset", "extra", "limit",
+        "limit_burst", "utc_time",
+        "start_date", "stop_date", "start_time", "stop_time", "weekdays",
+        "monthdays", "mark", "set_mark", "set_xmark",
+        "target",
+        "src_mac", "src_ip", "src_port",
+        "dest_mac",    -- added, Used to recreate dest_ip.
+        "dest_ip", "dest_port", "user_friendly_name",
+    },
+
+    lists = { "proto", "icmp_type" },
+}
+
+-- This map lets us access the underlying uci table
+local mapping_rule_uci = mapper("uci_1to1").createNamedMultiMap(mapinfo_rule_uci)
+
+-- register this to transformer. It has a transformer specified layout and
+-- It is passed back to all the callbacks as the "mapping" argument
+local mapping_rule_rpc = {
+    uciMap = mapping_rule_uci, -- so the underlying uci is available in callbacks
+    objectType = {
+        name = "rpc.network.firewall.pinholerule.{i}.",
+        access = mapping_rule_uci.objectType.access,
+        minEntries = mapping_rule_uci.objectType.minEntries,
+        maxEntries = mapping_rule_uci.objectType.maxEntries,
+        parameters = mapping_rule_uci.objectType.parameters,
+    }
+}
+
+-- PURPOSE: Standard mapping "get" function
+-- RETURNS: value as string or nil + errmsg
+mapping_rule_rpc.get = function(mapping, param, key)
+    local result, errmsg = mapping.uciMap.get(mapping.uciMap, param, key)
+    if param == "dest_ip" and (result == "0.0.0.0" or result == "::") then
+        result = "unknown"
+    end
+    return result, errmsg
+end
+
+-- PURPOSE: Standard mapping "getall" function
+-- RETURNS: table with all parmeters of a given rule (or, nil + err)
+mapping_rule_rpc.getall = function(mapping, key)
+    local result, errmsg = mapping.uciMap.getall(mapping.uciMap, key)
+    if type(result) == "table" and (result.dest_ip == "0.0.0.0" or result.dest_ip == "::") then
+        result.dest_ip = "unknown"
+    end
+    return result, errmsg
+end
+
+-- PURPOSE: Standard mapping "entries" function
+-- RETURNS: Array of keys or (names, keys) (or nil, + err)
+mapping_rule_rpc.entries = function(mapping)
+    return mapping.uciMap.entries(mapping.uciMap)
+end
+
+-- PURPOSE: Standard mapping "add" function
+-- RETURNS: unique 'key' of the newly added instance (or nil + err)
+mapping_rule_rpc.add = function(mapping, name)
+    local err     -- possible error message
+
+    if (name == nil) then
+        local binding = {config = mapping.uciMap.binding["config"], sectionname = mapping.uciMap.binding["type"]}
+        name, err = fw_helper.generate_unused_section(binding)
+    end
+
+    return mapping.uciMap.add(mapping.uciMap, name)
+end
+
+-- PURPOSE: Standard mapping "set" function
+-- RETURNS: true (or nil + err) (or apparently nothing?)
+mapping_rule_rpc.set = function(mapping, param, value, key)
+    if value ~= "" then
+        if param == "dest_ip" then
+            local family -- family deduced from the IP value
+            local macAddr -- mac address of dest_ip value
+            local ipConfiguration
+
+            if string.find(value, ":") then
+                family = "ipv6"
+            else
+                family = "ipv4"
+                ipConfiguration = "dynamic"
+            end
+            mapping.uciMap.set(mapping.uciMap, "family", family, key)
+
+            macAddr = fw_helper.ip2mac(ubus_connect, family, value, ipConfiguration) or ""
+            mapping.uciMap.set(mapping.uciMap, "dest_mac", macAddr, key)
+
+            if macAddr ~= "" then
+                -- Don't write the IP address to /etc/config/firewall because
+                -- it changes. The address will be written to /var/state/firewall
+                -- which won't persist across a reboot
+                -- (See pinholehelper for process that does this)
+                if (family == "ipv6") then
+                    value = "::"
+                else
+                    value = "0.0.0.0"
+                end
+            end
+        elseif param == "dest_mac" then
+            local family = string.lower(mapping.uciMap.get(mapping.uciMap, "family", key))
+            local ipAddr = mapping.uciMap.get(mapping.uciMap, "dest_ip", key)
+
+            if family == "ipv6" then
+                ipAddr = "::"
+            elseif family == "ipv4" then
+                ipAddr = "0.0.0.0"
+            elseif ipAddr ~= "" then
+                if string.find(ipAddr, ":") then
+                    family = "ipv6"
+                    ipAddr = "::"
+                else
+                    family = "ipv4"
+                    ipAddr = "0.0.0.0"
+                end
+            end
+
+            mapping.uciMap.set(mapping.uciMap, "family", family, key)
+            mapping.uciMap.set(mapping.uciMap, "dest_ip", ipAddr, key)
+        elseif param == "family" then
+            value = string.lower(value)
+            local macAddr = mapping.uciMap.get(mapping.uciMap, "dest_mac", key)
+            if macAddr ~= "" then
+                if value == "ipv6" then
+                    mapping.uciMap.set(mapping.uciMap, "dest_ip", "::", key)
+                elseif value == "ipv4" then
+                    mapping.uciMap.set(mapping.uciMap, "dest_ip", "0.0.0.0", key)
+                end
+            end
+        end
+    end
+    return mapping.uciMap.set(mapping.uciMap, param, value, key)
+end
+
+-- PURPOSE: Standard mapping "delete" function
+--     if an entry is deleted make certain it is removed from
+--     /var/state/firewall
+-- RETURNS: true (or nil + err)
+mapping_rule_rpc.delete = function(mapping, key)
+
+    -- update /var/state/firewall
+    -- Notify pinholehelper that we deleted something.
+    ubus_connect:call("pinholehelper", "delete", { section=key })
+
+    return mapping.uciMap.delete(mapping.uciMap, key)
+end
+
+-- PURPOSE: Standard mapping "commit" function
+--     This means a "row" is considered "official". Now we need to
+--     update the /var/state/firewall file with the valid IP addresses
+-- RETURNS: true (or nil + err)
+mapping_rule_rpc.commit = function(mapping)
+    local result, errmsg -- standard return
+
+    result, errmsg = mapping.uciMap.commit(mapping.uciMap)
+
+    -- update /var/state/firewall
+    -- Notify pinholehelper that we modified something.
+    -- dynamic dest_ip might need changed
+    ubus_connect:call("pinholehelper", "update", {})
+
+    return result, errmsg
+end
+
+-- PURPOSE: Standard mapping "revert" function
+-- RETURNS: true (or nil + err)
+mapping_rule_rpc.revert = function(mapping)
+    return mapping.uciMap.revert(mapping.uciMap)
+end
+
+-- Register with transformer so it knows about the parameters we supply
+register(mapping_rule_rpc)
+
+-- Register the "lists" of mapinfo_rule_uci too
+if mapping_rule_rpc.uciMap.submappings then
+    for _, submap in ipairs(mapping_rule_rpc.uciMap.submappings) do
+        submap.objectType.name = mapping_rule_rpc.objectType.name .. submap.binding.option .. ".@."
+        register(submap)
+    end
+end

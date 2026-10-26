@@ -1,0 +1,3 @@
+^web%. /usr/share/transformer/scripts/user_reload.sh
+^web%.rule%. /etc/init.d/nginx restart
+^web%.sessionmgr%.[^%.]+%.timeout /etc/init.d/nginx restart

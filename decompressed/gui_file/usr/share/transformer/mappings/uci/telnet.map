@@ -1,0 +1,14 @@
+local config_telnet = "telnet"
+
+-- uci.telnet
+mapper("uci_1to1").registerConfigMap(config_telnet)
+
+-- uci.telnet.general
+local telnet_general  = {
+    config = config_telnet,
+    section = "general",
+    type = "general",
+    options = { "enable" },
+}
+
+mapper("uci_1to1").registerSimpleMap(telnet_general)

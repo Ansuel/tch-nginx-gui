@@ -1,0 +1,371 @@
+--pretranslated: do not change this file
+ 
+-- Enable localization
+gettext.textdomain('webui-core')
+
+local ngx = ngx
+local lfs = require("lfs")
+local proxy = require("datamodel")
+local ui_helper = require("web.ui_helper")
+local post_helper = require("web.post_helper")
+local content_helper = require("web.content_helper")
+local message_helper = require("web.uimessage_helper")
+local format, untaint, gmatch = string.format, string.untaint, string.gmatch
+local open = io.open
+local vB = post_helper.validateBoolean
+local vNES = post_helper.validateNonEmptyString
+local session = ngx.ctx.session
+local post_content = {}
+
+local path_tcpdump = format("rpc.system.tcpdump.")
+
+local function validateCount(value, object, key)
+  local max = 16000
+  local result = proxy.get("rpc.system.tcpdump.refcount") or {}
+  if result[1] and result[1].value then
+    result = 2*tonumber(untaint(result[1].value))
+    if result < max then
+      max = result
+    end
+  end
+  return post_helper.getValidateNumberInRange(1, tonumber(max))(value, object, key)
+end
+
+local tcpdumpValid = {
+  interface = vNES,
+  type = vNES,
+  count = validateCount,
+  saveonusb = vB,
+}
+
+local tcpdump_intfs = {
+}
+
+local tcpdump_acc = {
+  { "1", "Enabled" },
+  { "0", "Disabled" },
+}
+
+local tcpdump_types = {
+  { "pcap", T"PCAP" },
+  { "log", T"LOG" },
+ }
+
+--[[
+"None",       => { start }
+  -- Requested
+"Requested",  => { Stop }
+  -- Complete
+"Complete",   => { start, Download }
+  -- Requested
+"Error",      => { Start }
+  -- Requested
+--]]
+local capture_unavailable = T"No capture file is available. Run a new capture and try again."
+
+local function captureFileInfo(path)
+  path = untaint(path)
+  if type(path) ~= "string" then
+    return nil
+  end
+  -- The backend generates a simple basename, including for USB captures.
+  local name = path:match("^/.*/([%w_.%-]+)$")
+  local attributes = name and lfs.attributes(path)
+  if not attributes or attributes.mode ~= "file" or
+      type(attributes.size) ~= "number" or attributes.size <= 0 then
+    return nil
+  end
+  return name, attributes.size, path
+end
+
+local function downloadUnavailable(status)
+  ngx.status = status
+  ngx.header.content_type = "text/html; charset=utf-8"
+  -- A nonempty HTML response without the success cookie triggers fileDownload's
+  -- failCallback, instead of leaving the browser waiting for a download.
+  ngx.print("<html><body>" .. capture_unavailable .. "</body></html>")
+  return ngx.exit(ngx.HTTP_OK)
+end
+
+local function tcpdump_download()
+  local tcpdump_info = {
+    state = path_tcpdump .. "state",
+    file = path_tcpdump .. "file",
+  }
+  if not content_helper.getExactContent(tcpdump_info) then
+    return downloadUnavailable(ngx.HTTP_SERVICE_UNAVAILABLE)
+  end
+  if untaint(tcpdump_info.state) ~= "Complete" then
+    return downloadUnavailable(ngx.HTTP_CONFLICT)
+  end
+
+  local name, size, path = captureFileInfo(tcpdump_info.file)
+  if not name then
+    return downloadUnavailable(ngx.HTTP_NOT_FOUND)
+  end
+  local file = open(path, "rb")
+  if not file then
+    return downloadUnavailable(ngx.HTTP_NOT_FOUND)
+  end
+  local data = file:read(1024)
+  if not data then
+    file:close()
+    return downloadUnavailable(ngx.HTTP_NOT_FOUND)
+  end
+
+  -- Only signal success after the capture has actually been opened and read.
+  ngx.header.content_disposition = 'attachment; filename="' .. name .. '"'
+  ngx.header.content_type = "application/octet-stream"
+  ngx.header.content_length = size
+  ngx.header.set_cookie = "fileDownload=true; Path=/"
+  while data do
+    local ok = ngx.print(data)
+    if not ok or not ngx.flush(true) then
+      file:close()
+      return ngx.exit(ngx.ERROR)
+    end
+    local err
+    data, err = file:read(1024)
+    if err then
+      file:close()
+      return ngx.exit(ngx.ERROR)
+    end
+  end
+  file:close()
+  return ngx.exit(ngx.HTTP_OK)
+end
+
+
+local function restartTest(data)
+  local success, msg = false, {}
+  if type(data) == "table"  then
+    success, msg = content_helper.validateObject(data, tcpdumpValid)
+    local usbstatus =  proxy.get("rpc.system.tcpdump.usbstatus")
+    usbstatus = usbstatus[1] and usbstatus[1].value
+    if usbstatus == "Connected" then
+      if not data.saveonusb then
+        data.saveonusb = "0"
+      end
+      proxy.set({["rpc.system.tcpdump.saveonusb"] = data["saveonusb"]})
+    else
+      proxy.set({["rpc.system.tcpdump.saveonusb"] = "0"})
+    end
+    if success then
+        success = proxy.set({
+                    ["rpc.system.tcpdump.interface"] = data["interface"],
+                    ["rpc.system.tcpdump.type"] = data["type"],
+                    ["rpc.system.tcpdump.count"] = data["count"],
+                  }) and proxy.set({
+                    ["rpc.system.tcpdump.state"] = "Requested",
+                  })
+        if success then
+            proxy.apply()
+        end
+    end
+  end
+  return success, msg
+end
+
+local helpmsg = {}
+local gsuccess = true
+if ngx.var.request_method == "POST" then
+  local tcpdumpState = proxy.get("rpc.system.tcpdump.state")
+  local success
+  gsuccess = true
+  post_content = ngx.req.get_post_args()
+  local action = post_content["action"]
+  if action == "START" then
+    if tcpdumpState and tcpdumpState[1].value ~= "Requested" then
+      gsuccess, helpmsg = restartTest(post_content)
+      session:store("diag_tcpdump_action", "TRUE")
+    end
+  elseif action == "STOP" then
+    if tcpdumpState and tcpdumpState[1].value == "Requested" then
+      success = proxy.set(path_tcpdump .. "state", "Complete")
+      if success then
+        proxy.apply();
+      end
+    end
+  elseif action == "CLEAN" then
+    if tcpdumpState and tcpdumpState[1].value == "Complete" then
+      success = proxy.set(path_tcpdump .. "state", "None")
+      if success then
+        proxy.apply();
+      end
+    end
+  elseif action == "tcpdump_download" then
+    return tcpdump_download()
+  end
+end
+
+local tcpdump_data = {
+  state = path_tcpdump .. "state",
+  type = path_tcpdump.. "type",
+  count = path_tcpdump .. "count",
+  refcount = path_tcpdump .. "refcount",
+  interface = path_tcpdump.. "interface",
+  file = path_tcpdump .. "file",
+  intflist = path_tcpdump .. "intflist",
+  saveonusb = path_tcpdump .. "saveonusb"
+}
+
+
+content_helper.getExactContent(tcpdump_data)
+s = untaint(tcpdump_data.intflist)
+for w in gmatch(s, "%S+") do
+  tcpdump_intfs[#tcpdump_intfs+1] = {w, w}
+end
+
+tcpdump_data.count = post_content["count"] or tcpdump_data.count
+tcpdump_data.interface = post_content["interface"] or tcpdump_data.interface
+tcpdump_data.type = post_content["type"] or tcpdump_data.type
+tcpdump_data.saveonusb = post_content["saveonusb"] or tcpdump_data.saveonusb
+
+local refresh = 2
+--This code will stop the refresh when all results are available
+if tcpdump_data.state ~= "Requested" or not gsuccess then
+  refresh = nil
+end
+ngx.print(ui_helper.createHeader(T"Diagnostics TCPDump", false, false, refresh))
+  ngx.print('\
+<div class="modal-body no-save update">\
+');  
+  local lp = require("web.lp")
+  lp.setpath("/www/snippets/")
+  lp.include("tabs-diagnostics.lp")
+  ngx.print('\
+<fieldset>\
+<form class="form-horizontal" method="post" action="modals/diagnostics-tcpdump-modal.lp">\
+');  
+ngx.print(ui_helper.createMessages(message_helper.popMessages()))
+  ngx.print('\
+<legend>');  ngx.print( T"TCPDump" ); ngx.print('</legend>\
+\
+<div class="control-group">\
+<label class="control-label"></label>\
+  <div class="controls">\
+    ');  ngx.print(ui_helper.createAlertBlock(T"1. Max recommened Packet Number is dynamic (uses half of free memory) and may not be accurate.<br/>2. Hardware offload disabled during capture on platforms with flow cache!<br/>3. 'Download' will be invalid if nothing was captured.<br/>4. 'Clean' will clean captured file to reduce memory consumption."))   ngx.print('\
+    ');  if(tcpdump_data.state == "Requested") then   ngx.print('\
+      <div id="stop-tcpdump" class="btn" data-name="action" data-value="STOP">');  ngx.print( T"Stop" ); ngx.print('</div>\
+    ');  elseif(tcpdump_data.state == "None" or tcpdump_data.state == "Complete" or tcpdump_data.state == "Error") then   ngx.print('\
+      <div id="start-tcpdump" class="btn" data-name="action" data-value="START">');  ngx.print( T"Start" ); ngx.print('</div>\
+      ');  if(tcpdump_data.state == "Complete") then   ngx.print('\
+        <div id="clean-tcpdump" class="btn" data-name="action" data-value="CLEAN">');  ngx.print( T"Clean" ); ngx.print('</div>\
+      ');  end  ngx.print('\
+    ');  end  ngx.print('\
+  </div>\
+</div>\
+');  
+  local tcpdump_download = {
+    button = {
+      class = "tcpdump-download custom-handler"
+    }
+  }
+  local downloading_alert = {
+    alert = {
+      class = "alert-info hide",
+      id = "downloading-msg"
+    }
+  }
+  local downloading_fail = {
+    alert = {
+      class = "alert-error hide",
+      id = "download-failed-msg"
+    }
+  }
+  local attrText = {input = { ["data-for"] = "START"}}
+  local attrSelect = {select = { ["data-for"] = "START"}}
+  local attributes = { span = { class = "span8" } }
+  local statusText = ""
+  local statusIcon = ""
+  local testState = tcpdump_data.state
+
+  if ngx.var.request_method == "POST" and gsuccess then
+    if testState and session:retrieve("diag_tcpdump_action") =="TRUE" then
+      if testState == "Complete" then
+        statusIcon = "<i class=\"icon-ok icon-large green\"></i> "
+        statusText = T"Success"
+        elseif testState == "Requested" then
+          statusIcon = "<i class=\"icon-asterisk icon-large blue\"></i> "
+          statusText = T"Ongoing"
+        elseif testState ~= "None" then
+          statusIcon = "<i class=\"icon-ban-circle icon-large red\"></i>"
+          statusText = T"Failed"
+        else
+          statusIcon = "<i class=\"icon-ban-circle icon-large red\"></i>"
+          statusText = T"Idle"
+        end
+    end
+  end
+
+  html = {}
+  if(tcpdump_data.state == "Complete" and tcpdump_data.saveonusb == "0") then
+    if captureFileInfo(tcpdump_data.file) then
+      html[#html + 1] = ui_helper.createButton(T"", T"Download", "icon-download-alt", tcpdump_download)
+      html[#html + 1] = ui_helper.createAlertBlock(T"Downloading TCPDump file, please wait...", downloading_alert)
+      html[#html + 1] = ui_helper.createAlertBlock(T"Download failed. The capture may no longer be available; run a new capture and try again.", downloading_fail)
+    else
+      html[#html + 1] = ui_helper.createAlertBlock(capture_unavailable)
+    end
+  end
+  html[#html + 1] = ui_helper.createInputCheckbox(T"Save on USB", "saveonusb", untaint(tcpdump_data.saveonusb), attrCheckbox)
+  html[#html + 1] = ui_helper.createLabel(T"Status:", format("%s %s", statusIcon, statusText), attributes)
+  html[#html + 1] = ui_helper.createLabel(T"Max Packet Number Recommended:", tcpdump_data.refcount, attributes)
+  html[#html + 1] = ui_helper.createInputText(T"Packet Number:","count", tcpdump_data.count, attrText, helpmsg["count"])
+  html[#html + 1] = ui_helper.createInputSelect(T"Interface:", "interface", tcpdump_intfs, tcpdump_data.interface, attrSelect, helpmsg["interface"])
+  html[#html + 1] = ui_helper.createInputSelect(T"Log Type:", "type", tcpdump_types, tcpdump_data.type, attrSelect, helpmsg["type"])
+  ngx.print(html)
+
+  -- tcpdump log content
+  if(tcpdump_data.state == "Complete" and tcpdump_data.type == "log") then
+    local f = open(untaint(tcpdump_data.file), "r")
+    if f then
+      ngx.print(ui_helper.createLabel(T"TCPDump Log:", ""))
+      ngx.print("<div class='control-group'><label class='control-label'></label><div class='controls'>")
+      ngx.print("<span id='' class='span9 simple-desc'>")
+      for line in f:lines() do
+        ngx.print("<i>>  " .. line .. "</i><br/>")
+      end
+      ngx.print("</span></div></div>")
+      f:close()
+    end
+  end
+  ngx.print('\
+</fieldset>\
+</form>\
+</div>\
+<script>\
+(function() {\
+  var target = $(".modal form").attr("action");\
+\
+  $("#saveonusb").on("click", function() {\
+    $(this).val($(this).is(":checked")? "1": "0")\
+  });\
+\
+  $(".tcpdump-download").on("click", function() {\
+    $.fileDownload(target, {\
+      httpMethod: "POST",\
+      data: new Array({ name : "action", value : "tcpdump_download" },\
+                      { name : "CSRFtoken", value : $("meta[name=CSRFtoken]").attr("content") }),\
+      prepareCallback: function() {\
+        $("#download-failed-msg").addClass("hide");\
+        var downloading_msg = $("#downloading-msg");\
+        downloading_msg.removeClass("hide");\
+        downloading_msg[0].scrollIntoView();\
+      },\
+      successCallback: function() {\
+       $("#downloading-msg").addClass("hide");\
+      },\
+      failCallback: function() {\
+        var download_failed_msg = $("#download-failed-msg");\
+        download_failed_msg.removeClass("hide");\
+        download_failed_msg[0].scrollIntoView();\
+        $("#downloading-msg").addClass("hide");\
+      }\
+    });\
+    return false;\
+  });\
+}());\
+</script>\
+');  ngx.print(ui_helper.createFooter())   ngx.print('\
+'); 

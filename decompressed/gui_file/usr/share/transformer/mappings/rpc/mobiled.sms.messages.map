@@ -1,0 +1,77 @@
+local sms = {
+	objectType = {
+		name = 'rpc.mobiled.sms.message.@.',
+		access = 'readOnly',
+		numEntriesParameter = "MessageNumberOfEntries",
+		minEntries = 0,
+		maxEntries = math.huge,
+		parameters = {
+			status = {
+				access = "readOnly",
+				type = "string"
+			},
+			number = {
+				access = "readOnly",
+				type = "string"
+			},
+			text = {
+				access = "readOnly",
+				type = "string"
+			},
+			date = {
+				access = "readOnly",
+				type = "string"
+			},
+			id = {
+				access = "readOnly",
+				type = "unsignedInt"
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local message_cache
+
+local function getFromCache(key, cache)
+	if not cache then return nil end
+	local message_id = tonumber(string.match(key, '%d+'))
+	if message_id then
+		for _, message in pairs(cache) do
+			if tonumber(message.id) == message_id then
+				return message
+			end
+		end
+	end
+	return nil
+end
+
+function sms.getall(mapping, key)
+	local message = getFromCache(key, message_cache) or {}
+	setmetatable(message, { __index = function() return "" end })
+	return message
+end
+
+function sms.get(mapping, paramName, key)
+	return sms.getall(mapping, key)[paramName]
+end
+
+function sms.entries(mapping)
+	local data = helper.getUbusData(conn, "mobiled.sms", "get")
+	local messages = {}
+	if type(data.messages) == "table" then
+		message_cache = data.messages
+		for _, message in pairs(data.messages) do
+			table.insert(messages, { tostring(message.id), "message" .. message.id })
+		end
+	end
+	return messages
+end
+
+register(sms)

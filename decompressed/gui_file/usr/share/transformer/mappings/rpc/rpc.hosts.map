@@ -1,0 +1,654 @@
+local register = register
+local mapper = mapper
+local pairs, error, next, tonumber = pairs, error, next, tonumber
+local string = string
+local time = os.time
+local nwcommon = mapper("nwcommon")
+local conn = mapper("ubus").connect() -- Opens connection to UBUS to retrieve data.
+local network = require("transformer.shared.common.network")
+local lanInterfacesCache = {} --These will cache the lan interfaces, based on the firewall config
+local hostsCache -- This cache will be used , instead of getting value from ubus call everytime.
+local match, gsub = string.match, string.gsub
+local tostring = tostring
+local uciHelper = mapper("ucihelper")
+local dhcpBinding = { config = "dhcp", sectionname = "host" }
+local qosBinding = { config = "qos" }
+local staticLeases = {}
+local transactions = {}
+local getFromUci = uciHelper.get_from_uci
+local setOnUci = uciHelper.set_on_uci
+local foreachOnUci = uciHelper.foreach_on_uci
+local deleteOnUci = uciHelper.delete_on_uci
+local commit = uciHelper.commit
+local revert = uciHelper.revert
+
+--rpc.hosts
+local rpc_host_ = {
+  objectType = {
+    name = "rpc.hosts.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {},
+  }
+}
+
+local function isLanInterface(interface)
+  return network.listContains(lanInterfacesCache, interface)
+end
+
+local function updateLanCache()
+  --Update the hosts cache from hostmanager
+  local newCache = conn:call("hostmanager.device", "get", {})
+  -- A transient timeout must not discard the last successful host snapshot.
+  if newCache then
+    hostsCache = newCache
+  end
+  if not hostsCache then
+    error("retrieving hosts failed")
+  end
+  --Update the lan interfaces cache
+  lanInterfacesCache = nwcommon.findLanWanInterfaces(false)
+end
+
+register(rpc_host_)
+
+-- rpc.hosts.host.{i}
+local rpc_hosts_host_i_ = {
+  objectType = {
+    name = "rpc.hosts.host.{i}.",
+    access = "readWrite",
+    numEntriesParameter = "HostNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      IPAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      IPv4= {
+        access = "readOnly",
+        type = "string",
+      },
+      IPv6= {
+        access = "readOnly",
+        type = "string",
+      },
+      MACAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      L2Interface = {
+         access = "readOnly",
+         type = "string",
+      },
+      L3Interface = {
+         access = "readOnly",
+         type = "string",
+      },
+      State = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      Delete = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      DeviceType = {
+        access = "readWrite",
+        type = "string",
+      },
+      Port = {
+        access = "readOnly",
+        type = "string",
+      },
+      FriendlyName = {
+        access = "readWrite",
+        type = "string",
+      },
+      DhcpTag = {
+        access = "readOnly",
+        type = "string",
+      },
+      SSID = {
+        access = "readOnly",
+        type = "string",
+      },
+      DhcpVendorClass = {
+        access = "readOnly",
+        type = "string",
+      },
+      LeaseType = {
+        access = "readOnly",
+        type = "string",
+      },
+      ConnectedTime = {
+         access = "readOnly",
+         type = "string",
+      },
+      DhcpLeaseTime = {
+         access = "readOnly",
+         type = "string",
+      },
+      DhcpLeaseIP = {
+         access = "readOnly",
+         type = "string",
+      },
+	  Priority = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      LeaseTimeRemaining = {
+        access = "readOnly",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+      },
+    }
+  }
+}
+
+local dhcp = require("transformer.shared.dhcp")
+
+local function loadStaticLeases()
+  foreachOnUci(dhcpBinding, function(s)
+    if s.mac then
+      staticLeases[s.mac] = s.ip
+    end
+  end)
+end
+
+-- Convert a device key to device information
+local function key2dev(key)
+  -- only one entry should be present
+  for _, v in pairs(hostsCache) do
+    if v and v["mac-address"] == key then
+      return v
+    end
+  end
+  return device
+end
+
+local dhcpInfo
+local function updateDhcpInfo()
+  local key
+  dhcpInfo = dhcp.getDhcpInfo() or {}
+  for _, host in pairs(hostsCache) do
+    key = host["mac-address"]
+    dhcpInfo[key] = dhcpInfo[key] or {}
+    for _, ipdata in pairs(host["ipv4"]) do
+      if ipdata["dhcp"] then
+         dhcpInfo[key]["DhcpTag"] = ipdata["dhcp"]["tags"] or ""
+         dhcpInfo[key]["DhcpVendorClass"] = ipdata["dhcp"]["vendor-class"] or ""
+         break
+      end
+    end
+  end
+end
+
+-- Extract an IP address from the given value and add it to the list
+local function extractAddress(value, addresses)
+  if value["state"] == "connected" or value["state"] == "stale" then
+    if addresses == "" then
+      addresses = value["address"]
+    else
+      addresses = addresses .. " " .. value["address"]
+    end
+  end
+  return addresses
+end
+
+rpc_hosts_host_i_.entries = function(mapping)
+  --Update the interfaces and hosts cache - every time someone starts iteration on the hosts
+  updateLanCache()
+  loadStaticLeases()
+  updateDhcpInfo()
+  return network.getHostInfo(hostsCache, function(info) return info["mac-address"] end)
+end
+
+-- Only connected IP address are retrieved with this parameter
+local function extractIPAddresses(dev)
+  if not dev then
+    return ""
+  end
+
+  local addresses = ""
+  lanInterfacesCache = nwcommon.findLanWanInterfaces(false)
+  local addr = {"ipv4", "ipv6"}
+  -- Extract IPv4 addresses and IPv6 addresses
+  for _, ip in pairs(addr) do
+    if dev[ip] then
+      for _, value in pairs(dev[ip]) do
+        for _, intf in pairs(lanInterfacesCache) do  -- check if lan interface
+          if(dev["interface"] == intf) then
+             addresses = extractAddress(value, addresses)
+          end
+        end
+      end
+    end
+  end
+  return addresses
+end
+
+local function extractIPv4(dev)
+   local addresses = ""
+   if dev ~= nil then
+     -- Extract IPv4 addresses
+     if dev["ipv4"] ~= nil then
+       for _,value in pairs(dev["ipv4"]) do
+         addresses = extractAddress(value, addresses)
+       end
+     end
+   end
+   return addresses
+ end
+
+ local function extractIPv6(dev)
+   local addresses = ""
+   if dev ~= nil then
+     -- Extract IPv6 addresses
+     if dev["ipv6"] ~= nil then
+       for _,value in pairs(dev["ipv6"]) do
+         addresses = extractAddress(value, addresses)
+       end
+     end
+   end
+   return addresses
+ end
+
+local wirelessBinding = { config = "wireless" }
+local function getExternalWifiL2intf()
+  local externalRadio
+  local ifName = ''
+    wirelessBinding.sectionname = "wifi-device"
+    foreachOnUci(wirelessBinding, function(s)
+      if s.type == "quantenna" then
+	externalRadio = s[".name"]
+	return false
+      end
+    end)
+    if externalRadio then
+      wirelessBinding.sectionname = "wifi-iface"
+      foreachOnUci(wirelessBinding, function(s)
+	if s.device == externalRadio and ifName == '' then
+	  ifName = s[".name"]
+	end
+      end)
+    end
+  return ifName
+end
+
+local function getWifiL2intf(mac)
+  local interface
+  local stations = conn:call("wireless.accesspoint.station", "get", {})
+  local accesspoints = conn:call("wireless.accesspoint", "get", {})
+  if stations then
+    for ap, mac_addrs in pairs(stations) do
+       if mac_addrs[mac] and mac_addrs[mac]["state"] ~= "Disconnected" then
+         return accesspoints[ap]["ssid"]
+      end
+    end
+  end
+  interface = getExternalWifiL2intf()
+  return interface
+end
+
+local function getL2Interface(dev)
+  local intfType, macAddr = network.getExternalWifiIntfType()
+  if dev and dev["mac-address"] ~= macAddr and dev["l2interface"] == intfType then
+    return getWifiL2intf(dev["mac-address"])
+  else
+    return dev["l2interface"]
+  end
+end
+
+-- Global device/host state
+local function extractState(dev)
+  if dev and dev.state == "connected" then
+    return "1"
+  end
+  return "0"
+end
+
+local function extractDeviceType(dev)
+  return dev and dev["device-type"] or ""
+end
+
+local function extractFriendlyName(dev)
+  if dev and dev["user-friendly-name"] and dev["user-friendly-name"] ~= "" then
+    return dev["user-friendly-name"]
+  elseif dev["hostname"] and dev["hostname"] ~= "" then
+    return dev["hostname"]
+  else
+    return "Unknown-" .. dev["mac-address"]
+  end
+end
+
+local function extractMacAddresses(dev)
+    if dev ~= nil and dev["mac-address"] ~= nil then
+        return dev["mac-address"]
+    end
+    return ""
+end
+
+local function extractPort(dev)
+    -- [CL] Some platforms don't have l2interfaces that make sense (e.g. without switch driver)
+    -- [CL] If the device in the hostmanager ubus call knows what port a device is attached to, let's trust it
+    -- [CL] Hacking this into the generic sys.hosts.map file until someone can explain me how to properly customize this without
+    -- [CL] copying the entire file and hence losing all future functionality/bugfixes since noone looks at our platforms anyway.
+    local intfType, macAddr = network.getExternalWifiIntfType()
+    if dev["switchport"] then
+        return tostring(dev["switchport"])
+    else
+        if dev["technology"] == "ethernet" and isLanInterface(dev["interface"]) and dev["l2interface"] == intfType and dev["mac-address"] ~= macAddr then
+           return ""
+       elseif dev["technology"] == "ethernet" and isLanInterface(dev["interface"]) and dev["l2interface"] ~= nil and not match(dev["l2interface"],"wl+%d") then
+           local portNumber = match(dev["l2interface"],"%a*(%d+)")
+           if portNumber then
+               portNumber = portNumber + 1
+               return tostring(portNumber)
+           end
+           return ""
+       end
+       return ""
+    end
+end
+
+
+local function getLeaseType(mac)
+  local ip = extractIPAddresses(key2dev(mac))
+  if staticLeases[mac] and staticLeases[mac] == ip then
+    return "Static"
+  else
+    if dhcpInfo[mac].DhcpLeaseTime then
+      return "DHCP"
+    end
+  end
+  return ""
+end
+
+local function extractConnectedTime(dev)
+    if dev ~= nil and dev["connected_time"] ~= nil then
+        return tostring(dev["connected_time"])
+    end
+    return ""
+end
+
+--- Function to calculate remaining lease time
+-- @param key key for the corresponding host
+-- @param dev device name
+local function getLeaseTimeRemaining(key, dev)
+  local leaseLeft = "0"
+  local connectedTime = extractConnectedTime(dev)
+  local dhcpLeaseTime = dhcpInfo[key]["leasetime"]
+  -- Leasetimeleft has been calculated as, LeaseTimeRemaining = ((Connectedtime + LeaseTime) - CurrentTime)
+  if dhcpLeaseTime and connectedTime ~= "" then
+    leaseLeft = (tonumber(connectedTime) + tonumber(dhcpLeaseTime)) - time()
+  end
+  return tostring(leaseLeft)
+end
+
+local function haveStaticLease(mac)
+  local static_lease = false
+  -- Limitation: If static lease removed by GUI, then there will be issue when the Gaming device is rebooted and got different IP address.
+  foreachOnUci(dhcpBinding,function(s)
+    if s.mac == mac then  -- Not checking the owner, already user via gui or other applications might have added static lease
+      static_lease = true
+      return false
+    end
+  end)
+  return static_lease
+end
+
+local function getQosSectionName(mac)
+  local mac_without_colon = gsub(mac,"%W","")
+  return "mac" .. mac_without_colon
+end
+
+local function getPriority(key)
+  qosBinding.sectionname = getQosSectionName(key)
+  qosBinding.option = "target"
+  local priority = getFromUci(qosBinding)
+  return priority == "gamingpriority" and "1" or "0"
+end
+
+-- Add 'host' section under 'dhcp' configuration.
+-- Add 'mac' and 'owner' option under 'host' section.
+local function setGamingRule(mac)
+  local newSectionName = uciHelper.add_on_uci(dhcpBinding)
+  if newSectionName then
+    local dhcpBinding_set = { config = "dhcp", sectionname = newSectionName , option = "mac" }
+    setOnUci(dhcpBinding_set, mac, commitapply)
+    dhcpBinding_set.option = "owner"
+    setOnUci(dhcpBinding_set, "gamingdevice", commitapply)
+    transactions[dhcpBinding.config] = true
+  end
+end
+
+local function setDhcpGamingRule(mac)
+  if not haveStaticLease(mac) then
+    setGamingRule(mac)
+  end
+end
+
+local function setQosGamingLabel()
+  qosBinding.option = nil
+  qosBinding.sectionname = "gamingpriority"
+  local gaming_label = getFromUci(qosBinding)
+  -- If not available, create the new label
+  if gaming_label == "" then
+    setOnUci(qosBinding, "label", commitapply)
+    qosBinding.option = "trafficid"
+    setOnUci(qosBinding, "7", commitapply)
+  end
+end
+
+local function setQosReclassify(mac)
+  qosBinding.option = nil
+  qosBinding.sectionname = getQosSectionName(mac)
+  local reclassifySection = getFromUci(qosBinding)
+  if reclassifySection == "" then
+    qosBinding.sectionname = getQosSectionName(mac)
+    setOnUci(qosBinding, "reclassify", commitapply)
+    qosBinding.option="srcmac"
+    setOnUci(qosBinding, mac, commitapply)
+  end
+  qosBinding.option = "target"
+  setOnUci(qosBinding, "gamingpriority", commitapply)
+  transactions[qosBinding.config] = true
+end
+
+-- Function to Add Gaming Label Section and Reclassify Rule in QOS
+-- Add Gaming Rule Section in DHCP
+local function setGamingQos(mac)
+  setQosGamingLabel()
+  setQosReclassify(mac)
+  -- Add 'host' section under 'dhcp' configuration
+  setDhcpGamingRule(mac)
+end
+
+local function deleteGamingTarget(mac)
+  local section = getQosSectionName(mac)
+  if section then
+    local qosBinding_delete = { config="qos", sectionname = section }
+    deleteOnUci(qosBinding_delete, commitapply)
+    transactions[qosBinding.config] = true
+  end
+end
+
+local function gamingDeviceSection(mac)
+  local section
+  foreachOnUci(dhcpBinding, function(s)
+    if s["owner"] == "gamingdevice" and s["mac"] == mac then
+      section = s[".name"]
+      return false
+    end
+  end)
+  return section
+end
+
+local function deleteDhcpGamingRule(mac)
+  local section = gamingDeviceSection(mac)
+  if section then
+    local dhcpBinding_delete = { config="dhcp", sectionname = section }
+    deleteOnUci(dhcpBinding_delete, commitapply)
+    transactions[dhcpBinding.config] = true
+  end
+end
+
+-- Function to delete DHCP Gaming rule section and Qos 'target' option
+local function resetGamingQos(mac)
+  deleteGamingTarget(mac)
+  deleteDhcpGamingRule(mac)
+end
+
+local function setPriority(mapping, param, value, key)
+  local dev = key2dev(key)
+  local mac = extractMacAddresses(dev)
+  if value == "1" then
+    setGamingQos(mac)
+  else
+    resetGamingQos(mac)
+  end
+end
+
+rpc_hosts_host_i_.getall = function(mapping, key)
+  local dev = key2dev(key)
+  return {
+       MACAddress = key,
+       IPAddress = extractIPAddresses(dev),
+       IPv4 = extractIPv4(dev),
+       IPv6 = extractIPv6(dev),
+       L2Interface = getL2Interface(dev) or "",
+       State = extractState(dev),
+       Delete = "0",
+       DeviceType = extractDeviceType(dev),
+       Port = extractPort(dev),
+       FriendlyName = extractFriendlyName(dev),
+       DhcpTag = dhcpInfo[key]["DhcpTag"] or "",
+       DhcpVendorClass = dhcpInfo[key]["DhcpVendorClass"] or "",
+       LeaseType = getLeaseType(key),
+       ConnectedTime = extractConnectedTime(dev),
+       DhcpLeaseTime= dhcpInfo[key]["leasetime"] or "",
+       DhcpLeaseIP= dhcpInfo[key]["ip"] or "",
+       LeaseTimeRemaining = getLeaseTimeRemaining(key, dev),
+  }
+end
+
+rpc_hosts_host_i_.get = {
+  IPAddress = function(mapping, param, key)
+    return extractIPAddresses(key2dev(key))
+  end,
+  IPv4 = function(mapping, param, key)
+     return extractIPv4(key2dev(key))
+  end,
+  IPv6 = function(mapping, param, key)
+     return extractIPv6(key2dev(key))
+  end,
+  MACAddress = function(mapping, param, key)
+    return key
+  end,
+  L2Interface = function(mapping, param, key)
+    return getL2Interface(key2dev(key)) or ""
+  end,
+  L3Interface = function(mapping, param, key)
+    return key2dev(key)["l3interface"] or ""
+  end,
+  State = function(mapping, param, key)
+    return extractState(key2dev(key))
+  end,
+  Delete = "0",
+  DeviceType = function(mapping, param, key)
+    return extractDeviceType(key2dev(key))
+  end,
+  Port = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractPort(dev)
+  end,
+  FriendlyName = function(mapping, param, key)
+    return extractFriendlyName(key2dev(key))
+  end,
+  DhcpTag = function(mapping, param, key)
+    return dhcpInfo[key][param] or ""
+  end,
+  DhcpVendorClass = function(mapping, param, key)
+    return dhcpInfo[key][param] or ""
+  end,
+  LeaseType =  function(mapping, param, key)
+    return getLeaseType(key)
+  end,
+  ConnectedTime = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractConnectedTime(dev)
+  end,
+  DhcpLeaseTime = function(mapping, param, key)
+    return dhcpInfo[key]["leasetime"] or ""
+  end,
+  DhcpLeaseIP = function(mapping, param, key)
+    return dhcpInfo[key]["ip"] or ""
+  end,
+  LeaseTimeRemaining = function(mapping, param, key)
+    local dev = key2dev(key)
+    return getLeaseTimeRemaining(key, dev)
+  end,
+  SSID = function(mapping, param, key)
+    local dev = key2dev(key)
+    local iface = getL2Interface(dev)
+    return iface and getFromUci({ config = "wireless", sectionname = iface , option = "ssid"}) or ""
+  end,
+  Priority = function(mapping, param, key)
+    local dev = key2dev(key)
+    local mac = extractMacAddresses(dev)
+    return getPriority(mac)
+  end,
+}
+
+rpc_hosts_host_i_.set = {
+  Priority = setPriority,
+  Delete = function(mapping, param, value, key)
+    local ubusData = conn:call("hostmanager.device", "get", { ["mac-address"] = key })
+    for _, v in pairs(ubusData) do
+      if v["state"] == "connected" then
+        return nil, "Cannot delete the connected devices"
+      end
+    end
+    if value == "1" then
+      conn:call("hostmanager.device", "delete", { ["mac-address"] = key })
+    end
+  end,
+  DeviceType = function(mapping, param, value, key)
+    conn:call("hostmanager.device", "set", { ["mac-address"] = key, ["device-type"] = value })
+  end,
+  FriendlyName = function(mapping, param, value, key)
+    conn:call("hostmanager.device", "set", { ["mac-address"] = key, ["user-friendly-name"] = value })
+  end
+}
+
+rpc_hosts_host_i_.commit = function()
+  for config,_ in pairs(transactions) do
+    commit({config = config})
+  end
+  transactions = {}
+end
+
+rpc_hosts_host_i_.revert = function()
+  for config,_ in pairs(transactions) do
+    revert({config = config})
+  end
+  transactions = {}
+end
+
+rpc_hosts_host_i_.add = function(mapping, key)
+    return nil, "hostmanager device can't be added"
+end
+
+rpc_hosts_host_i_.delete = function(mapping, key)
+    local dev = key2dev(key)
+    local mac = dev["mac-address"] or ""
+    return conn:call("hostmanager.device", "delete", { ["mac-address"] = mac } )
+end
+
+register(rpc_hosts_host_i_)

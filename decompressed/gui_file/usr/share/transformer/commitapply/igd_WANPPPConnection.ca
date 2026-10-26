@@ -1,0 +1,2 @@
+^InternetGatewayDevice%.WANDevice%.[^%.]+%.WANConnectionDevice%.[^%.]+%.WANPPPConnection%.[^%.]+%.Reset read line < /tmp/.ppp_intf ; ifup $line ; rm /tmp/.ppp_intf
+^InternetGatewayDevice%.WANDevice%.[^%.]+%.WANConnectionDevice%.[^%.]+%.WANPPPConnection%.[^%.]+%.X_0876FF_Reauthenticate read intf < /tmp/.ppp_interface ; ifup $intf ; rm /tmp/.ppp_interface

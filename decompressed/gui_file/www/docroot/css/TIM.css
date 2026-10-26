@@ -1,0 +1,53 @@
+/*NG-78956 The "show advanced´" and "hide advanced" Button shall be more visible
+*/
+.smallcard .header {background-image: linear-gradient(to bottom, #004691, #004691);margin-bottom: 0px;background-color: #004691}
+.smallcard .header .settings{-webkit-transition:margin .2s, opacity .5s, color .5s;-moz-transition:margin .2s, opacity .5s, color .5s;-o-transition:margin .2s, opacity .5s, color .5s;transition:margin .2s, opacity .5s, color .5s;opacity:1;width:auto;margin-right:0px;-webkit-transition-delay:0.1s;-moz-transition-delay:0.1s;-o-transition-delay:0.1s;transition-delay:0.1s;}
+.smallcard .content {background-color: #82b9e6;}
+.header {background-color: #004691;}
+.switchOn {background-color: #82b9e6;}
+.modal-header {color: #004691;border-radius: 10px 10px 0 0;background-color: #ebe6e1;border-bottom: 1px solid #ddd}
+.modal-footer {background-color: #ebe6e1;}
+.smallcard .header .settings {background-image: linear-gradient(to bottom, #82b9e6, #004691);background-color: #004691;border: 1px solid #004691;}
+.btn {color: #004691;}
+.btn-primary {background-image: linear-gradient(to bottom, #82b9e6, #004691);border: 1px solid #004691;color: #ffffff;}
+.login {border-top: 4px solid #004691;}
+.span3 {width: 300px;}
+.modal-action-advanced{background-color: #0088cc; color: #ffffff; border-radius: 5px; padding: 2px}
+.modal-action-refresh{background-color: #0088cc; color: #ffffff; border-radius: 5px; padding: 2px}
+.modal-action i{color: #ffffff; vertical-align: 0%;}
+/*.row .offset4.span4 {background-color: #004691;}*/
+#webui_language{background-color: #004691;color: white;}
+#signin{background-color: #004691;color: white;}
+#logged .btn{background-color: #004691;color: white;}
+.logo-technicolor{left: 0%;box-sizing: border-box;margin: 0px 0px 0px 0px;background-color: #004691;width:100%;height: auto;padding:15px}
+.timlogo {padding: 0px 0px 0px 10px}
+
+@media screen and (min-width:768px) and (max-width:979px)
+{
+.span12{width:760px; margin-left:10px}
+}
+
+@media screen and (min-width:768px) and (max-width:979px)
+{
+.row{margin-left:-20px; width:768px;*zoom:1;} .span3{width:246px; margin-left:10px}
+}
+
+@media screen and (max-width: 767px)
+{
+	.header{padding: 30px 0px 50px 0px;margin-bottom: 20px;}
+}
+
+@media screen and (max-width: 767px)
+{
+[class*="span"], .uneditable-input[class*="span"], .row-fluid [class*="span"] {
+    width: 100%;
+
+}
+}
+
+@media screen and (min-width: 1200px)
+{
+.span3 {
+    width: 270px;
+}
+}

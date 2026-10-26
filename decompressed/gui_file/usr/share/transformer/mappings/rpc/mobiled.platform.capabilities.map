@@ -1,0 +1,10 @@
+local obj = {
+    objectType = {
+        name = 'rpc.mobiled.platform.capabilities.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {}
+    }
+}
+register(obj)

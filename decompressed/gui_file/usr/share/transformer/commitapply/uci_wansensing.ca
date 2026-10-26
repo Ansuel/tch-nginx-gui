@@ -1,0 +1,2 @@
+^wansensing /etc/init.d/wansensing restart
+^rpc%.wansensing%.restart /etc/init.d/wansensing restart

@@ -1,0 +1,26 @@
+local wansensing_ = {
+    objectType = {
+        name = 'rpc.wansensing.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            restart = {
+                access = "readWrite",
+                type = "boolean",
+            },
+        },
+    },
+}
+
+wansensing_.get = function()
+  return "0"
+end 
+
+wansensing_.set = function(mapping, param, value)
+  if value == "1" then
+    commitapply:newset("rpc.wansensing.restart")
+  end
+end
+
+register(wansensing_)

@@ -1,0 +1,12 @@
+local config_tailscale = "tailscale"
+
+mapper("uci_1to1").registerConfigMap(config_tailscale)
+
+local tailscale_service = {
+    config = config_tailscale,
+    section = "service",
+    type = "service",
+    options = { "enabled", "connect", "port", "hostname", "advertise_routes", "advertise_exit_node", "accept_routes", "ssh", "runtime_dir", "storage_dir", "archive_path", "download_url", "archive_sha256", "state_dir" },
+}
+
+mapper("uci_1to1").registerSimpleMap(tailscale_service)

@@ -1,0 +1,52 @@
+local uci = require('uci')
+local uci_helper = mapper("ucihelper")
+local get_from_uci = uci_helper.get_from_uci
+local set_on_uci = uci_helper.set_on_uci
+local commit = uci_helper.commit
+local dectemission = { config = "mmpbx", sectionname = "dectemission" }
+local commitapply = commitapply
+local isConfigChanged
+
+local mmpbx_dect_emission = {
+  objectType = {
+    name = 'rpc.mmpbx.dectemission.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+    state = {
+      access = "readWrite",
+      type = "boolean"
+      }
+    }
+  }
+}
+mmpbx_dect_emission.get = function(mapping, param)
+  dectemission.option = param
+  return get_from_uci(dectemission)
+end
+
+mmpbx_dect_emission.set = function(mapping, param, paramvalue)
+  dectemission.option = param
+  if (param == "state") then
+    set_on_uci(dectemission, paramvalue, commitapply)
+    isConfigChanged = true
+  end
+  return true
+end
+
+mmpbx_dect_emission.commit = function()
+  if isConfigChanged then
+    uci_helper.commit({config = "mmpbx"})
+    isConfigChanged = false
+  end
+end
+
+mmpbx_dect_emission.revert = function()
+  if isConfigChanged then
+    uci_helper.revert({config = "mmpbx"})
+    isConfigChanged = false
+  end
+end
+
+register(mmpbx_dect_emission)

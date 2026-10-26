@@ -1,0 +1,136 @@
+local register = register
+local pairs, tostring, math = pairs, tostring, math
+
+local wireless_bssid_ = {
+  objectType = {
+    name = "rpc.wireless.bssid.@.",
+    access = "readOnly",
+    numEntriesParameter = "RadiosNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {},
+  }
+}
+
+local conn = mapper("ubus").connect()
+local network = require("transformer.shared.common.network")
+
+local function convertToString(st)
+    if  not st  then
+        return ""
+    end
+        return tostring(st)
+end
+
+local function entriesWirelessRadio(mapping)
+    local entries = {}
+    local result = conn:call("wireless.radio", "get", { })
+    if result then
+        for k  in pairs(result) do
+            entries[#entries+1] = k
+        end
+    end
+    return entries
+end
+
+local function getall(mapping, key)
+    local radioData = network.getRadioInfo(key)
+    local sanitizedData = {}
+    for k,v in pairs(radioData) do
+        sanitizedData[k] = convertToString(v)
+    end
+    return sanitizedData
+end
+
+local function get(mapping, paramName, key)
+    local radioData = network.getRadioInfo(key)
+    return convertToString(radioData[paramName]);
+end
+
+wireless_bssid_.entries = entriesWirelessRadio
+wireless_bssid_.getall = getall
+wireless_bssid_.get = get
+register(wireless_bssid_)
+
+local wireless_Multi_bsslist_ = {
+  objectType = {
+    name = "rpc.wireless.#ROOT.@.bsslist.@.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      ssid = {
+          access = "readOnly",
+          type = "string",
+      },
+      channel = {
+          access = "readOnly",
+          type = "string",
+      },
+      channelCentre = {
+          access = "readOnly",
+          type = "string",
+      },
+      chan_descr = {
+          access = "readOnly",
+          type = "string",
+      },
+      channelExtra = {
+          access = "readOnly",
+          type = "string",
+      },
+      rssi = {
+          access = "readOnly",
+          type = "string",
+      },
+      sec = {
+          access = "readOnly",
+          type = "string",
+      },
+      cap = {
+          access = "readOnly",
+          type = "string",
+      },
+    },
+  }
+}
+
+local bsslist = {}
+
+local function getDataForBsslist(ap)
+    local result = conn:call("wireless.radio.bsslist", "get", { name = ap })
+    if not result or result[ap] == nil then
+        return {}
+    end
+    for k,v in pairs(result[ap]) do
+	v.channelExtra = v.chan_descr:match("%d+([lu])[\/]*") or ""
+        v.channelCentre = v.channel
+        v.channel = v.chan_descr:match("(%d+)[\/]*") or v.channel
+        bsslist[k.."_"..ap] = v
+    end
+end
+
+local function entries(mapping, parentkey)
+    bsslist = {}
+    local result = {}
+    getDataForBsslist(parentkey)
+    if next(bsslist) then
+        for k, v in pairs(bsslist) do
+            result[#result+1] = k
+        end
+    end
+    return result
+end
+
+local function get(mapping, paramName, key, parentkey)
+    return bsslist[key] and bsslist[key][paramName] and tostring(bsslist[key][paramName]) or ""
+end
+
+wireless_Multi_bsslist_.entries = entries
+wireless_Multi_bsslist_.get = get
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(wireless_Multi_bsslist_, "#ROOT", {"bssid", "radio"})
+for _, dupli in ipairs(duplicates) do
+    register (dupli)
+end

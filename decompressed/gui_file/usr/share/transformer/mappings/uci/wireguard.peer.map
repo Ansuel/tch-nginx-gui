@@ -1,0 +1,134 @@
+local register = register
+local uci = mapper("ucihelper")
+
+local wireguard_config = "wireguard"
+local peer_binding = { config = wireguard_config, sectionname = "peer" }
+
+local parameters = {
+    "enabled", "name", "public_key", "preshared_key",
+    "endpoint_host", "endpoint_port", "allowed_ips", "persistent_keepalive",
+}
+
+local function known_parameter(param)
+    for _, name in ipairs(parameters) do
+        if name == param then return true end
+    end
+    return false
+end
+
+local function valid_section(key)
+    if type(key) ~= "string" or not key:match("^[%w_]+$") then return false end
+    local section = uci.getall_from_uci({ config = wireguard_config, sectionname = key })
+    return section ~= nil and section[".type"] == "peer"
+end
+
+local function valid_base64_key(value)
+    local body = value:match("^([A-Za-z0-9+/]+)=$")
+    return body ~= nil and #body == 43
+end
+
+local function valid_octets(value)
+    for octet in value:gmatch("%d+") do
+        local number = tonumber(octet)
+        if not number or number > 255 then return false end
+    end
+    return true
+end
+
+local validators = {
+    enabled = function(value)
+        return value == "0" or value == "1"
+    end,
+    name = function(value)
+        return #value <= 64 and value:match("^[%w_%-%. ]*$") ~= nil
+    end,
+    public_key = function(value)
+        return valid_base64_key(value)
+    end,
+    preshared_key = function(value)
+        return value == "" or valid_base64_key(value)
+    end,
+    endpoint_host = function(value)
+        return value == "" or (#value <= 253 and value:match("^[%w][%w%.%-]*$") ~= nil)
+    end,
+    endpoint_port = function(value)
+        local port = tonumber(value)
+        return value == "" or (port and port >= 1 and port <= 65535 and value:match("^%d+$") ~= nil)
+    end,
+    allowed_ips = function(value)
+        for item in value:gmatch("[^,%s]+") do
+            local ip, prefix = item:match("^(%d+%.%d+%.%d+%.%d+)/(%d+)$")
+            if not ip or tonumber(prefix) > 32 or not valid_octets(ip) then return false end
+        end
+        return value:match("[^%s,%w%p]") == nil
+    end,
+    persistent_keepalive = function(value)
+        local seconds = tonumber(value)
+        return value == "" or (seconds and seconds >= 0 and seconds <= 320 and value:match("^%d+$") ~= nil)
+    end,
+}
+
+local mapping = {
+    objectType = {
+        name = "uci.wireguard.peer.@.",
+        access = "readWrite",
+        minEntries = 0,
+        maxEntries = 16,
+        parameters = {
+            enabled = { access = "readWrite", type = "string" },
+            name = { access = "readWrite", type = "string" },
+            public_key = { access = "readWrite", type = "string" },
+            preshared_key = { access = "readWrite", type = "string" },
+            endpoint_host = { access = "readWrite", type = "string" },
+            endpoint_port = { access = "readWrite", type = "string" },
+            allowed_ips = { access = "readWrite", type = "string" },
+            persistent_keepalive = { access = "readWrite", type = "string" },
+        },
+    },
+}
+
+mapping.entries = function()
+    local result = {}
+    uci.foreach_on_uci(peer_binding, function(section)
+        local name = section[".name"]
+        if name then result[#result + 1] = name end
+    end)
+    return result
+end
+
+mapping.get = function(_, param, key)
+    if not valid_section(key) or not known_parameter(param) then return "" end
+    local value = uci.get_from_uci({ config = wireguard_config, sectionname = key, option = param })
+    if value == nil then return "" end
+    if param == "preshared_key" and value ~= "" then return "********" end
+    return value
+end
+
+mapping.set = function(_, param, value, key)
+    if not valid_section(key) or not known_parameter(param) then return false end
+    if param == "preshared_key" and tostring(value or "") == "********" then return true end
+    local check = validators[param]
+    if check and not check(tostring(value or "")) then return false end
+    uci.set_on_uci({ config = wireguard_config, sectionname = key, option = param }, value, commitapply)
+    return true
+end
+
+mapping.add = function()
+    local name = uci.add_on_uci(peer_binding, commitapply)
+    if not name then return nil end
+    uci.set_on_uci({ config = wireguard_config, sectionname = name, option = "enabled" }, "1", commitapply)
+    uci.commit({ config = wireguard_config })
+    return name
+end
+
+mapping.delete = function(_, key)
+    if not valid_section(key) then return nil end
+    uci.delete_on_uci({ config = wireguard_config, sectionname = key }, commitapply)
+    uci.commit({ config = wireguard_config })
+    return true
+end
+
+mapping.commit = function() uci.commit({ config = wireguard_config }) end
+mapping.revert = function() uci.revert({ config = wireguard_config }) end
+
+register(mapping)

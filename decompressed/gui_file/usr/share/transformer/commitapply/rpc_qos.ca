@@ -1,0 +1,2 @@
+^qos%.enable /etc/init.d/qos start
+^qos%.disable /etc/init.d/qos stop

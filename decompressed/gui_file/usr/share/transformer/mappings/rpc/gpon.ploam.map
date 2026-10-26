@@ -1,0 +1,50 @@
+local optical = require("transformer.shared.optical")
+local flag = optical.getBoardtype()
+if flag ~= "gpon" and flag ~= "gpon_sfp" then
+  return
+end
+
+local conn = mapper("ubus").connect()
+local log = require("transformer.logger")
+
+local function nilToEmptyString(st)
+    if st == nil then
+        return ""
+    else
+        return tostring(st)
+    end
+end
+
+local gpon_ploam = {
+  objectType = {
+    name = "rpc.gpon.ploam.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      state = {
+        access = "readOnly",
+        type = "string",
+      },
+      statuscode = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local function get (mapping, paramName, key)
+    local ubus = conn:call("gpon.ploam", "state", { })
+    if ubus == nil then
+        log:error("Cannot retrieve  gpon.ploam state")
+	return ""
+    end
+
+    local res = ubus[paramName]
+    return (nilToEmptyString(res))
+end
+
+gpon_ploam.get = get
+
+register(gpon_ploam)

@@ -1,0 +1,52 @@
+local dos = "dosprotect"
+local mapper, type = mapper, type
+local uci_1to1 = mapper("uci_1to1")
+
+--uci.dosprotect.
+mapper("uci_1to1").registerConfigMap(dos)
+
+-- uci.dosprotect.globals
+local dos_protect_enabled = {
+  config = dos,
+  section = "globals",
+  type = "globals",
+  options = {"enabled", "rpfilter", "block_tcpsyn_withdata"}
+}
+
+mapper("uci_1to1").registerSimpleMap(dos_protect_enabled)
+
+--uci.dosprotect.icmplimits
+local dos_protect_icmplimits = {
+  config = dos,
+  section = "icmplimits",
+  type = "ratelimit",
+  options = {"global_limit", "per_srcip_limit" , "global_burst", "per_srcip_burst"}
+}
+mapper("uci_1to1").registerSimpleMap(dos_protect_icmplimits)
+
+--uci.protect.icmpv6limits
+local dos_protect_icmpv6limits = {
+  config = dos,
+  section = "icmpv6limits",
+  type = "ratelimit",
+  options = {"global_limit", "per_srcip_limit"}
+}
+mapper("uci_1to1").registerSimpleMap(dos_protect_icmpv6limits)
+
+--uci.dosprotect.tcpsynlimits
+local dos_protect_tcpsynlimits = {
+  config = dos,
+  section = "tcpsynlimits",
+  type = "ratelimit",
+  options = {"global_limit", "per_srcip_limit", "global_burst", "per_srcip_burst"}
+}
+mapper("uci_1to1").registerSimpleMap(dos_protect_tcpsynlimits)
+
+--uci.dosprotect.udplimits
+local dos_protect_udplimits = {
+  config = dos,
+  section = "udplimits",
+  type = "ratelimit",
+  options = {"global_limit","per_srcip_limit","global_burst", "per_srcip_burst"}
+}
+mapper("uci_1to1").registerSimpleMap(dos_protect_udplimits)

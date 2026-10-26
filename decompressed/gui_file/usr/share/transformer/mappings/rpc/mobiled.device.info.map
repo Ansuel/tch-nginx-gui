@@ -1,0 +1,98 @@
+local mobiled_device_info_ = {
+	objectType = {
+		name = 'rpc.mobiled.device.@.info.',
+		access = 'readOnly',
+		minEntries = 1,
+		maxEntries = 1,
+		parameters = {
+			manufacturer = {
+				access = "readOnly",
+				type = "string"
+			},
+			model = {
+				access = "readOnly",
+				type = "string"
+			},
+			software_version = {
+				access = "readOnly",
+				type = "string"
+			},
+			hardware_version = {
+				access = "readOnly",
+				type = "string"
+			},
+			imei = {
+				access = "readOnly",
+				type = "string"
+			},
+			imeisv = {
+				access = "readOnly",
+				type = "string"
+			},
+			imei_svn = {
+				access = "readOnly",
+				type = "string"
+			},
+			device_config_parameter = {
+				access = "readOnly",
+				type = "string"
+			},
+			serial = {
+				access = "readOnly",
+				type = "string"
+			},
+			power_mode = {
+				access = "readOnly",
+				type = "string"
+			},
+			temperature = {
+				access = "readOnly",
+				type = "int"
+			},
+			pid = {
+				access = "readOnly",
+				type = "string"
+			},
+			vid = {
+				access = "readOnly",
+				type = "string"
+			},
+			initialized = {
+				access = "readOnly",
+				type = "boolean"
+			},
+			login_required = {
+				access = "readOnly",
+				type = "boolean"
+			},
+			dev_desc = {
+				access = "readOnly",
+				type = "string"
+			},
+			dev_idx = {
+				access = "readOnly",
+				type = "int"
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+function mobiled_device_info_.getall(_, key)
+	local dev_idx = tonumber(string.match(key, '%d+'))
+	local data = helper.getUbusData(conn, "mobiled.device", "get", { dev_idx = dev_idx })
+	data.dev_idx = tostring(dev_idx)
+	return data
+end
+
+function mobiled_device_info_.get(mapping, paramName, key)
+	return mobiled_device_info_.getall(mapping, key)[paramName]
+end
+
+register(mobiled_device_info_)

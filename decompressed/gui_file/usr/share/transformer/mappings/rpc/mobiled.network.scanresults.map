@@ -1,0 +1,104 @@
+local string, tonumber, type, pairs = string, tonumber, type, pairs
+
+local mobiled_network_scanresults = {
+	objectType = {
+		name = 'rpc.mobiled.device.@.network.scanresults.@.',
+		access = 'readOnly',
+		minEntries = 0,
+		maxEntries = math.huge,
+		parameters = {
+			mcc = {
+				access = "readOnly",
+				type = "string"
+			},
+			mnc = {
+				access = "readOnly",
+				type = "string"
+			},
+			description = {
+				access = "readOnly",
+				type = "string"
+			},
+			radio_interface = {
+				access = "readOnly",
+				type = "string"
+			},
+			preferred = {
+				access = "readOnly",
+				type = "string"
+			},
+			used = {
+				access = "readOnly",
+				type = "boolean"
+			},
+			forbidden = {
+				access = "readOnly",
+				type = "boolean"
+			},
+			roaming_state = {
+				access = "readOnly",
+				type = "boolean"
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local function getScanResultsData(key, parentKey)
+	local result = {}
+	setmetatable(result, { __index = function() return "" end })
+
+	local data = helper.getUbusData(conn, "mobiled.network", "scan", { dev_idx = tonumber(string.match(parentKey, '%d+')) })
+	if type(data.network_scan_list) == "table" then
+		for _, scanResult in pairs(data.network_scan_list) do
+			if type(scanResult.plmn_info) == "table" then
+				local id = scanResult.plmn_info.mcc .. scanResult.plmn_info.mnc .. scanResult.radio_interface
+				if id == key then
+					result.mcc = scanResult.plmn_info.mcc
+					result.mnc = scanResult.plmn_info.mnc
+					result.description = scanResult.plmn_info.description
+					result.radio_interface = scanResult.radio_interface
+					result.preferred = scanResult.preferred
+					result.used = scanResult.used
+					result.forbidden = scanResult.forbidden
+					result.roaming_state = scanResult.roaming_state
+					break
+				end
+			end
+		end
+	end
+	return result
+end
+
+local function getall(mapping, key, parentKey)
+	return getScanResultsData(key, parentKey)
+end
+
+local function get(mapping, paramName, key, parentKey)
+	return getall(mapping, key, parentKey)[paramName]
+end
+
+local function scanEntries(mapping, key)
+	local data = helper.getUbusData(conn, "mobiled.network", "scan", { dev_idx = tonumber(string.match(key, '%d+')) })
+	local scanResults = {}
+	if type(data.network_scan_list) == "table" then
+		for i, scanResult in pairs(data.network_scan_list) do
+			if type(scanResult.plmn_info) == "table" then
+				table.insert(scanResults, {tostring(i), scanResult.plmn_info.mcc .. scanResult.plmn_info.mnc .. scanResult.radio_interface })
+			end
+		end
+	end
+	return scanResults
+end
+
+mobiled_network_scanresults.getall = getall
+mobiled_network_scanresults.get = get
+mobiled_network_scanresults.entries = scanEntries
+
+register(mobiled_network_scanresults)

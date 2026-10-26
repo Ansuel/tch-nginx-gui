@@ -1,0 +1,5 @@
+#!/bin/sh
+
+mount | grep -q /modoverlay && { mtd -r erase $(cat /proc/banktable/notbooted); exit; }
+
+. /rom/usr/bin/rtfd

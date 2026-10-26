@@ -1,0 +1,36 @@
+local sys_proc_ = {
+  objectType = {
+    name = "sys.proc.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      CPUUsage = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            max = "100",
+          },
+        },
+      },
+     CurrentCPUUsage = {
+      access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            max = "100",
+          },
+        },
+      },
+    },
+  }
+}
+local processinfo = require("transformer.shared.processinfo")
+
+sys_proc_.get = {
+  CPUUsage = processinfo.getCPUUsage,
+  CurrentCPUUsage = processinfo.getCurrentCPUUsage,
+}
+
+register(sys_proc_)

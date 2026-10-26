@@ -1,0 +1,169 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-openvpn-server\n"
+"PO-Revision-Date: 2026-09-23 00:00+0200\n"
+"Last-Translator: ModGUI\n"
+"Language-Team: Italiano\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "OpenVPN Server"
+msgstr "Server OpenVPN"
+
+msgid "OpenVPN"
+msgstr "OpenVPN"
+
+msgid "Server"
+msgstr "Server"
+
+msgid "Client"
+msgstr "Client"
+
+msgid "OpenVPN client enabled"
+msgstr "Client OpenVPN abilitato"
+
+msgid "OpenVPN client disabled"
+msgstr "Client OpenVPN disabilitato"
+
+msgid "Client tunnel is up"
+msgstr "Tunnel client attivo"
+
+msgid "Client tunnel is down"
+msgstr "Tunnel client non attivo"
+
+msgid "Client connection"
+msgstr "Connessione client"
+
+msgid "OpenVPN client state"
+msgstr "Stato del client OpenVPN"
+
+msgid "VPN server"
+msgstr "Server VPN"
+
+msgid "VPN port"
+msgstr "Porta VPN"
+
+msgid "Protocol"
+msgstr "Protocollo"
+
+msgid "Cipher"
+msgstr "Cifrario"
+
+msgid "Authentication digest"
+msgstr "Algoritmo di autenticazione"
+
+msgid "Unsupported cipher"
+msgstr "Cifrario non supportato"
+
+msgid "Unsupported digest"
+msgstr "Algoritmo non supportato"
+
+msgid "Username (optional)"
+msgstr "Nome utente (opzionale)"
+
+msgid "Password (optional)"
+msgstr "Password (opzionale)"
+
+msgid "CA certificate (PEM)"
+msgstr "Certificato CA (PEM)"
+
+msgid "Client certificate (PEM, optional)"
+msgstr "Certificato client (PEM, opzionale)"
+
+msgid "Client private key (PEM, optional)"
+msgstr "Chiave privata client (PEM, opzionale)"
+
+msgid "Configured"
+msgstr "Configurato"
+
+msgid "Missing"
+msgstr "Mancante"
+
+msgid "Leave blank to keep the saved value"
+msgstr "Lascia vuoto per conservare il valore salvato"
+
+msgid "Wi-Fi SSIDs over VPN"
+msgstr "SSID Wi-Fi tramite VPN"
+
+msgid "No isolated Wi-Fi SSIDs are configured."
+msgstr "Non sono configurati SSID Wi-Fi isolati."
+
+msgid "The client uses a separate tunnel. It does not change the router or main LAN default route."
+msgstr "Il client usa un tunnel separato. Non cambia la route predefinita del router o della LAN principale."
+
+msgid "Select any isolated Wi-Fi SSID. New isolated SSIDs appear here automatically. The main LAN is never selectable. If the tunnel drops, selected SSIDs cannot reach the Internet until it reconnects."
+msgstr "Seleziona qualsiasi SSID Wi-Fi isolato. I nuovi SSID isolati compaiono qui automaticamente. La LAN principale non è selezionabile. Se il tunnel cade, gli SSID selezionati non possono accedere a Internet fino alla riconnessione."
+
+msgid "Enter a valid VPN server name or IPv4 address"
+msgstr "Inserisci un nome server VPN o un indirizzo IPv4 valido"
+
+msgid "Certificate or key is too large"
+msgstr "Il certificato o la chiave è troppo grande"
+
+msgid "Invalid client password"
+msgstr "Password client non valida"
+
+msgid "OpenVPN server enabled"
+msgstr "Server OpenVPN abilitato"
+
+msgid "OpenVPN server disabled"
+msgstr "Server OpenVPN disabilitato"
+
+msgid "OpenVPN server state"
+msgstr "Stato del server OpenVPN"
+
+msgid "WAN port"
+msgstr "Porta WAN"
+
+msgid "Protocol (udp or tcp)"
+msgstr "Protocollo (udp o tcp)"
+
+msgid "VPN network and netmask"
+msgstr "Rete VPN e maschera di rete"
+
+msgid "Allow VPN clients to access LAN"
+msgstr "Consenti ai client VPN di accedere alla LAN"
+
+msgid "Download client profile"
+msgstr "Scarica profilo client"
+
+msgid "Users"
+msgstr "Utenti"
+
+msgid "Add new user"
+msgstr "Aggiungi nuovo utente"
+
+msgid "General"
+msgstr "Generale"
+
+msgid "Username"
+msgstr "Nome utente"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Client keys are not available. Start the server once to generate them."
+msgstr "Le chiavi client non sono disponibili. Avviare il server una volta per generarle."
+
+msgid "Use only letters, numbers, dot, underscore, @ or dash"
+msgstr "Usare solo lettere, numeri, punto, trattino basso, @ o trattino"
+
+msgid "Password must contain at least 8 characters and no spaces"
+msgstr "La password deve contenere almeno 8 caratteri e nessuno spazio"
+
+msgid "Port must be between 1 and 65535"
+msgstr "La porta deve essere compresa tra 1 e 65535"
+
+msgid "Protocol must be udp or tcp"
+msgstr "Il protocollo deve essere udp o tcp"
+
+msgid "Use network and netmask, for example 10.8.0.0 255.255.255.0"
+msgstr "Indicare rete e maschera, per esempio 10.8.0.0 255.255.255.0"
+
+msgid "<strong>%d client</strong> is connected"
+msgid_plural "<strong>%d clients</strong> are connected"
+msgstr[0] "<strong>%d client</strong> connesso"
+msgstr[1] "<strong>%d client</strong> connessi"

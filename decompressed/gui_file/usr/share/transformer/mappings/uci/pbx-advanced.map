@@ -1,0 +1,17 @@
+local uci = mapper("uci_1to1")
+
+uci.registerConfigMap("pbx-advanced")
+
+uci.registerSimpleMap({
+  config = "pbx-advanced",
+  section = "advanced",
+  type = "settings",
+  options = {
+    "useragent",
+    "ringtime",
+    "externhost",
+    "bindport",
+    "rtpstart",
+    "rtpend",
+  },
+})

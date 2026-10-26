@@ -1,0 +1,23 @@
+local config_ethoam = "ethoam"
+local uci_1to1 = mapper("uci_1to1")
+
+uci_1to1.registerConfigMap(config_ethoam)
+
+-- uci.ethoam.single_config
+local ethoam_global = {
+  config = config_ethoam,
+  type = "single_config",
+  section = "global",
+  lists = { "configurations"},
+  options = { "enable"},
+}
+uci_1to1.registerSimpleMap(ethoam_global)
+
+-- uci.ethoam.configuration
+local ethoam_configuration = {
+  config = config_ethoam,
+  type = "configuration",
+  options = { "type", "mepId", "megLevel", "ifname", "vlan", "meg", "ccm", "CCMinterval", "oamID", "md", "mdlevel", "ma", "local_mepId" }
+}
+uci_1to1.registerNamedMultiMap(ethoam_configuration)
+

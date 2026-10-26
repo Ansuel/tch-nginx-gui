@@ -1,0 +1,44 @@
+local json = require("dkjson")
+local proxy = require("datamodel")
+local ngx = ngx
+
+local data = {}
+
+local commandstatus = proxy.get("rpc.system.modgui.executeCommand.state")
+data["state"] = commandstatus and commandstatus[1] and commandstatus[1].value or "Mapper Error"
+
+local action = { 
+	Checking = function()
+		local data = {}
+		local new_ver = proxy.get("uci.modgui.gui.new_ver")
+		
+		if new_ver and not ( new_ver[1].value == "" ) then
+			data["new_version_text"] = new_ver[1].value
+		end
+		
+		return data
+	end,
+}
+
+if action[string.untaint(data.state)] then 
+	for key, val in pairs(action[string.untaint(data.state)]()) do
+		data[key] = val
+	end
+else
+	local file = io.open("/tmp/command_log","r")
+	if file then
+		-- CLI progress rewrites the current line with a carriage return.
+		-- Normalize it before sending it to the plain-text terminal viewer.
+		data["log"] = (file:read('*a') or ""):gsub("\r\n", "\n"):gsub("[^\r\n]*\r", "")
+		file:close()
+	end
+end
+
+local buffer = {}
+if json.encode (data, { indent = false, buffer = buffer }) then
+	ngx.say(buffer)
+else
+	ngx.say("{}")
+end
+
+ngx.exit(ngx.HTTP_OK)

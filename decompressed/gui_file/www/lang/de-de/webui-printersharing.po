@@ -1,0 +1,55 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-printersharing\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-06-21 15:33+0200\n"
+"PO-Revision-Date: 2019-02-09 17:24+0100\n"
+"Last-Translator: Dr. Uwe Meyer-Gruhl\n"
+"Language-Team: none\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Name: Deutsch\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.2.1\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+msgid "SMB/CIFS is disabled"
+msgstr "SMB/CIFS ist deaktiviert"
+
+msgid "Enabled"
+msgstr "Aktiviert"
+
+msgid "Manufacturer"
+msgstr "Hersteller"
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Printer Information"
+msgstr "Druckerinformation"
+
+msgid "Printer Sharing"
+msgstr "Drucker teilen"
+
+msgid "Printer sharing disabled"
+msgstr "Drucker teilen deaktiviert"
+
+msgid "Printer sharing enabled"
+msgstr "Drucker teilen aktiv"
+
+msgid "Printer Name"
+msgstr "Druckername"
+
+msgid "Version"
+msgstr "Version"
+
+msgid "Web Interface"
+msgstr "Webseite"
+
+msgid "CUPS Web Interface at <a href=\"http://%s:631\">http://%s:631</a> or <a href=\"http://%s:631\">http://%s:631</a>"
+msgstr "CUPS Webseite auf <a href=\"http://%s:631\">http://%s:631</a> oder <a href=\"http://%s:631\">http://%s:631</a>"
+
+msgid "To connect: \\%s\ or \\%s\ "
+msgstr "Zum Verbinden: \\%s\ oder \\%s\ "

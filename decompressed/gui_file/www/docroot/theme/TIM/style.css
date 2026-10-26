@@ -1,0 +1,293 @@
+/*NG-78956 The "show advanced´" and "hide advanced" Button shall be more visible */
+ .smallcard .header {
+    background-image: linear-gradient(to bottom, #004691, #004691) !important;
+    margin-bottom: 0px !important;
+    background-color: #004691 !important;
+}
+ .smallcard{
+    font-family:Helvetica,Arial,sans-serif;
+    background-color:#ffffff;
+    border:1px solid #999999;
+    margin-bottom:20px;
+    -webkit-box-shadow:0 2px 3px rgba(0, 0, 0, 0.1);
+    -moz-box-shadow:0 2px 3px rgba(0, 0, 0, 0.1);
+    box-shadow:0 2px 3px rgba(0, 0, 0, 0.1);
+    overflow:hidden;
+}
+ .smallcard .content {
+    background-color: #82b9e6 !important;
+}
+ .header {
+    background-color: #004691 !important;
+}
+ .switchOn {
+    background-color: #82b9e6;
+}
+ .modal-header {
+    color: #004691;
+    border-radius: 10px 10px 0 0;
+    background-color: #ebe6e1;
+    border-bottom: 1px solid #ddd
+}
+ .modal-footer {
+    background-color: #ebe6e1;
+}
+ .smallcard .header .settings {
+    background-image: linear-gradient(to bottom, #82b9e6, #004691) !important;
+    background-color: #004691 !important;
+    border: 1px solid #004691 !important;
+}
+ .btn {
+    color: #004691;
+}
+ .btn-primary {
+    background-image: linear-gradient(to bottom, #82b9e6, #004691);
+    border: 1px solid #004691;
+    color: #ffffff;
+}
+ .login {
+     background-color:#fff;
+     border-top:4px solid #004691;
+     margin-bottom:20px;
+    -webkit-box-shadow:0 2px 3px rgba(0, 0, 0, 0.1);
+    -moz-box-shadow:0 2px 3px rgba(0, 0, 0, 0.1);
+     box-shadow:0 2px 3px rgba(0, 0, 0, 0.1);
+     overflow:hidden;
+     margin-top:50%;
+     padding:20px 20px 5px 
+}
+
+ .login_bg:after {
+     color:#dbccdc;
+     content:"";
+     display:block;
+     position:absolute;
+     bottom:-150px;
+     right:-40px;
+     font:"";
+}
+ .span3 {
+    width: 300px;
+}
+ .modal-action-advanced{
+    background-color: #0088cc;
+     color: #ffffff;
+     border-radius: 5px;
+     padding: 2px
+}
+ .modal-action-refresh{
+    background-color: #0088cc;
+     color: #ffffff;
+     border-radius: 5px;
+     padding: 2px
+}
+ .modal-action i{
+    color: #ffffff;
+     vertical-align: 0%;
+}
+/*.row .offset4.span4 {
+    background-color: #004691;
+}
+*/
+ #webui_language, #wizard-btn{
+    background-color: #004691;
+    color: white;
+}
+ #signin{
+    background-color: #004691;
+    color: white;
+}
+ #logged .btn{
+    background-color: #004691;
+    color: white;
+}
+ .logo-technicolor{
+    left: 0%;
+    box-sizing: border-box;
+    margin: 0px 0px 0px 0px;
+    background-color: #004691;
+    width:100%;
+    height: auto;
+    padding:15px
+}
+ .timlogo {
+    padding: 0px 0px 0px 10px
+}
+ @media screen and (min-width:768px) and (max-width:979px) {
+     .span12{
+        width:760px;
+         margin-left:10px
+    }
+}
+ @media screen and (min-width:768px) and (max-width:979px) {
+     .row{
+        margin-left:-20px;
+         width:768px;
+        *zoom:1;
+    }
+     .span3{
+        width:246px;
+         margin-left:10px
+    }
+}
+ @media screen and (max-width: 767px) {
+     .header{
+        padding: 30px 0px 50px 0px;
+        margin-bottom: 20px;
+    }
+}
+ @media screen and (max-width: 767px) {
+     [class*="span"], .uneditable-input[class*="span"], .row-fluid [class*="span"] {
+         width: 100%;
+    }
+}
+ @media screen and (min-width: 1200px) {
+     .span3 {
+         width: 270px;
+    }
+}
+
+ .card_bg:after {
+     color:#dbccdc;
+     content:"" !important;
+     display:block;
+     position:absolute;
+     bottom:-40px;
+     right:10px;
+     font:"" !important;
+}
+
+ .gateway_bg:after {
+     color:#ffffff;
+     content:"" !important; 
+     display:block;
+     position:absolute;
+     left:-400px;
+     top:-500px;
+     font:"" !important; 
+}
+
+#headertab {
+	height: auto;
+	margin-bottom: 20px;
+}
+
+.header > .row{
+ margin-left: 2rem;
+ margin-right: 2rem;
+}
+
+@media screen and (max-width: 51rem) {
+	#webui_language {
+		width: 100%;
+	}
+	.header-sub-button {
+		width: auto;
+	}
+	    
+	.header-button {
+		width: auto;
+	}
+	.btn-group>.btn+.dropdown-toggle {
+		padding-right: 0.4rem;
+		padding-left: 0.4rem;
+	}
+	
+	.btn-group>.btn:first-child {
+		padding-right: 0.5rem;
+		padding-left: 0.5rem;
+	}
+}
+
+.scroll-down {
+  opacity: 1;
+  -webkit-transition: all .5s ease-in 3s;
+  transition: all .5s ease-in 3s;
+}
+
+.scroll-down {
+  position: fixed;
+  bottom: 30px;
+  left: 100%;
+  margin-left: -50px;
+  width: 32px;
+  height: 32px;
+  background-size: 14px auto;
+  border-radius: 50%;
+  z-index: 5;
+  -webkit-animation: bounce 2s infinite 2s;
+  animation: bounce 2s infinite 2s;
+  -webkit-transition: all .2s ease-in;
+  transition: all .2s ease-in;
+}
+
+.scroll-down:before {
+	position: absolute;
+    top: calc(50% - 8px);
+    left: calc(50% - 7px);
+    color:#004691;
+	content: "\f063";
+	display:block;
+	position:absolute;
+	font-size:38px;
+	font-family:"Font Awesome 5 Free";
+	font-weight:900;
+}
+
+.scroll-up {
+  opacity: 1;
+  -webkit-transition: all .5s ease-in 3s;
+  transition: all .5s ease-in 3s;
+}
+
+.scroll-up {
+  position: fixed;
+  bottom: 30px;
+  left: 100%;
+  margin-left: -50px;
+  width: 32px;
+  height: 32px;
+  background-size: 14px auto;
+  border-radius: 50%;
+  z-index: 5;
+  -webkit-animation: bounce 2s infinite 2s;
+  animation: bounce 2s infinite 2s;
+  -webkit-transition: all .2s ease-in;
+  transition: all .2s ease-in;
+}
+
+.scroll-up:before {
+	position: absolute;
+    top: calc(50% - 8px);
+    left: calc(50% - 7px);
+    color:#004691;
+	content: "\f062";
+	display:block;
+	position:absolute;
+	font-size:38px;
+	font-family:"Font Awesome 5 Free";
+	font-weight:900;
+}
+
+@keyframes bounce {
+  0%,
+  100%,
+  20%,
+  50%,
+  80% {
+    -webkit-transform: translateY(0);
+    -ms-transform: translateY(0);
+    transform: translateY(0);
+  }
+  40% {
+    -webkit-transform: translateY(-10px);
+    -ms-transform: translateY(-10px);
+    transform: translateY(-10px);
+  }
+  60% {
+    -webkit-transform: translateY(-5px);
+    -ms-transform: translateY(-5px);
+    transform: translateY(-5px);
+  }
+}
+.copyright>p>font {color: #08c;}

@@ -1,0 +1,1 @@
+^system%.system%.[^%.]+%.log_ /usr/share/transformer/scripts/reload_syslog.sh

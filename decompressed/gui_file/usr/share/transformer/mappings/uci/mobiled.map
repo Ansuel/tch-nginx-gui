@@ -1,0 +1,39 @@
+local mapper = mapper
+
+local config_mobiled = "mobiled"
+
+-- uci.mobiled
+mapper("uci_1to1").registerConfigMap(config_mobiled)
+
+-- uci.mobiled.globals
+local mobiled_globals = {
+  config = config_mobiled,
+  section = "globals",
+  type = "globals",
+  options = { "enabled", "tracelevel", "detectors", "store_pin", "max_devices", "led_update_interval", "pdn_retry_timer", "initmode" },
+  lists = {
+    "allowed_imsi_ranges",
+  }
+}
+
+mapper("uci_1to1").registerSimpleMap(mobiled_globals)
+
+-- uci.mobiled.platform
+local mobiled_platform = {
+  config = config_mobiled,
+  section = "platform",
+  type = "platform",
+  options = { "antenna", "power_on" }
+}
+
+mapper("uci_1to1").registerSimpleMap(mobiled_platform)
+
+-- uci.mobiled.device_defaults
+local mobiled_device_defaults = {
+  config = config_mobiled,
+  section = "device_defaults",
+  type = "device_defaults",
+  options = { "enabled", "radio_pref", "lte_bands", "earfcn", "network_selection", "roaming", "mcc", "mnc", "reuse_profiles", "minimum_attach_delay", "maximum_attach_delay", "detach_mode", "disable_mode" }
+}
+
+mapper("uci_1to1").registerSimpleMap(mobiled_device_defaults)

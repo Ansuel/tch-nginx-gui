@@ -1,0 +1,6 @@
+^rpc%.system%.reset rtfd $(test "$(uci get env.var.rtfds)" = "1" && echo '--soft')
+^rpc%.system%.reboot /usr/share/transformer/scripts/reboot_with_reason.sh
+^rpc%.system%.switchover cat /proc/banktable/notbooted > /proc/banktable/active; reboot
+^sys%.bootp%.enable /usr/bin/bootp
+
+^rpc%.system%.modgui%.debuglog%.start /usr/share/transformer/scripts/generate-debug-file.sh dev

@@ -1,0 +1,150 @@
+#!/usr/bin/env lua
+local require, ipairs = require, ipairs
+
+local match = string.match
+
+local cursor = require("uci").cursor()
+local delete_cursor = require("uci").cursor()
+local bit = require("bit")
+
+local dhcppools = {config="dhcp", sectiontype="dhcp"}
+local static_leases = {config="dhcp", sectiontype="host"}
+local network_config = "network"
+local port_forwards = {config="firewall", sectiontype="userredirect"}
+
+-- Return number representing the IP address / netmask (first byte is first part ...)
+local ipmatch = "(%d+)%.(%d+)%.(%d+)%.(%d+)"
+local function ipv42num(ipstr)
+  if not ipstr then
+    return nil
+  end
+  local result = 0
+  local ipblocks = { match(ipstr, ipmatch) }
+  if #ipblocks < 4 then
+    return nil
+  end
+
+  for _,v in ipairs(ipblocks) do
+    result = bit.lshift(result, 8) + v
+  end
+  return result
+end
+
+-- Return base ip number base on the IP address / netmask
+local function poolbase(ipstr,maskstr)
+  if not ipstr or not maskstr then
+    return nil
+  end
+  local result = 0
+  local ipblocks = { match(ipstr, ipmatch) }
+  if #ipblocks ~= 4 then
+    return nil
+  end
+
+  local maskblocks = { match(maskstr, ipmatch) }
+  if #maskstr ~= 4 then
+    return nil
+  end
+
+  local i = 1
+  while i <= 4 do
+    ipblocks[i] = bit.band(ipblocks[i],maskblocks[i])
+    i = i + 1
+  end
+
+  for _,v in ipairs(ipblocks) do
+    result = bit.lshift(result, 8) + v
+  end
+  return result
+end
+
+-- Array of {range_start=..,range_end=..}. Ranges are inclusive
+local ranges = {}
+-- Get the current dhcp ranges (sections of type dhcp in config dhcp) (Check ignore flags in the sections)
+local result = cursor:foreach(dhcppools.config,dhcppools.sectiontype,function(section)
+    if not section.ignore or section.ignore == "0" then
+      -- A valid dhcp range. Get the base address
+      -- Correct? Always present??
+      local ip_addr = cursor:get(network_config, section.interface, "ipaddr")
+      local ip_mask = cursor:get(network_config, section.interface, "netmask")
+      if ip_addr then
+        local base = poolbase(ip_addr,ip_mask)
+        if base then
+          local range_start = base + section.start
+          local range_end = base + section.start + section.limit
+          ranges[#ranges + 1] = {
+            range_start = range_start,
+            range_end = range_end,
+          }
+        end
+      end
+    end
+  end)
+
+cursor:unload(dhcppools.config)
+
+local deleted = {}
+if result and #ranges > 0 then
+  -- Iterate over static leases (sections of type host in config dhcp) (Ignoring static leases present in /etc/ethers)
+  --   Delete static leases that fall outside a current range
+  result = cursor:foreach(static_leases.config, static_leases.sectiontype, function(section)
+      if section.owner == "portforward" then
+        local ip = section.ip
+        local ip_numeric = ipv42num(ip)
+        local delete = true
+        for _, range in ipairs(ranges) do
+          if ip_numeric>=range.range_start and ip_numeric<=range.range_end then
+            delete = false
+          end
+        end
+        if delete then
+          delete_cursor:delete(static_leases.config, section[".name"])
+          deleted[#deleted + 1] = ip
+        end
+      end
+    end)
+
+  delete_cursor:commit(static_leases.config)
+  cursor:unload(static_leases.config)
+end
+
+local reload_firewall = false
+if result and #deleted > 0 then
+  -- Iterate over port forwarding rules and delete those that match deleted static leases.
+  result = cursor:foreach(port_forwards.config, port_forwards.sectiontype, function(section)
+      local delete = false
+      if section.src_ip then
+        local ip = section.src_ip
+        for _, deleted_ip in ipairs(deleted) do
+          if ip == deleted_ip then
+            delete = true
+          end
+        end
+      end
+      if section.dest_ip then
+        local ip = section.dest_ip
+        for _, deleted_ip in ipairs(deleted) do
+          if ip == deleted_ip then
+            delete = true
+          end
+        end
+      end
+      if delete then
+        delete_cursor:delete(port_forwards.config, section[".name"])
+        reload_firewall = true
+      end
+    end)
+
+  cursor:unload(port_forwards.config)
+  if result then
+    delete_cursor:commit(port_forwards.config)
+  end
+end
+
+-- restart dnsmasq, reload firewall
+-- static leases have been deleted if we get here
+os.execute("/etc/init.d/dnsmasq restart")
+if reload_firewall then
+  -- port forwarding rules have been deleted
+  os.execute("/etc/init.d/firewall reload")
+end

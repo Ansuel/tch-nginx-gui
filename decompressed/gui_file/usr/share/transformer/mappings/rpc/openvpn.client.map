@@ -1,0 +1,89 @@
+local register = register
+local uci = mapper("ucihelper")
+
+local files = {
+    ca = "/etc/openvpn/modgui-client-ca.crt",
+    cert = "/etc/openvpn/modgui-client.crt",
+    key = "/etc/openvpn/modgui-client.key",
+    password = "/etc/openvpn/modgui-client.password",
+}
+
+local function present(path)
+    local fd = io.open(path, "r")
+    if not fd then return "0" end
+    local contents = fd:read(1)
+    fd:close()
+    return contents and "1" or "0"
+end
+
+local function write_secret(path, value)
+    if type(value) ~= "string" or value == "" or #value > 32768 then return false end
+    local temporary = path .. ".tmp"
+    local fd = io.open(temporary, "w")
+    if not fd then return false end
+    local ok = fd:write(value)
+    fd:close()
+    if not ok then os.remove(temporary); return false end
+    os.execute("chmod 600 " .. temporary)
+    if not os.rename(temporary, path) then os.remove(temporary); return false end
+    return true
+end
+
+local function set_pem(kind, value)
+    if type(value) ~= "string" or value == "" then return true end
+    local label = "CERTIFICATE"
+    if kind == "key" then
+        label = value:match("%-%-%-%-%-BEGIN ([A-Z ]*PRIVATE KEY)%-%-%-%-%-")
+    end
+    if not label then return false end
+    if not value:find("-----BEGIN " .. label .. "-----", 1, true) or
+       not value:find("-----END " .. label .. "-----", 1, true) then
+        return false
+    end
+    return write_secret(files[kind], value:gsub("\r\n", "\n"))
+end
+
+local mapping = {
+    objectType = {
+        name = "rpc.openvpn.client.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            ca = { access = "readWrite", type = "string" },
+            cert = { access = "readWrite", type = "string" },
+            key = { access = "readWrite", type = "string" },
+            password = { access = "readWrite", type = "password" },
+            ca_present = { access = "readOnly", type = "boolean" },
+            cert_present = { access = "readOnly", type = "boolean" },
+            key_present = { access = "readOnly", type = "boolean" },
+            password_present = { access = "readOnly", type = "boolean" },
+        },
+    },
+    get = {
+        ca = function() return "" end,
+        cert = function() return "" end,
+        key = function() return "" end,
+        password = function() return "" end,
+        ca_present = function() return present(files.ca) end,
+        cert_present = function() return present(files.cert) end,
+        key_present = function() return present(files.key) end,
+        password_present = function() return present(files.password) end,
+    },
+    set = {
+        ca = function(_, _, value) return set_pem("ca", value) end,
+        cert = function(_, _, value) return set_pem("cert", value) end,
+        key = function(_, _, value) return set_pem("key", value) end,
+        password = function(_, _, value)
+            if type(value) ~= "string" or value == "" then return true end
+            if value:find("[\r\n]") then return false end
+            return write_secret(files.password, value)
+        end,
+    },
+}
+mapping.commit = function()
+    if uci.get_from_uci({ config = "openvpn", sectionname = "client", option = "enabled" }) == "1" then
+        os.execute("/usr/share/transformer/scripts/openvpnApply.sh >/dev/null 2>&1")
+    end
+end
+register(mapping)

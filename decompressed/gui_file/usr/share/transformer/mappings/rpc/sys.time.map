@@ -1,0 +1,21 @@
+local sys_time_ = {
+  objectType = {
+    name = "sys.time.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      CurrentLocalTime = {
+        access = "readOnly",
+        type = "dateTime",
+      },
+    },
+  },
+}
+
+local os = os
+sys_time_.get = function()
+  return os.date("%FT%TZ", os.time())
+end
+
+register(sys_time_)
