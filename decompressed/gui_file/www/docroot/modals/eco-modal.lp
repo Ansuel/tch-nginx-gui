@@ -143,3 +143,4 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 </div>\
 ');  ngx.print(ui_helper.createFooter())   ngx.print('\
 ');
+
