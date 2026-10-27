@@ -156,6 +156,13 @@ fix_dns_dhcp_bug() {
 
 check_dnsmasq_name() {
   logecho "Checking and fixing dnsmasq daemon naming..."
+  # Rename the factory anonymous section before creating a new one. Creating
+  # the named section first leaves a duplicate and can make rename fail.
+  if ! uci -q get dhcp.dnsmasq >/dev/null &&
+    uci -q get 'dhcp.@dnsmasq[0]' >/dev/null; then
+    uci rename 'dhcp.@dnsmasq[0]=dnsmasq' || return 1
+    restart_dnsmasq=1
+  fi
   #Checks what the dnsmasq daemon is referred to in the config file
   if [ "$(uci get -q dhcp.dnsmasq)" ]; then
     if [ "$(uci get -q dhcp.dnsmasq)" != "dnsmasq" ]; then
@@ -164,10 +171,6 @@ check_dnsmasq_name() {
     fi
   else
     uci set dhcp.dnsmasq=dnsmasq
-    restart_dnsmasq=1
-  fi
-  if uci show dhcp | grep -q "dhcp.@dnsmasq"; then
-    uci rename dhcp.@dnsmasq[0]=dnsmasq
     restart_dnsmasq=1
   fi
 }
@@ -279,6 +282,8 @@ check_isp_config() {
 #Check device type and execute specific actions
 device_type="$(uci get -q env.var.prod_friendly_name)"
 
+check_dnsmasq_name   #ISP setup needs the named section, including on first install
+uci commit dhcp
 check_isp_config
 add_ipoe             #Needed to fix wizard
 remove_default_dns   #tim sets his dns on to of the loopback interface
@@ -286,7 +291,6 @@ setup_network        #Fix some missing network value
 fix_missing_ula_prefix #Regenerate an uninitialised IPv6 ULA using the firmware helper
 puryfy_wan_interface #remove gracefull restart, could give problem
 fix_dns_dhcp_bug     #disable odhcpd as ipv6 is currently broken
-check_dnsmasq_name   #check dnsmasq name in uci to avoid issue in guid hardcoded references
 update_dhcp_config   #DHCP sync
 wan_sensing_clean    #Wansensing clean utility
 clean_cups_block_rule
@@ -297,6 +301,5 @@ check_xtm_atmwan #needed for UNO firmware
 logecho "Restarting dnsmasq if needed..."
 if [ "$restart_dnsmasq" -eq 1 ]; then
   uci commit
-  killall dnsmasq
   /etc/init.d/dnsmasq restart
 fi

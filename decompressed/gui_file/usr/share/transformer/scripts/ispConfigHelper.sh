@@ -31,7 +31,8 @@ purge_telemetry() { #disable TIM telemetry services
     [ -f /rom/chroot/Acotel_UA/Acotel_run.log ] && cp /rom/chroot/Acotel_UA/Acotel_run.log /chroot/Acotel_run.log
   fi
 
-  if [ -f /etc/init.d/bulkdata ] && [ "$(uci -q get bulkdata.global.enabled)" != "0" ]; then
+  if [ -x /etc/init.d/bulkdata ] && uci -q get bulkdata.global >/dev/null &&
+    [ "$(uci -q get bulkdata.global.enabled)" != "0" ]; then
     logecho "Disabling bulkdata telemetry..."
     uci set bulkdata.global.enabled='0'
     uci commit bulkdata
@@ -47,7 +48,7 @@ purge_telemetry() { #disable TIM telemetry services
     uci set system.mabr.enabled='0'
     uci commit system
   fi
-  if [ -f /etc/init.d/nanocdn ]; then
+  if [ -x /etc/init.d/nanocdn ]; then
     logecho "Stopping and disabling nanocdn..."
     /etc/init.d/nanocdn stop
     /etc/init.d/nanocdn disable
@@ -344,7 +345,12 @@ setup_ISP() {
       uci set dhcp.dnsmasq.server='151.99.125.1'
       restart_dnsmasq=1
     fi
-    [ ! "$(uci get -q mmpbxrvsipnet.sip_net.user_param_value)" ] && uci set mmpbxrvsipnet.sip_net.user_param_value=phone
+    # Some firmware has no Technicolor VoIP stack. Do not create its options
+    # without a parent section, or overwrite an explicitly configured value.
+    if uci -q get mmpbxrvsipnet.sip_net >/dev/null &&
+      [ -z "$(uci -q get mmpbxrvsipnet.sip_net.user_param_value)" ]; then
+      uci set mmpbxrvsipnet.sip_net.user_param_value=phone
+    fi
     ;;
   Other)
     check_clean Other
@@ -365,7 +371,6 @@ setup_ISP() {
   logecho "Restarting dnsmasq if needed..."
   if [ $restart_dnsmasq -eq 1 ]; then
     uci commit
-    killall dnsmasq
     /etc/init.d/dnsmasq restart
   fi
 }
