@@ -136,6 +136,15 @@ else:
         self.checkver()
         self.assertIn('set modgui.gui.outdated_ver=0', (self.home/'uci-calls').read_text())
 
+    def test_unpublished_selected_channel_reports_error_without_changing_version(self):
+        for command in ('lua', 'logger'):
+            self.mock(command, 'pass')
+        self.mock('uci', "import sys; print('stable') if 'get' in sys.argv else sys.exit('Unexpected version write')")
+        output = self.checkver(success=False)
+        self.assertIn("Update channel 'stable' is not published (HTTP 404)", output)
+        self.env['STABLE_ERROR'] = 'timeout'
+        self.assertIn("Unable to check update channel 'stable'", self.checkver(success=False))
+
     def test_missing_and_invalid_channels(self):
         self.checkver('ReleaseVersion', 'preview', success=False)
         for value in ['<html>Error</html>', '9.7.9\n10.0.0', '9.7.9\nerror', '../evil', '']:

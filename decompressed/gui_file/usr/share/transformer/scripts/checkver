@@ -143,7 +143,16 @@ case "$(uci get -q modgui.gui.update_branch)" in
 esac
 logger -s -t "CheckVer Script" "Installed version: $CURRENT_VERSION checking update on $update_branch branch..."
 # ICMP may be blocked even when GitHub is reachable. Use the actual request.
-new_version=$(release_channel_version "$update_branch") || exit 1
+new_version=$(release_channel_version "$update_branch")
+check_status=$?
+if [ "$check_status" -ne 0 ]; then
+    if [ "$check_status" -eq 3 ]; then
+        echo "Update channel '$update_branch' is not published (HTTP 404). Try again after the channel has been published."
+    else
+        echo "Unable to check update channel '$update_branch'. Check the connection and release metadata, then retry."
+    fi
+    exit 1
+fi
 selected_version=$new_version
 if [ "$update_branch" != stable ]; then
     stable_version=$(release_channel_version stable)
@@ -158,10 +167,12 @@ if [ "$update_branch" != stable ]; then
     fi
 fi
 if version_gt "$selected_version" "$CURRENT_VERSION"; then
+    echo "GUI update available: $new_version (installed: $CURRENT_VERSION)."
     uci set modgui.gui.outdated_ver=1 || exit 1
     uci set modgui.gui.new_ver="$new_version" || exit 1
     sleep 1
 else
+    echo "GUI is up to date (installed: $CURRENT_VERSION, available: $selected_version)."
     uci set modgui.gui.outdated_ver=0 || exit 1
     uci set modgui.gui.new_ver="Unknown" || exit 1
 fi

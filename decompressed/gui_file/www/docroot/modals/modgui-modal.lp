@@ -350,6 +350,23 @@ if ngx.req.get_method() == "POST" then
         if action == "checkver" then
                 return sendcmd("checkver")
         end
+        if action == "get_update_status" then
+                local function value(path)
+                        local result = proxy.get(path)
+                        return result and result[1] and result[1].value
+                end
+                local status = {
+                        state = value("rpc.system.modgui.executeCommand.state") or "Mapper Error",
+                        new_version_text = value("uci.modgui.gui.new_ver"),
+                }
+                if status.state == "Error" then
+                        local file = io.open("/tmp/command_log", "r")
+                        if file then status.log = file:read("*a"); file:close() end
+                end
+                ngx.header.content_type = "application/json"
+                ngx.print(require("dkjson").encode(status))
+                return ngx.exit(ngx.HTTP_OK)
+        end
         if action == "getVendor" then
                 ngx.print(call_popen(untaint("! grep -q " .. post_args.mac:gsub('_.*','') .. " /tmp/mac_cache && (curl -fksm 2 https://api.maclookup.app/v2/macs/" .. post_args.mac:gsub('_.*','') .. "/company/name >> /tmp/mac_cache && echo '|" .. post_args.mac:gsub('_.*','') .. "' >> /tmp/mac_cache); grep " .. post_args.mac:gsub('_.*','') .. " /tmp/mac_cache | cut -d'|' -f1"), "r"))
                 ngx.exit(ngx.HTTP_OK)
@@ -634,6 +651,9 @@ else
         html[#html + 1] = ui_helper.createLabel(T"State", T"No Update found", basic)
         html[#html + 1] = ui_helper.createButton(T"Update GUI", T"Force Update", "icon-refresh", upgrade_gui)
 end
+html[#html + 1] = ui_helper.createButton(T"Check Update", T"Check Update", "icon-refresh", {
+        button = { id = "btn-check-update", class = "custom-handler check_update" }
+})
 html[#html + 1] = '</span>'
 
 html[#html + 1] = '</form><form class="form-horizontal" id="form-import-gui" method="post" action="modals/modgui-modal.lp?action=upgradeguifile" enctype="multipart/form-data">'
@@ -1063,6 +1083,7 @@ ngx.print('\
           tch.removeProgress();\
   });\
 \
+  modgui.linkCheckUpdate();\
   $("#btn-upgrade-gui").on("click", function() {\
         modgui.postAction("system_upgrade_gui",1);\
   });\

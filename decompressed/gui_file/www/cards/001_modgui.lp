@@ -25,6 +25,11 @@ else
 	content.outdated_ver_text = T"GUI is updated"
 end
 
+
+if content.outdated_ver == "yellow" and ngx.ctx.session:hasAccess("/modals/modgui-modal.lp") then
+	content.outdated_ver_text = '<a href="#" class="upgrade_gui">'..content.outdated_ver_text..'</a>'
+end
+
 local modalPath = nil
 local switchName = nil
 local session = ngx.ctx.session
@@ -51,7 +56,7 @@ ngx.print('\
 	html[#html + 1] = format(T"GUI Version <a onclick=\"event.stopPropagation()\" target=\"_blank\" href=https://github.com/Ansuel/tch-nginx-gui/releases/tag/%s>%s</a>", content.gui_version:match("(.+)-"), content.gui_version)
 	html[#html + 1] = '<span class="simple-desc">'
 	html[#html + 1] = '  <div class="light_icon fas fa-cog gui_version_status '..content.outdated_ver..'"></div>'
-	html[#html + 1] = '<span class="gui_version_status_text">'..content.outdated_ver_text..'</span>'
+	html[#html + 1] = '<span class="gui_version_status_text'..(modalPath and ' gui_update_action' or '')..'">'..content.outdated_ver_text..'</span>'
 	html[#html + 1] = '</span>'
 	html[#html + 1] = '<span class="simple-desc">'
 	html[#html + 1] =   '<div class="light_icon fas fa-sync check_update_spinner"></div>'

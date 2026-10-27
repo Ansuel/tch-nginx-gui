@@ -70,3 +70,20 @@ assert.strictEqual(requests[5].target, '/modals/modgui-modal.lp?auto_update=true
 requests[5].resolve({success: 'true'});
 assert.strictEqual(opened.length, 2);
 console.log('Command start: delayed acceptance, previous log, duplicates, rejection and retry passed');
+
+// The settings button and direct upgrade use the acknowledged command modal.
+const handlers = {};
+const actionCalls = [];
+const linkContext = {postAction(...args) {actionCalls.push(args); return false;},
+  $(selector) {return {attr() {return "btn-check-update";}, off() {return this;}, on(name, fn) {handlers[selector] = fn; return this;}};}};
+vm.createContext(linkContext);
+vm.runInContext(source.slice(source.indexOf('\tfunction linkCheckUpdate()'), source.indexOf('\n\tfunction freshStyle')), linkContext);
+linkContext.linkCheckUpdate();
+const event = {preventDefault() {}, stopPropagation() {}};
+handlers['.check_update'](event);
+handlers['.upgrade_gui'](event);
+assert.deepStrictEqual(actionCalls, [
+  ['checkver', 1, null, '/modals/modgui-modal.lp?auto_update=true'],
+  ['system_upgrade_gui', 1, null, '/modals/modgui-modal.lp?auto_update=true']
+]);
+console.log('Update links: check and upgrade open the acknowledged command modal');
