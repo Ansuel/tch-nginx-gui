@@ -2,9 +2,33 @@
 from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 import unittest
 
 MODAL = Path(__file__).resolve().parents[1] / 'decompressed/gui_file/www/docroot/modals/applications-modal.lp'
+
+
+class InstallerStorage(unittest.TestCase):
+    def test_unlimited_tmpfs_uses_ram_without_overriding_full_filesystems(self):
+        source = (MODAL.parents[3] / "usr/share/transformer/scripts/appInstallRemoveUtility.sh").read_text()
+        function = source[source.index("require_free_space() {"):source.index("\nadblock_cleanup_dns()")]
+        cases = (
+            ("tmpfs", 0, 0, "MemAvailable: 70000 kB\n", True),
+            ("tmpfs", 0, 0, "MemAvailable: 30000 kB\n", False),
+            ("tmpfs", 65536, 0, "MemAvailable: 70000 kB\n", False),
+            ("ext4", 0, 0, "MemAvailable: 70000 kB\n", False),
+            ("tmpfs", 0, 0, "MemFree: 10000 kB\nBuffers: 10000 kB\nCached: 30000 kB\n", True),
+        )
+        for filesystem, total, free, memory, expected in cases:
+            with self.subTest(filesystem=filesystem, total=total, memory=memory), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / "mounts").write_text(f"tmpfs /tmp {filesystem} rw 0 0\n")
+                (root / "meminfo").write_text(memory)
+                private = function.replace("/proc/mounts", str(root / "mounts")).replace("/proc/meminfo", str(root / "meminfo"))
+                script = private + '\ndf() { echo "Filesystem 1024-blocks Used Available Capacity Mounted"; echo "tmpfs DFTOTAL 0 DFFREE 0% /tmp"; }\nrequire_free_space 40960 /tmp/staging\n'
+                script = script.replace("DFTOTAL", str(total)).replace("DFFREE", str(free))
+                result = subprocess.run(["sh", "-c", script], capture_output=True, text=True)
+                self.assertEqual(result.returncode == 0, expected, result.stdout + result.stderr)
 
 
 @unittest.skipUnless(shutil.which('lua'), 'Lua interpreter required')

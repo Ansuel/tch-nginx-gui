@@ -71,6 +71,34 @@ append_missing_opkg_feeds() {
   done
 }
 
+# Add the published application feed and the index for the running kernel.
+# Probe only the kernel index: unsupported releases must not add a dead feed.
+append_gui_vpn_feeds() {
+  local running_kernel platform profile feed_url has_kernel_feed
+  running_kernel="$(uname -r)"
+  case "$running_kernel" in ''|*[!A-Za-z0-9._+-]*) return 1 ;; esac
+  append_missing_opkg_feeds <<EOF
+src/gz modgui_base https://francyesco.github.io/GUI_ipk/base
+EOF
+  platform="$(uci -q get 'version.@version[0].product' 2>/dev/null || true)"
+  platform="$(printf '%s' "${platform%%_*}" | tr -cd 'A-Za-z0-9' | tr 'A-Z' 'a-z')"
+  has_kernel_feed=0
+  for profile in "" ${platform:+"$platform"}; do
+    feed_url="https://francyesco.github.io/GUI_ipk/kernel/$running_kernel${profile:+-$profile}"
+    if curl -fsL "$feed_url/Packages.gz" -o /dev/null; then
+      has_kernel_feed=1
+      append_missing_opkg_feeds <<EOF
+src/gz modgui_kernel_$running_kernel${profile:+_$profile} $feed_url
+EOF
+    fi
+  done
+  # The standalone Broadcom packages use the SDK architecture alias.
+  if [ "$has_kernel_feed" = 1 ] && ! opkg print-architecture | awk '$2 == "brcm963xx" {found=1} END {exit !found}'; then
+    printf '\narch brcm963xx 100\n' >> "$opkg_file"
+  fi
+  return 0
+}
+
 apply_right_opkg_repo() {
   logecho "Checking opkg feeds..."
 
@@ -78,6 +106,7 @@ apply_right_opkg_repo() {
   opkg_config_dir="/etc/opkg"
 
   if [ "$cpu_type" = "armv7l" ]; then
+    append_gui_vpn_feeds
     case $marketing_version in
     "19."*)
       sed -i '/homeware\/18\/brcm63xx-tch/d' /etc/opkg.conf #remove old setted feeds

@@ -260,14 +260,17 @@ local function kernel_has_tun()
 	return result == "0"
 end
 
+local function native_wireguard_supported()
+	local command = io.popen("/usr/share/transformer/scripts/appInstallRemoveUtility.sh check wireguard; echo $?", "r")
+	if not command then return false end
+	local result = command:read("*all")
+	command:close()
+	return result == "0\n"
+end
+
 local function tun_install_supported()
 	if kernel_has_tun() then return true end
-	local command = io.popen([[(case "$(uname -m):$(uname -r)" in
-armv7l:4.1.52) exit 0 ;;
-mips:3.4.11-rt19)
-  case "$(uci -q get 'version.@version[0].marketing_version')" in 17.2|17.2.*|17.2\ *) exit 0 ;; esac ;;
-esac
-exit 1); echo $?]], "r")
+	local command = io.popen("/usr/share/transformer/scripts/appInstallRemoveUtility.sh check tun; echo $?", "r")
 	if not command then return false end
 	-- Lua 5.1 on these devices does not reliably return an exit status from close.
 	local result = command:read("*all")
@@ -452,12 +455,12 @@ if StateParams["openspeedtest_application"] ~= nil then
 end
 
 if StateParams["wireguard_application"] ~= nil then
-	if tun_install_supported() then
+	if native_wireguard_supported() or tun_install_supported() then
 		append_extension_card(
 			"wireguard_application",
 			"wireguard",
 			T"WireGuard",
-			T"Installs the checksum-verified userspace WireGuard runtime and a native card to configure the tunnel interface, peers and firewall rules. Everything stays disabled until configured.",
+			T"Installs native WireGuard matching the running kernel from the configured package feeds, or the userspace runtime when unavailable, and a card to configure the tunnel interface, peers and firewall rules. Everything stays disabled until configured.",
 			nil,
 			false
 		)

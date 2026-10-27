@@ -10,6 +10,57 @@ SOURCE = ROOT / 'decompressed/gui_file/etc/modgui_scripts/02_specific.sh'
 
 
 class OpkgFeeds(unittest.TestCase):
+    def test_vpn_feeds_follow_running_kernel_and_skip_missing_indexes(self):
+        source = SOURCE.read_text()
+        helper = source[source.index('append_missing_opkg_feeds()'):source.index('apply_right_opkg_repo()')]
+        for available in (False, True):
+            with self.subTest(available=available), tempfile.TemporaryDirectory() as tmp:
+                conf = Path(tmp) / 'opkg.conf'
+                conf.touch()
+                script = helper + f'''
+opkg_file={shlex.quote(str(conf))}
+opkg_config_dir={shlex.quote(tmp)}
+uname() {{ echo 6.6.99-custom; }}
+curl() {{ return {0 if available else 1}; }}
+opkg() {{ awk '$1 == "arch" {{print "arch", $2, $3}}' "$opkg_file"; }}
+append_gui_vpn_feeds
+append_gui_vpn_feeds
+'''
+                subprocess.run(['sh', '-c', script], check=True)
+                lines = conf.read_text().splitlines()
+                self.assertEqual(lines.count('src/gz modgui_base https://francyesco.github.io/GUI_ipk/base'), 1)
+                kernel_feed = 'src/gz modgui_kernel_6.6.99-custom https://francyesco.github.io/GUI_ipk/kernel/6.6.99-custom'
+                self.assertEqual(lines.count(kernel_feed), int(available))
+                self.assertEqual(lines.count('arch brcm963xx 100'), int(available))
+
+    def test_platform_feed_is_normalized_and_probed_independently(self):
+        source = SOURCE.read_text()
+        helper = source[source.index('append_missing_opkg_feeds()'):source.index('apply_right_opkg_repo()')]
+        for product, platform in (("VBNT-O_fastweb", "vbnto"), ("VBNT-S", "vbnts")):
+            for generic_available in (False, True):
+                with self.subTest(product=product, generic_available=generic_available), tempfile.TemporaryDirectory() as tmp:
+                    conf = Path(tmp) / 'opkg.conf'
+                    conf.touch()
+                    script = helper + f'''
+opkg_file={shlex.quote(str(conf))}
+opkg_config_dir={shlex.quote(tmp)}
+uname() {{ echo 4.1.38; }}
+uci() {{ echo {shlex.quote(product)}; }}
+curl() {{
+  case "$2" in
+    */4.1.38-{platform}/Packages.gz) return 0 ;;
+    *) return {0 if generic_available else 1} ;;
+  esac
+}}
+opkg() {{ echo 'arch brcm963xx 100'; }}
+append_gui_vpn_feeds
+append_gui_vpn_feeds
+'''
+                    subprocess.run(['sh', '-c', script], check=True)
+                    lines = conf.read_text().splitlines()
+                    self.assertEqual(lines.count(f'src/gz modgui_kernel_4.1.38_{platform} https://francyesco.github.io/GUI_ipk/kernel/4.1.38-{platform}'), 1)
+                    self.assertEqual(lines.count('src/gz modgui_kernel_4.1.38 https://francyesco.github.io/GUI_ipk/kernel/4.1.38'), int(generic_available))
+
     def test_custom_partial_commented_and_repeated_feeds(self):
         source = SOURCE.read_text()
         helper = source[source.index('append_missing_opkg_feeds()'):source.index('apply_right_opkg_repo()')]

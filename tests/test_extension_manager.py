@@ -129,6 +129,7 @@ FAIL_COMMAND=''' + failing_command + "\napp_xupnp " + action
         detection = config[start:end]
         with tempfile.TemporaryDirectory() as directory:
             paths = [Path(directory) / name for name in ("wireguard-go", "wg-go", "wireguard.sh")]
+            detection = detection.replace("/etc/.modgui-wireguard-native-installed", str(Path(directory) / "native-installed"))
             for original, replacement in zip(
                 ("/usr/bin/wireguard-go", "/usr/bin/wg-go", "/lib/netifd/proto/wireguard.sh"), paths,
             ):
@@ -312,7 +313,7 @@ dofile(arg[1])
         self.assertIn("server_openspeedtest.conf", openspeedtest)
         self.assertNotIn("/etc/nginx/nginx.conf", openspeedtest)
 
-    def test_wireguard_is_capability_gated_pinned_and_installs_disabled(self):
+    def test_wireguard_uses_feeds_and_installs_disabled(self):
         installer = INSTALLER.read_text()
         defaults = (GUI / "usr/share/modgui-wireguard/wireguard.default").read_text()
         start = installer.index("app_wireguard()")
@@ -325,18 +326,11 @@ dofile(arg[1])
         self.assertNotIn("19.4.0866-3401052", shared_tun)
         self.assertIn("tun-vbntj-damson-4.1.52.ko", shared_tun)
         self.assertIn("modgui_install_tun wireguard", wireguard)
-        self.assertIn("wireguard_install_tun", wireguard)
-        self.assertIn("wireguard_remove_tun", wireguard)
-        self.assertIn(
-            'wireguard_commit="7ac8fe29a7ab64eb0c9c9774bb36cf2c7648399e"',
-            wireguard,
-        )
-        self.assertIn(
-            'wireguard_sha256="0cd9777ae758b180a140a11e24eea1716c001fcd2ef82adb0b43225b4929610b"',
-            wireguard,
-        )
-        self.assertIn("sha256sum", wireguard)
-        self.assertIn("raw.githubusercontent.com/seud0nym/openwrt-wireguard-go/$wireguard_commit", wireguard)
+        self.assertIn("opkg update", wireguard)
+        self.assertIn("opkg install wireguard-go", wireguard)
+        self.assertIn("modgui_kernel_package", wireguard)
+        self.assertNotIn("curl ", wireguard)
+        self.assertNotIn("wireguard_version=", wireguard)
         self.assertNotIn("uci set network.", wireguard)
         self.assertNotIn("uci set firewall.", wireguard)
         self.assertIn("wireguard.wg.enabled='0'", wireguard)
@@ -817,6 +811,191 @@ uname() { [ "$1" = "-r" ] && printf '%s\\n' "$test_kernel"; }
         for source in sources:
             with self.subTest(source=source.name):
                 subprocess.run(["luac", "-p", source], check=True)
+
+
+
+INSTALLER_SOURCE = INSTALLER.read_text()
+VPN_KERNEL_HELPER = INSTALLER_SOURCE[INSTALLER_SOURCE.index("modgui_kernel_abi_matches() ("):INSTALLER_SOURCE.index("app_wireguard() {")]
+
+
+class KernelVPN(unittest.TestCase):
+    def test_list_finishes_before_another_opkg_read_takes_the_lock(self):
+        with tempfile.TemporaryDirectory() as directory:
+            script = VPN_KERNEL_HELPER + '''
+uname() { echo 6.6.99; }
+awk() { while read -r name rest; do printf '%s\n' "$name"; done; }
+opkg() {
+ case "$1" in
+ list) touch "$testroot/lock"; echo 'kmod-wireguard - 6.6.99-1'; sleep 0.2; rm "$testroot/lock" ;;
+ info) [ ! -f "$testroot/lock" ] || return 1; echo 'Version: 6.6.99-1' ;;
+ status) return 0 ;;
+ esac
+}
+testroot="$1"
+modgui_kernel_package '^kmod-wireguard(-|$)'
+'''
+            result = subprocess.run(["sh", "-c", script, "lock-test", directory], capture_output=True, text=True, check=True)
+            self.assertEqual(result.stdout.strip(), "kmod-wireguard")
+
+    def test_same_release_with_different_feed_kernel_abi_is_rejected(self):
+        for feed_abi in ("live-abi", "other-abi"):
+            with self.subTest(feed_abi=feed_abi), tempfile.TemporaryDirectory() as directory:
+                Path(directory, "kernel-feed").write_text(
+                    "Package: kernel\nVersion: 6.6.99-1-" + feed_abi + "\n\n"
+                    "Package: kmod-wireguard\nVersion: 6.6.99-1\n\n"
+                    "Package: kmod-tun\nVersion: 6.6.99-1\n\n"
+                    "Package: kmod-bcmspu\nVersion: 6.6.99-1\n"
+                )
+                helper = VPN_KERNEL_HELPER.replace("/var/opkg-lists", directory)
+                script = helper + '''
+uname() { echo 6.6.99; }
+opkg() {
+ case "$1" in
+ status) echo 'Version: 6.6.99-1-live-abi' ;;
+ list) printf '%s\n' 'kmod-wireguard - 6.6.99-1' 'kmod-tun - 6.6.99-1' 'kmod-bcmspu - 6.6.99-1' ;;
+ info) echo 'Version: 6.6.99-1' ;;
+ esac
+}
+modgui_kernel_package '^kmod-'
+'''
+                result = subprocess.run(["sh", "-c", script], capture_output=True, text=True, check=True)
+                self.assertEqual(bool(result.stdout.strip()), feed_abi == "live-abi")
+                self.assertEqual("ABI mismatch" in result.stderr, feed_abi != "live-abi")
+
+    def test_module_selection_uses_current_kernel_without_firmware_lookup(self):
+        for kernel in ("4.1.38", "4.1.52", "6.6.99"):
+            with self.subTest(kernel=kernel):
+                script = VPN_KERNEL_HELPER + f'''
+uname() {{ echo {kernel}; }}
+uci() {{ echo UNEXPECTED_FIRMWARE_CHECK >&2; return 1; }}
+opkg() {{
+  case "$*" in
+    list) printf '%s\\n' 'kmod-wireguard - 4.1.38+1.0.20220627-1' 'kmod-wireguard-current - {kernel}-2' ;;
+    'info kmod-wireguard') echo 'Version: 4.1.38+1.0.20220627-1' ;;
+    'info kmod-wireguard-current') echo 'Version: {kernel}-2' ;;
+  esac
+}}
+modgui_kernel_package '^kmod-wireguard(-|$)'
+'''
+                result = subprocess.run(["sh", "-c", script], capture_output=True, text=True, check=True)
+                expected = "kmod-wireguard" if kernel == "4.1.38" else "kmod-wireguard-current"
+                self.assertEqual(result.stdout.strip(), expected)
+                self.assertEqual(result.stderr, "")
+
+    def test_dependency_requires_exact_kernel_release(self):
+        for dependency, expected in (("4.1.52-1", ""), ("4.1.5-1", "kmod-wireguard")):
+            script = VPN_KERNEL_HELPER + f'''
+uname() {{ echo 4.1.5; }}
+opkg() {{
+ case "$1" in
+ list) echo 'kmod-wireguard - 1.0.1' ;;
+ info) printf '%s\\n' 'Version: 1.0.1' 'Depends: kernel (= {dependency}), libc' ;;
+ esac
+}}
+modgui_kernel_package '^kmod-wireguard(-|$)'
+'''
+            result = subprocess.run(["sh", "-c", script], capture_output=True, text=True, check=True)
+            self.assertEqual(result.stdout.strip(), expected)
+
+    def test_missing_udp_dependency_stops_before_inserting_wireguard(self):
+        result = subprocess.run(["sh", "-c", VPN_KERNEL_HELPER + '''
+modprobe() { return 1; }
+insmod() { echo UNEXPECTED_INSERT; }
+modgui_load_wireguard
+'''], capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("UNEXPECTED_INSERT", result.stdout)
+
+    def test_spu_only_sets_supported_module_options(self):
+        for supports_option in (False, True):
+            with self.subTest(supports_option=supports_option), tempfile.TemporaryDirectory() as directory:
+                Path(directory, "bcmspu.ko").touch()
+                helper = VPN_KERNEL_HELPER.replace('/lib/modules/$(uname -r)', directory).replace('/etc/modules.d', directory)
+                script = helper + f'''
+grep() {{ case "$*" in */proc/modules*) return 1 ;; *) command grep "$@" ;; esac; }}
+strings() {{ return 1; }}
+modinfo() {{ echo {'blog_offload:ESP flow offload' if supports_option else 'other:Other option'}; }}
+modprobe() {{ echo "$*"; }}
+modgui_load_spu
+'''
+                result = subprocess.run(["sh", "-c", script], capture_output=True, text=True, check=True)
+                self.assertEqual(result.stdout.strip(), "bcmspu blog_offload=N" if supports_option else "bcmspu")
+
+    def test_native_apply_needs_no_tun_and_stops_on_load_failure(self):
+        script = (GUI / "usr/share/transformer/scripts/wireguardApply.sh").read_text()
+        script = script[script.index('if [ "$native" = 0 ]; then'):]
+        script = script.replace("modprobe udp_tunnel && modprobe ip6_udp_tunnel", "load_native")
+        for status in (0, 1):
+            result = subprocess.run(["sh", "-c", f'''
+native=1
+load_native() {{ return {status}; }}
+grep() {{ return 0; }}
+configure_network() {{ echo CONFIGURED; }}
+''' + script], capture_output=True, text=True)
+            self.assertEqual(result.returncode, status)
+            self.assertEqual("CONFIGURED" in result.stdout, status == 0)
+
+    def test_go_backup_is_not_needed_for_fresh_install_or_failed_module_load(self):
+        for go_installed, load_status in ((False, 0), (True, 1)):
+            with self.subTest(go_installed=go_installed), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / "etc").mkdir()
+                if go_installed:
+                    (root / "etc/.modgui-wireguard-go-installed").touch()
+                    (root / "go-installed").touch()
+                (root / "wg").write_text("#!/bin/sh\nexit 0\n")
+                (root / "wg").chmod(0o755)
+                (root / "wireguard.sh").touch(mode=0o755)
+                helper = VPN_KERNEL_HELPER.replace("/etc/", directory + "/etc/")
+                helper = helper.replace("/usr/bin/wg", str(root / "wg"))
+                helper = helper.replace("/lib/netifd/proto/wireguard.sh", str(root / "wireguard.sh"))
+                script = helper + f'''
+modgui_backup_wireguard_go() {{ echo UNEXPECTED_BACKUP; return 1; }}
+modgui_load_wireguard() {{ return {load_status}; }}
+uci() {{ return 0; }}
+opkg() {{
+  case "$*" in
+    list-installed) [ ! -f '{directory}/go-installed' ] || echo 'wireguard-go - installed-version' ;;
+    remove*) echo "REMOVED:$2" ;;
+  esac
+  return 0
+}}
+modgui_install_native_wireguard kmod-wireguard
+'''
+                result = subprocess.run(["sh", "-c", script], capture_output=True, text=True)
+                self.assertEqual(result.returncode, load_status, result.stderr)
+                self.assertNotIn("UNEXPECTED_BACKUP", result.stdout)
+                self.assertNotIn("REMOVED:wireguard-go", result.stdout)
+                self.assertEqual((root / "etc/.modgui-wireguard-native-installed").exists(), not go_installed)
+
+    def test_failed_tools_install_restores_installed_go_payload(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "etc").mkdir()
+            (root / "etc/.modgui-wireguard-go-installed").touch()
+            (root / "go-installed").touch()
+            helper = VPN_KERNEL_HELPER.replace("/etc/", directory + "/etc/")
+            script = helper + f'''
+modgui_backup_wireguard_go() {{ touch "$1/go.ipk"; }}
+modgui_load_wireguard() {{ return 0; }}
+uci() {{ return 0; }}
+opkg() {{
+  case "$*" in
+    list-installed) [ ! -f '{directory}/go-installed' ] || echo 'wireguard-go - installed-version' ;;
+    'remove wireguard-go') rm '{directory}/go-installed' ;;
+    'remove wireguard-tools'|'remove kmod-wireguard') return 0 ;;
+    'install wireguard-tools') return 1 ;;
+    'install kmod-wireguard') return 0 ;;
+    install*) touch '{directory}/go-installed'; echo GO_RESTORED ;;
+  esac
+}}
+modgui_install_native_wireguard kmod-wireguard
+'''
+            result = subprocess.run(["sh", "-c", script], capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("GO_RESTORED", result.stdout)
+            self.assertTrue((root / "go-installed").exists())
+            self.assertFalse((root / "etc/.modgui-wireguard-native-installed").exists())
 
 
 if __name__ == "__main__":

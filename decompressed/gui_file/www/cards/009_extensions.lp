@@ -25,12 +25,7 @@ end
 
 local function tun_install_supported()
 	if kernel_has_tun() then return true end
-	local command = io.popen([[(case "$(uname -m):$(uname -r)" in
-armv7l:4.1.52) exit 0 ;;
-mips:3.4.11-rt19)
-  case "$(uci -q get 'version.@version[0].marketing_version')" in 17.2|17.2.*|17.2\ *) exit 0 ;; esac ;;
-esac
-exit 1); echo $?]], "r")
+	local command = io.popen("/usr/share/transformer/scripts/appInstallRemoveUtility.sh check tun; echo $?", "r")
 	if not command then return false end
 	local result = command:read("*line")
 	command:close()

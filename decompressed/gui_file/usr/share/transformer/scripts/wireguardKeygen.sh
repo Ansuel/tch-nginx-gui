@@ -12,6 +12,7 @@ trap 'rm -rf "$keygen_lock"' EXIT HUP INT TERM
 wg_tool=""
 [ -x /usr/bin/wg-go ] && wg_tool="/usr/bin/wg-go"
 [ -n "$wg_tool" ] || wg_tool="$(command -v wg 2>/dev/null)"
+[ ! -f /etc/.modgui-wireguard-native-installed ] || wg_tool=/usr/bin/wg
 if [ -z "$wg_tool" ]; then
   echo "WireGuard runtime is not installed"
   exit 1

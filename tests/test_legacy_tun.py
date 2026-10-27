@@ -123,46 +123,35 @@ configured="$1"
                 else:
                     self.assertFalse((root / 'reloads').exists())
 
-    def test_mips_wireguard_archive_is_verified_and_owned_by_opkg(self):
+    def test_go_rollback_package_preserves_installed_version_and_only_owned_files(self):
         source = INSTALLER.read_text()
-        function = source[source.index('  wireguard_prepare_mips_package() {'):source.index('\n  wireguard_register_gui()')]
-        runtime_files = ['usr/bin/wireguard-go', 'usr/bin/wg-go', 'usr/bin/wg',
-                         'lib/netifd/proto/wireguard.sh', 'etc/hotplug.d/net/10-wireguard']
-        for corrupt in (False, True):
-            with self.subTest(corrupt=corrupt), tempfile.TemporaryDirectory() as directory:
-                root = Path(directory)
-                archive_path = root / 'runtime.tgz'
-                with tarfile.open(archive_path, 'w:gz') as archive:
-                    for name in runtime_files + ['etc/sysctl.d/99-wireguard.conf']:
-                        entry = tarfile.TarInfo(name)
-                        entry.size = 7
-                        archive.addfile(entry, io.BytesIO(b'runtime'))
-                checksum = hashlib.sha256(archive_path.read_bytes()).hexdigest()
-                script = '''
-wireguard_version=2023.09.29
-wireguard_tmp="$1/package.ipk"
-wireguard_sha256="$2"
-testroot="$1"
-curl() { cp "$testroot/runtime.tgz" "$4"; }
+        function = source[source.index('modgui_backup_wireguard_go() ('):source.index('modgui_install_native_wireguard() (')]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            payload = root / 'payload'
+            payload.mkdir()
+            (payload / 'wg-go').write_text('installed runtime')
+            (payload / 'unowned').write_text('must not enter backup')
+            stage = root / 'stage'
+            stage.mkdir()
+            script = function + f'''
+opkg() {{
+  case "$1" in
+    status) printf '%s\\n' 'Package: wireguard-go' 'Version: installed-version' 'Architecture: brcm63xx' 'Status: install ok installed' ;;
+    files) printf '%s\\n' '{payload}' '{payload}/wg-go' ;;
+  esac
+}}
+modgui_backup_wireguard_go '{stage}'
 '''
-                script += function.replace('/tmp/modgui-wireguard-mips.', str(root) + '/stage.')
-                script += '\nwireguard_prepare_mips_package\n'
-                result = subprocess.run(['sh', '-c', script, 'check', str(root),
-                                         'invalid' if corrupt else checksum], capture_output=True, text=True,
-                                        env=dict(os.environ, COPYFILE_DISABLE='1'))
-                self.assertEqual(result.returncode == 0, not corrupt, result.stderr)
-                self.assertFalse(list(root.glob('stage.*')))
-                if corrupt:
-                    self.assertFalse((root / 'package.ipk').exists())
-                    continue
-                with tarfile.open(root / 'package.ipk') as package:
-                    self.assertEqual(package.extractfile('debian-binary').read(), b'2.0\n')
-                    with tarfile.open(fileobj=package.extractfile('control.tar.gz')) as control:
-                        metadata = control.extractfile('control').read().decode()
-                        self.assertIn('Package: wireguard-go\n', metadata)
-                        self.assertIn('Architecture: brcm63xx\n', metadata)
-                    with tarfile.open(fileobj=package.extractfile('data.tar.gz')) as data:
-                        self.assertEqual(set(data.getnames()), set(runtime_files))
+            result = subprocess.run(['sh', '-c', script], capture_output=True, text=True, env=dict(os.environ, COPYFILE_DISABLE='1'))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            with tarfile.open(stage / 'go.ipk') as package:
+                with tarfile.open(fileobj=package.extractfile('control.tar.gz')) as control:
+                    metadata = control.extractfile('./control').read().decode()
+                    self.assertIn('Version: installed-version', metadata)
+                    self.assertNotIn('Status:', metadata)
+                with tarfile.open(fileobj=package.extractfile('data.tar.gz')) as data:
+                    self.assertEqual(data.getnames(), [str(payload / 'wg-go').lstrip('/')])
 
     @unittest.skipUnless(shutil.which('lua'), 'Lua interpreter required')
     def test_connected_count_rpc_reads_private_status_without_exposing_it(self):
@@ -408,41 +397,36 @@ modgui_has_tun() { attempts=$((attempts + 1)); [ "$attempts" -ge "$1" ]; }
 
     def test_gui_and_installer_agree_on_supported_platforms(self):
         source = INSTALLER.read_text()
-        predicate = source[source.index('modgui_reviewed_tun_build() {'):source.index('\nmodgui_tun_profile()')]
-        self.assertNotIn('prod_friendly_name', predicate)
-        commands = []
         for path in ('www/docroot/modals/applications-modal.lp', 'www/cards/009_extensions.lp'):
             gui = (ROOT / path).read_text()
             gui = gui[gui.index('local function tun_install_supported()'):]
-            command = re.search(r'io.popen\(\[\[(.*?)\]\], "r"\)', gui, re.S)[1]
-            self.assertNotIn('prod_friendly_name', command)
-            commands.append(command)
-        for cpu, kernel, version, model, expected in [
-            ('mips', '3.4.11-rt19', '17.2', 'MediaAccess TG788vn v2', True),
-            ('mips', '3.4.11-rt19', '17.2', 'TG789vac v2', True),
-            ('mips', '3.4.11-rt19', '16.3', 'TG789vac v2', False),
-            ('mips', '3.4.11-rt19', '17.20', 'TG789vac v2', False),
-            ('mips', '3.4.11-rt19', '17.2', 'unknown', True),
-            ('mips', '3.4.11-rt19', '17.2', '', True),
-            ('mips', '3.4.11-rt19', '17.2.1', 'another model', True),
-            ('mips', '3.4.11-rt19', '18.3', '', False),
-            ('mips', '3.4.11', '17.2', 'TG788vn v2', False),
-            ('mipsel', '3.4.11-rt19', '17.2', 'TG788vn v2', False),
-            ('armv7l', '4.1.52', '19.4', 'DGA4130', True),
-            ('armv7l', '4.1.38', '19.4', 'DGA4130', False),
-        ]:
-            with self.subTest(cpu=cpu, kernel=kernel, version=version, model=model):
-                setup = '''
-cpu_type="$1"; kernel="$2"; marketing_version="$3"; model="$4"
-uname() { if [ "$1" = -m ]; then echo "$cpu_type"; else echo "$kernel"; fi; }
-uci() { case "$*" in *marketing_version*) echo "$marketing_version";; *) echo "$model";; esac; }
-'''
-                args = ['check', cpu, kernel, version, model]
-                cli = subprocess.run(['sh', '-c', setup + predicate + '\nmodgui_reviewed_tun_build', *args])
-                self.assertEqual(cli.returncode == 0, expected)
-                for command in commands:
-                    ui = subprocess.run(['sh', '-c', setup + command, *args], capture_output=True, text=True)
-                    self.assertEqual(ui.stdout.strip() == '0', expected)
+            command = re.search(r'io.popen\("([^"\n]+)", "r"\)', gui)[1]
+            self.assertEqual(command, '/usr/share/transformer/scripts/appInstallRemoveUtility.sh check tun; echo $?')
+        start = source.rindex('case "$1" in\ncheck)')
+        definitions, dispatch = source[:start], source[start:]
+        for cpu, kernel, version, available, expected in (
+            ('mips', '3.4.11-rt19', '17.2', False, True),
+            ('mips', '3.4.11-rt19', '16.3', False, False),
+            ('mips', '3.4.11-rt19', '17.20', False, False),
+            ('armv7l', '4.1.52', '19.4', False, True),
+            ('armv7l', '4.1.38', '18.3', False, False),
+            ('armv7l', '4.1.38', '18.3', True, True),
+        ):
+            with self.subTest(cpu=cpu, kernel=kernel, available=available):
+                setup = '\n'.join((
+                    'test_cpu="$1"; test_kernel="$2"; test_version="$3"; available="$4"',
+                    'uname() { if [ "$1" = -m ]; then echo "$test_cpu"; else echo "$test_kernel"; fi; }',
+                    'uci() { echo "$test_version"; }',
+                ))
+                mocks = '\n'.join((
+                    'modgui_has_tun() { return 1; }',
+                    'modgui_kernel_package() { [ "$available" = 1 ] && echo kmod-tun-profile; }',
+                    'set -- check tun',
+                ))
+                script = setup + '\n' + definitions + '\n' + mocks + '\n' + dispatch
+                result = subprocess.run(['sh', '-c', script, 'check', cpu, kernel, version, str(int(available))],
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode == 0, expected, result.stderr)
 
     def test_arm_tun_download_retains_legacy_tls_and_verifies_module(self):
         prefix = INSTALLER.read_text().split('\n#  1st arg : directory')[0]

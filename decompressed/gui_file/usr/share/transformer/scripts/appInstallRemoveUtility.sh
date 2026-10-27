@@ -21,6 +21,10 @@ modgui_has_tun() {
 }
 
 modgui_wait_tun() {
+  # Manual-only modules need a misc device node on older mdev firmwares.
+  if [ ! -e /dev/net/tun ] && [ "$(cat /sys/class/misc/tun/dev 2>/dev/null)" = 10:200 ]; then
+    mkdir -p /dev/net && mknod /dev/net/tun c 10 200 || return 1
+  fi
   tun_attempt=0
   until modgui_has_tun; do
     tun_attempt=$((tun_attempt + 1))
@@ -129,16 +133,22 @@ modgui_install_tun() {
     return 0
   fi
 
-  if ! opkg list-installed 2>/dev/null | grep -q '^kmod-tun '; then
-    opkg install kmod-tun || return 1
-    touch "$modgui_tun_package_owned"
+  tun_candidate="$(modgui_kernel_package '^kmod-tun(-|$)')"
+  [ -n "$tun_candidate" ] || {
+    echo "No TUN package with matching kernel/ABI is available"
+    return 1
+  }
+  if ! opkg list-installed 2>/dev/null | awk -v package="$tun_candidate" '$1 == package {found=1} END {exit !found}'; then
+    opkg install "$tun_candidate" || return 1
+    printf '%s\n' "$tun_candidate" > "$modgui_tun_package_owned"
   fi
-  modprobe tun 2>/dev/null || true
+  modprobe tun 2>/dev/null || insmod "/lib/modules/$(uname -r)/tun.ko" 2>/dev/null || true
   modgui_wait_tun || {
     echo "No compatible TUN module is available for this firmware"
     return 1
   }
   [ ! -f "$modgui_tun_package_owned" ] || {
+    printf 'tun\n' > "$modgui_tun_boot"
     touch "$modgui_tun_owned" "/etc/.modgui-tun-user-$consumer"
   }
 }
@@ -160,7 +170,10 @@ modgui_release_tun() {
   fi
   rm -f "$modgui_tun_boot"
   if [ -f "$modgui_tun_package_owned" ]; then
-    opkg remove kmod-tun >/dev/null 2>&1 || return 0
+    tun_owned_package="$(cat "$modgui_tun_package_owned")"
+    [ -n "$tun_owned_package" ] || tun_owned_package=kmod-tun
+    case "$tun_owned_package" in kmod-tun|kmod-tun-*) ;; *) return 1 ;; esac
+    opkg remove "$tun_owned_package" >/dev/null 2>&1 || return 0
     rm -f "$modgui_tun_package_owned"
   elif [ -f "$modgui_tun_file" ] &&
     [ "$(sha256sum "$modgui_tun_file" | awk '{print $1}')" = "$modgui_tun_sha256" ]; then
@@ -1192,7 +1205,22 @@ extract_bzip_archive() (
 require_free_space() {
   required_kb="$1"
   target_path="$2"
+  total_kb="$(df -Pk "$target_path" 2>/dev/null | awk 'END {print $2}')"
   available_kb="$(df -Pk "$target_path" 2>/dev/null | awk 'END {print $4}')"
+  # Some Homeware kernels report unlimited tmpfs as zero blocks. Do not
+  # mistake that for a full filesystem; bounded tmpfs and disks still use df.
+  if [ "$total_kb:$available_kb" = 0:0 ] && awk -v path="$target_path" '
+    $3 == "tmpfs" && ($2 == path || index(path, $2 "/") == 1) {found=1}
+    END {exit !found}
+  ' /proc/mounts; then
+    available_kb="$(awk '
+      /^MemAvailable:/ {available=$2; known=1}
+      /^MemFree:/ {free=$2}
+      /^Buffers:/ {buffers=$2}
+      /^Cached:/ {cached=$2}
+      END {if (known) print available; else printf "%.0f\n", free+buffers+cached}
+    ' /proc/meminfo)"
+  fi
   case "$available_kb" in
   *[!0-9]* | "")
     echo "Unable to determine free space on $target_path"
@@ -1639,57 +1667,204 @@ CONF_END
   esac
 }
 
+# Reject an explicit dependency mismatch, or a different virtual kernel ABI
+# published alongside the module. Release/vermagic alone does not establish ABI compatibility.
+modgui_kernel_abi_matches() (
+  abi_package="$1"
+  abi_metadata="$2"
+  installed_kernel="$(opkg status kernel 2>/dev/null | sed -n 's/^Version: //p' | head -n 1)"
+  [ -n "$installed_kernel" ] || return 0
+  required_kernel="$(printf '%s\n' "$abi_metadata" | sed -n 's/.*kernel (= \([^)]*\)).*/\1/p' | head -n 1)"
+  if [ -n "$required_kernel" ]; then
+    [ "$required_kernel" = "$installed_kernel" ]
+    return $?
+  fi
+  set -- /var/opkg-lists /usr/lib/opkg/lists
+  for config in /etc/opkg.conf /etc/opkg/*.conf; do
+    [ -f "$config" ] || continue
+    for directory in $(awk '$1 == "lists_dir" {print $NF}' "$config"); do
+      set -- "$@" "$directory"
+    done
+  done
+  for directory in "$@"; do
+    for index in "$directory"/*; do
+      [ -f "$index" ] || continue
+      feed_kernel="$(awk -v wanted="$abi_package" '
+        BEGIN {RS=""; FS="\n"}
+        {
+          name=""; version=""
+          for (i=1; i<=NF; i++) {
+            if ($i ~ /^Package: /) name=substr($i,10)
+            if ($i ~ /^Version: /) version=substr($i,10)
+          }
+          if (name == wanted) has_module=1
+          if (name == "kernel") kernel=version
+        }
+        END {if (has_module && kernel != "") print kernel}
+      ' "$index")"
+      [ -n "$feed_kernel" ] || continue
+      if [ "$feed_kernel" != "$installed_kernel" ]; then
+        echo "Kernel ABI mismatch for $abi_package: installed $installed_kernel, feed $feed_kernel" >&2
+        return 1
+      fi
+    done
+  done
+  return 0
+)
+
+# Resolve modules from configured opkg indexes for the running kernel.
+modgui_kernel_package() {
+  package_pattern="$1"
+  running_kernel="$(uname -r)"
+  # Older opkg takes its global lock even for reads. Finish list before info;
+  # a streaming pipeline can start info while list still owns that lock.
+  candidates="$(opkg list | awk -v pattern="$package_pattern" '$1 ~ pattern {print $1}')"
+  printf '%s\n' "$candidates" | while read -r candidate; do
+    [ -n "$candidate" ] || continue
+    metadata="$(opkg info "$candidate")"
+    modgui_kernel_abi_matches "$candidate" "$metadata" || continue
+    package_kernel="$(printf '%s\n' "$metadata" | sed -n 's/^Version: //p' | head -n 1)"
+    case "$package_kernel" in
+      "$running_kernel"|"$running_kernel"-*|"$running_kernel"+*) printf '%s\n' "$candidate"; break ;;
+      *)
+        dependency_kernel="$(printf '%s\n' "$metadata" | sed -n 's/.*kernel (= \([^)]*\)).*/\1/p' | head -n 1)"
+        case "$dependency_kernel" in
+          "$running_kernel"|"$running_kernel"-*|"$running_kernel"+*) printf '%s\n' "$candidate"; break ;;
+        esac ;;
+    esac
+  done
+}
+
+modgui_load_wireguard() {
+  modprobe udp_tunnel 2>/dev/null || return 1
+  modprobe ip6_udp_tunnel 2>/dev/null || return 1
+  grep -q '^wireguard ' /proc/modules && return 0
+  modprobe wireguard 2>/dev/null || insmod "/lib/modules/$(uname -r)/wireguard.ko"
+}
+
+# Migration only: wireguard-tools replaces Go-owned files. Keep the installed
+# package for rollback if installing the native tools fails.
+modgui_backup_wireguard_go() (
+  backup_dir="$1"
+  mkdir -p "$backup_dir/control" || exit 1
+  opkg status wireguard-go | awk '
+    /^Status:|^Installed-Time:/ {next}
+    /^Conffiles:/ {skip=1; next}
+    skip && /^ / {next}
+    {skip=0; print}
+  ' > "$backup_dir/control/control"
+  grep -q '^Package: wireguard-go$' "$backup_dir/control/control" || exit 1
+  for script in preinst postinst prerm postrm conffiles; do
+    [ ! -f "/usr/lib/opkg/info/wireguard-go.$script" ] ||
+      cp -p "/usr/lib/opkg/info/wireguard-go.$script" "$backup_dir/control/$script" || exit 1
+  done
+  opkg files wireguard-go | while IFS= read -r path; do
+    case "$path" in
+      /*) [ ! -d "$path" ] || [ -L "$path" ] || continue; printf '%s\n' "${path#/}" ;;
+    esac
+  done > "$backup_dir/files"
+  [ -s "$backup_dir/files" ] || exit 1
+  tar -czf "$backup_dir/data.tar.gz" -C / -T "$backup_dir/files" &&
+    tar -czf "$backup_dir/control.tar.gz" -C "$backup_dir/control" . || exit 1
+  printf '2.0\n' > "$backup_dir/debian-binary"
+  tar -czf "$backup_dir/go.ipk" -C "$backup_dir" debian-binary control.tar.gz data.tar.gz
+)
+
+modgui_install_native_wireguard() (
+  module_package="$1"
+  [ -n "$module_package" ] || exit 1
+  if [ -f /etc/.modgui-wireguard-native-installed ]; then
+    opkg install "$module_package" wireguard-tools && modgui_load_wireguard
+    exit $?
+  fi
+  if opkg list-installed | grep -q '^wireguard-go '; then
+    [ -f /etc/.modgui-wireguard-go-installed ] || {
+      echo "A pre-existing Go runtime must be migrated manually"; exit 1;
+    }
+    if uci -q show network | grep "\.proto='wireguard'" | grep -v modgui_wg0 >/dev/null 2>&1; then
+      echo "Other interfaces still use the Go runtime"; exit 1
+    fi
+    migrate_go=1
+  else
+    migrate_go=0
+  fi
+  umask 077
+  stage="$(mktemp -d /tmp/modgui-native.XXXXXX)" || exit 1
+  go_removed=0
+  tools_attempted=0
+  tunnel_stopped=0
+  module_owned=0
+  tools_owned=0
+  opkg list-installed | grep -q "^$module_package " || module_owned=1
+  opkg list-installed | grep -q '^wireguard-tools ' || tools_owned=1
+  rollback() {
+    result=$?
+    if [ "$result" != 0 ]; then
+      [ "$tools_attempted" = 0 ] || opkg remove wireguard-tools
+      [ "$module_owned" = 0 ] || opkg remove "$module_package"
+      rm -f /etc/.modgui-wireguard-native-installed /etc/modules.d/40-modgui-wireguard
+      if [ "$go_removed" = 1 ]; then
+        opkg install "$stage/go.ipk" || echo "Restore Go from $stage/go.ipk before retrying"
+      fi
+      [ "$tunnel_stopped" = 0 ] || ifup modgui_wg0
+      if [ "$go_removed" = 1 ] && ! opkg list-installed | grep -q '^wireguard-go '; then
+        return
+      fi
+    fi
+    rm -rf "$stage"
+  }
+  trap rollback EXIT
+  trap 'exit 1' HUP INT TERM
+  # opkg checks downloaded packages against its current feed metadata.
+  opkg install "$module_package" || exit 1
+  modgui_load_wireguard || exit 1
+  if [ "$migrate_go" = 1 ]; then
+    modgui_backup_wireguard_go "$stage" || exit 1
+    if [ "$(uci -q get wireguard.wg.enabled)" = 1 ]; then
+      tunnel_stopped=1
+      ifdown modgui_wg0 || exit 1
+    fi
+    opkg remove wireguard-go || exit 1
+    go_removed=1
+  fi
+  if [ "$tools_owned" = 1 ]; then
+    tools_attempted=1
+    opkg install wireguard-tools || exit 1
+  fi
+  /usr/bin/wg --version && [ -x /lib/netifd/proto/wireguard.sh ] || exit 1
+  mkdir -p /etc/modules.d || exit 1
+  printf 'udp_tunnel\nip6_udp_tunnel\nwireguard\n' > /etc/modules.d/40-modgui-wireguard || exit 1
+  { if [ "$module_owned" = 1 ]; then echo "$module_package"; fi
+    if [ "$tools_owned" = 1 ]; then echo wireguard-tools; fi
+  } > /etc/.modgui-wireguard-native-installed || exit 1
+  [ "$tunnel_stopped" = 0 ] || ifup modgui_wg0 || exit 1
+  rm -f /etc/.modgui-wireguard-go-installed
+)
+
+modgui_install_spu() {
+  module_package="$(modgui_kernel_package '^kmod-(bcmspu|bcm63xx-tch-spu)(-|$)')"
+  [ -n "$module_package" ] || return 0
+  opkg install "$module_package"
+}
+
+modgui_load_spu() {
+  spu_module="/lib/modules/$(uname -r)/bcmspu.ko"
+  [ -f "$spu_module" ] || return 0
+  grep -q '^bcmspu ' /proc/modules && return 0
+  spu_options=""
+  if modinfo -p "$spu_module" 2>/dev/null | grep -q '^blog_offload:' ||
+    strings "$spu_module" 2>/dev/null | grep -q '^parm=blog_offload:'; then
+    spu_options="blog_offload=N"
+  fi
+  mkdir -p /etc/modules.d || return 1
+  printf 'bcmspu %s\n' "$spu_options" > /etc/modules.d/41-modgui-spu || return 1
+  modprobe bcmspu $spu_options 2>/dev/null || insmod "$spu_module" $spu_options
+}
+
 app_wireguard() {
-  wireguard_commit="7ac8fe29a7ab64eb0c9c9774bb36cf2c7648399e"
-  wireguard_version="2023.09.29"
   wireguard_owned="/etc/.modgui-wireguard-go-installed"
-  wireguard_tmp="/tmp/wireguard-go-install.$$.ipk"
 
   wireguard_gui_backup="/opt/modgui-wireguard-gui.tar.gz"
-
-  wireguard_tun_supported() {
-    modgui_has_tun
-  }
-
-  wireguard_install_tun() {
-    modgui_install_tun wireguard
-  }
-
-  wireguard_remove_tun() {
-    modgui_release_tun wireguard
-  }
-
-  wireguard_prepare_mips_package() {
-    # Upstream publishes MIPS as a tar archive, rather than an opkg package.
-    # Repackage only its runtime files so opkg owns and removes them normally.
-    wireguard_stage="/tmp/modgui-wireguard-mips.$$"
-    (umask 077; mkdir "$wireguard_stage") || return 1
-    if ! curl -kfL "https://github.com/seud0nym/openwrt-wireguard-go/releases/download/$wireguard_version/openwrt-wireguard-go_mips.tgz" \
-      --output "$wireguard_stage/runtime.tgz"; then
-      rm -rf "$wireguard_stage"; return 1
-    fi
-    if [ "$(sha256sum "$wireguard_stage/runtime.tgz" | awk '{print $1}')" != "$wireguard_sha256" ]; then
-      echo "WireGuard archive checksum mismatch"
-      rm -rf "$wireguard_stage"; return 1
-    fi
-    mkdir "$wireguard_stage/data" "$wireguard_stage/control" || { rm -rf "$wireguard_stage"; return 1; }
-    tar -xzf "$wireguard_stage/runtime.tgz" -C "$wireguard_stage/data" || { rm -rf "$wireguard_stage"; return 1; }
-    # Do not install the upstream global forwarding sysctl: firewall access is
-    # managed per tunnel by the GUI and remains disabled until configured.
-    if ! tar -czf "$wireguard_stage/data.tar.gz" -C "$wireguard_stage/data" \
-      usr/bin/wireguard-go usr/bin/wg-go usr/bin/wg \
-      lib/netifd/proto/wireguard.sh etc/hotplug.d/net/10-wireguard; then
-      rm -rf "$wireguard_stage"; return 1
-    fi
-    printf 'Package: wireguard-go\nVersion: %s\nArchitecture: brcm63xx\nMaintainer: ModGUI\nDescription: Verified upstream MIPS userspace WireGuard runtime\n' \
-      "$wireguard_version" > "$wireguard_stage/control/control"
-    printf '2.0\n' > "$wireguard_stage/debian-binary"
-    tar -czf "$wireguard_stage/control.tar.gz" -C "$wireguard_stage/control" control &&
-      tar -czf "$wireguard_tmp" -C "$wireguard_stage" debian-binary control.tar.gz data.tar.gz
-    wireguard_pack_result=$?
-    rm -rf "$wireguard_stage"
-    return "$wireguard_pack_result"
-  }
 
   wireguard_register_gui() {
     uci -q del_list web.ruleset_main.rules=wireguardmodal
@@ -1783,68 +1958,30 @@ app_wireguard() {
 
   case "$1" in
   install)
-    case "$cpu_type" in
-    armv7*)
-      wireguard_arch="arm_cortex-a9"
-      wireguard_sha256="0cd9777ae758b180a140a11e24eea1716c001fcd2ef82adb0b43225b4929610b"
-      ;;
-    aarch64 | arm64)
-      wireguard_arch="arm_cortex-a53"
-      wireguard_sha256="1025b7cf216301c1f8db5d93a3cf683d11eea6d9a3bf19b620e27a083aefc0ff"
-      ;;
-    mips)
-      modgui_reviewed_tun_build || { echo "This MIPS platform has not been validated for WireGuard"; return 1; }
-      wireguard_arch="brcm63xx"
-      wireguard_sha256="84a322e2a9cb3ce077e10eba608756265ccc004282568d2d9ccc2573f3b13972"
-      ;;
-    *)
-      echo "No reviewed WireGuard userspace runtime is available for this architecture"
-      return 1
-      ;;
-    esac
-    wireguard_install_tun || return 1
-    if opkg list-installed | grep -q '^wireguard-go '; then
+    opkg update || return 1
+    wireguard_module_package="$(modgui_kernel_package '^kmod-wireguard(-|$)')"
+    if [ -n "$wireguard_module_package" ]; then
+      require_free_space 1024 /usr || return 1
+      modgui_install_native_wireguard "$wireguard_module_package" || return 1
       wireguard_prepare_config || return 1
       wireguard_register_gui
       wireguard_backup_gui || return 1
+      /usr/share/transformer/scripts/wireguardApply.sh || return 1
+      modgui_release_tun wireguard
       set_extension_state wireguard_app 1
       /etc/init.d/transformer restart
       /etc/init.d/nginx restart
       return 0
     fi
-    case "$wireguard_arch" in
-      brcm63xx)
-        require_free_space 4096 /usr && wireguard_prepare_mips_package || {
-          rm -f "$wireguard_tmp"; wireguard_remove_tun; return 1;
-        } ;;
-      *)
-        require_free_space 8192 /usr || { wireguard_remove_tun; return 1; }
-        curl -kfL "https://raw.githubusercontent.com/seud0nym/openwrt-wireguard-go/$wireguard_commit/repository/$wireguard_arch/base/wireguard-go_${wireguard_version}_${wireguard_arch}.ipk" \
-          --output "$wireguard_tmp" || {
-            rm -f "$wireguard_tmp"
-            wireguard_remove_tun
-            return 1
-          }
-        wireguard_actual_sha256="$(sha256sum "$wireguard_tmp" | awk '{print $1}')"
-        if [ "$wireguard_actual_sha256" != "$wireguard_sha256" ]; then
-          echo "WireGuard package checksum mismatch"
-          rm -f "$wireguard_tmp"
-          wireguard_remove_tun
-          return 1
-        fi ;;
-    esac
-    touch "$wireguard_owned"
-    if ! opkg install "$wireguard_tmp"; then
-      rm -f "$wireguard_tmp" "$wireguard_owned"
-      wireguard_remove_tun
-      return 1
+    modgui_install_tun wireguard || return 1
+    if ! opkg list-installed | grep -q '^wireguard-go '; then
+      require_free_space 8192 /usr || return 1
+      opkg install wireguard-go || { modgui_release_tun wireguard; return 1; }
+      touch "$wireguard_owned"
     fi
-    rm -f "$wireguard_tmp"
     if [ ! -x /usr/bin/wireguard-go ] || [ ! -x /usr/bin/wg-go ] ||
       [ ! -x /lib/netifd/proto/wireguard.sh ]; then
-      opkg remove wireguard-go 2>/dev/null
-      rm -f "$wireguard_owned"
-      wireguard_remove_tun
+      echo "No usable WireGuard runtime in the configured feeds"
       return 1
     fi
     wireguard_prepare_config || return 1
@@ -1855,15 +1992,15 @@ app_wireguard() {
     /etc/init.d/nginx restart
     ;;
   remove)
-    if [ ! -f "$wireguard_owned" ] && opkg list-installed | grep -q '^wireguard-go '; then
+    if [ ! -f /etc/.modgui-wireguard-native-installed ] && [ ! -f "$wireguard_owned" ] && opkg list-installed | grep -q '^wireguard-go '; then
       echo "A pre-existing WireGuard runtime is installed; refusing to remove it"
       return 1
     fi
-    if uci -q show network 2>/dev/null | grep "\.proto='wireguard'" | grep -v modgui_wg0 >/dev/null 2>&1; then
+    if uci -q show network 2>/dev/null | grep -E "\.proto='(modgui_)?wireguard'" | grep -v modgui_wg0 >/dev/null 2>&1; then
       echo "Remove manually configured WireGuard network interfaces before uninstalling the runtime"
       return 1
     fi
-    if [ -f "$wireguard_owned" ]; then
+    if [ -f "$wireguard_owned" ] || [ -f /etc/.modgui-wireguard-native-installed ]; then
       uci -q set wireguard.wg.enabled=0
       for section in $(uci -q show wireguard 2>/dev/null | awk -F'[.=]' '$3 == "peer" {print $2}'); do
         uci -q delete "wireguard.$section"
@@ -1876,14 +2013,22 @@ app_wireguard() {
     if [ -f "$wireguard_owned" ] && opkg list-installed | grep -q '^wireguard-go '; then
       opkg remove wireguard-go || return 1
     fi
-    wireguard_remove_tun
+    if [ -f /etc/.modgui-wireguard-native-installed ]; then
+      while read -r package; do
+        case "$package" in wireguard-tools|kmod-wireguard|kmod-wireguard-*)
+          opkg remove "$package" || return 1 ;;
+        esac
+      done < /etc/.modgui-wireguard-native-installed
+      rm -f /etc/modules.d/40-modgui-wireguard /etc/.modgui-wireguard-native-installed
+    fi
+    modgui_release_tun wireguard
     uci -q delete web.wireguard_card
     uci -q delete web.wireguardmodal
     uci -q delete web.wireguardprofile
     uci -q del_list web.ruleset_main.rules=wireguardmodal
     uci -q del_list web.ruleset_main.rules=wireguardprofile
     uci commit web
-    rm -f "$wireguard_owned" "$wireguard_tmp" "$wireguard_gui_backup" \
+    rm -f "$wireguard_owned" "$wireguard_gui_backup" \
       /tmp/modgui-wireguard-client.conf /tmp/modgui-wireguard-client.name
     if opkg list-installed | grep -q '^wireguard-go '; then
       set_extension_state wireguard_app 1
@@ -1894,7 +2039,7 @@ app_wireguard() {
     /etc/init.d/nginx restart
     ;;
   start)
-    [ -x /usr/bin/wireguard-go ] || return 1
+    [ -x /usr/bin/wg ] || [ -x /usr/bin/wireguard-go ] || return 1
     wireguard_prepare_config || return 1
     uci set wireguard.wg.enabled=1
     uci commit wireguard
@@ -1923,6 +2068,12 @@ app_l2tpipsec() {
   l2tpipsec_owned="/etc/.modgui-l2tp-ipsec-installed"
   l2tpipsec_packages="/etc/.modgui-l2tp-ipsec-packages"
   l2tpipsec_gui_backup="/opt/modgui-l2tp-ipsec-gui.tar.gz"
+
+  l2tpipsec_install_spu() {
+    opkg update || { echo "Cannot refresh SPU packages; using software crypto"; return 0; }
+    modgui_install_spu || echo "SPU installation failed; IPsec will use software crypto"
+    modgui_load_spu || echo "SPU unavailable; IPsec will use software crypto"
+  }
 
   l2tpipsec_backup_gui() {
     mkdir -p /opt || return 1
@@ -2019,6 +2170,7 @@ app_l2tpipsec() {
       ;;
     esac
     if opkg list-installed | grep -q '^modgui-vpn '; then
+      l2tpipsec_install_spu
       set_extension_state l2tpipsec_app 1
       return 0
     fi
@@ -2068,6 +2220,7 @@ app_l2tpipsec() {
     rm -f "$l2tpipsec_before"
     touch "$l2tpipsec_owned"
     l2tpipsec_backup_gui || return 1
+    l2tpipsec_install_spu
     l2tpipsec_set_enabled 0
     /etc/init.d/l2tp-ipsec-server stop 2>/dev/null
     /etc/init.d/modgui-ipsec stop 2>/dev/null
@@ -2097,6 +2250,7 @@ app_l2tpipsec() {
     /etc/init.d/nginx restart
     ;;
   start)
+    modgui_load_spu || echo "SPU unavailable; IPsec will use software crypto"
     l2tpipsec_set_enabled 1
     /etc/init.d/modgui-ipsec restart || return 1
     /etc/init.d/l2tp-ipsec-server restart
@@ -3225,6 +3379,13 @@ call_app_type() {
 }
 
 case "$1" in
+check)
+  case "$2" in
+    tun) modgui_has_tun || modgui_reviewed_tun_build || [ -n "$(modgui_kernel_package '^kmod-tun(-|$)')" ] ;;
+    wireguard) [ -d /sys/module/wireguard ] || [ -n "$(modgui_kernel_package '^kmod-wireguard(-|$)')" ] ;;
+    *) return 1 ;;
+  esac
+  ;;
 install | remove | stop | start | refresh)
   call_app_type "$1" "$2" "$3"
   ;;
