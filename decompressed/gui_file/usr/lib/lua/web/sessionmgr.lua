@@ -50,7 +50,8 @@ end
 local function adjustIPCount(self, remoteIP, delta)
   local ipcount = self._session_tracker.ipcount
   if remoteIP then
-    ipcount[remoteIP] = (ipcount[remoteIP] or 0) + delta
+    local count = (ipcount[remoteIP] or 0) + delta
+    ipcount[remoteIP] = count > 0 and count or nil
   end
 end
 
@@ -281,8 +282,15 @@ local function newSession(mgr, address)
   local session
   local sessionID
   if sessionLimitReached(mgr, address.remote) then
-    -- the maximum number of sessions has been exceeded.
-	ngx.log(ngx.ERR, "Session limit reached")
+    -- A delayed or failed cleanup timer must not leave expired sessions
+    -- occupying slots. Reclaim them before rejecting this request.
+    mgr:cleanup()
+  end
+  if sessionLimitReached(mgr, address.remote) then
+    ngx.log(ngx.ERR, "Session limit reached for manager ", mgr.name,
+      ": total=", mgr._session_tracker.count, "/", mgr.maxsessions,
+      ", per_ip=", mgr._session_tracker.ipcount[address.remote] or 0,
+      "/", mgr.maxsessions_per_ip)
     return
   end
   -- Loop should only occur once and is here to avoid session ID clashes.
@@ -305,24 +313,8 @@ end
 
 local function redirectIfServiceNotAvailable(session)
   if not session then
-	ngx.log(ngx.ERR, "Service not available")
-    ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE, "Service not available. Probably too much session open. Wait 20 seconds and retry.")
-  end
-end
-
-
-local function cleanupIfNoSession(self , session)
-
-  if not session then
-	
-	--Remove every session inactive for 20 second
-	for sid, session in pairs(self.sessions) do
-		local expired = sessionExpired(self, session, sid, now, timeout)
-		if expired then
-			ngx.log(ngx.ERR,"Removed session "..sid)
-		end
-	end
-	
+    ngx.log(ngx.ERR, "Service not available")
+    ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE, "Session limit reached. Retry after an inactive session expires.")
   end
 end
 
@@ -363,7 +355,6 @@ function SessionMgr:checkrequest(noActivityUpdate)
   --preventDNSRebind(address.http_host)
   checkProtocol(address,self.force_https)
   local session, sessionID = getSessionForRequest(self, address, noActivityUpdate)
-  cleanupIfNoSession(self,session)
   redirectIfServiceNotAvailable(session)
   redirectIfNotAuthorized(self, session, sessionID)
   storeSessionInNginx(session)
