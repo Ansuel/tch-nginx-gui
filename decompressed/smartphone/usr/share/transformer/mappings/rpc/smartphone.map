@@ -15,7 +15,8 @@ local function run(action)
     pipe:close()
     local body, status = output:match("^(.*)\nEXIT_STATUS|(%d+)%s*$")
     if status ~= "0" then
-        return nil, (body and body:match("ERROR|([^\r\n]+)")) or "Smartphone request failed or timed out"
+        return nil, (body and body:match("ERROR|([^\r\n]+)")) or "Smartphone request failed or timed out",
+            body and body:match("\nERROR_CODE|([a-z_]+)")
     end
     return body
 end
@@ -31,8 +32,8 @@ register {
     },
     get = {
         stats = function()
-            local result, err = run("get_stats")
-            return result or ("ERROR|" .. err)
+            local result, err, code = run("get_stats")
+            return result or ("ERROR|" .. err .. (code and ("\nERROR_CODE|" .. code) or ""))
         end,
         peers = function()
             local result, err = run("get_peers")

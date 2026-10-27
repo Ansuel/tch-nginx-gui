@@ -13,6 +13,11 @@ ngx.print('<div class="content card_bg" data-bg-text="&#xf012;"',
     ' data-tether-off="', escape(T"USB tethering disabled"), '"',
     ' data-data-off="', escape(T"Mobile data disabled"), '"',
     ' data-unavailable="', escape(T"Phone unavailable"), '"',
+    ' data-unauthorized="', escape(T"ADB authorization required"), '"',
+    ' data-offline="', escape(T"ADB device offline"), '"',
+    ' data-no-device="', escape(T"Phone not detected by ADB"), '"',
+    ' data-multiple-devices="', escape(T"Multiple ADB devices"), '"',
+    ' data-adb-missing="', escape(T"ADB not installed"), '"',
     ' data-checking="', escape(T"Checking connection"), '"><div class="divtable">')
 ngx.print('<div class="pull-right" style="margin-right:15px;height:22px;font-size:0" aria-hidden="true">')
 for index = 1, 5 do
@@ -41,6 +46,11 @@ $(function () {
         var connected = tether && data.DATA_ST === "1";
         var state = available ? content.attr(!tether ? "data-tether-off" :
             (connected ? "data-connected" : "data-data-off")) : content.attr("data-unavailable");
+        var errors = {unauthorized: "data-unauthorized", offline: "data-offline", no_device: "data-no-device",
+            multiple_devices: "data-multiple-devices", adb_missing: "data-adb-missing"};
+        if (!available && data && Object.prototype.hasOwnProperty.call(errors, data.ERROR_CODE)) {
+            state = content.attr(errors[data.ERROR_CODE]);
+        }
         var operator = available && data.OPER && data.OPER !== "No SIM" && data.OPER !== "N/A" ? data.OPER : "";
         binding.phoneStatus(state + (operator ? " (" + operator + ")" : ""));
         root.find(".smartphone-status").attr("title", (data && (data.ERROR || data.message)) || data && data.TETHER || state);

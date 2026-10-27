@@ -10,6 +10,38 @@ LUA = shutil.which('lua')
 
 @unittest.skipUnless(LUA, 'Lua interpreter required')
 class SmartphoneScreenTest(unittest.TestCase):
+    def test_connection_error_code_survives_rpc_and_modal_response(self):
+        self.run_lua(r'''
+local root = arg[1]
+for _, code in ipairs({"unauthorized", "offline", "no_device", "multiple_devices", "adb_missing", "adb_error"}) do
+    local registration
+    register = function(mapping) registration = mapping end
+    io.popen = function()
+        return {read = function() return "ERROR|Connection problem\nERROR_CODE|" .. code .. "\nEXIT_STATUS|1\n" end,
+            close = function() end}
+    end
+    assert(loadfile(root .. "/usr/share/transformer/mappings/rpc/smartphone.map"))()
+    local stats = registration.get.stats()
+    assert(stats == "ERROR|Connection problem\nERROR_CODE|" .. code)
+    local ok, err = registration.set.action(nil, nil, "reboot")
+    assert(ok == nil and err == "Connection problem")
+    string.untaint = function(v) return v end
+    gettext = {textdomain = function() end}
+    ngx = {ctx = {}, req = {get_method = function() return "POST" end,
+        get_post_args = function() return {action = "get_stats"} end},
+        header = {}, HTTP_OK = 200, print = function(v) assert(v == "encoded") end,
+        exit = function(v) assert(v == 200) end}
+    package.loaded.datamodel = {get = function() return {{value = stats}} end}
+    package.loaded["web.ui_helper"] = {}
+    package.loaded["web.lp"] = {}
+    package.loaded.dkjson = {encode = function(data)
+        assert(data.ERROR == "Connection problem" and data.ERROR_CODE == code)
+        return "encoded"
+    end}
+    assert(loadfile(root .. "/www/docroot/modals/smartphone-modal.lp"))()
+end
+''')
+
     def run_lua(self, source, *args):
         result = subprocess.run([LUA, '-', str(APP), *args], input=source,
                                 text=True, capture_output=True, timeout=5)

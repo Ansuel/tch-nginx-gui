@@ -24,6 +24,14 @@ root = pathlib.Path(os.environ['PHONE_TEST_DIR'])
 args = sys.argv[1:]
 with (root / 'adb.log').open('a') as log:
     log.write(json.dumps(args) + '\\n')
+if args == ['devices']:
+    print('List of devices attached')
+    state = os.environ.get('ADB_STATE', 'unauthorized' if os.environ.get('UNAUTHORIZED') else 'device')
+    if state != 'absent':
+        print('fixture\\t' + state)
+    if os.environ.get('MULTIPLE_DEVICES'):
+        print('second\\tdevice')
+    sys.exit(1 if os.environ.get('ADB_QUERY_FAIL') else 0)
 if args == ['get-state']:
     sys.exit(1 if os.environ.get('UNAUTHORIZED') else 0)
 if args == ['shell', 'dumpsys', 'battery']:
@@ -185,11 +193,28 @@ elif args[:2] == ['route', 'flush']:
         result = self.run_phone()
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('ADB is not installed', result.stdout)
+        self.assertIn('ERROR_CODE|adb_missing', result.stdout)
 
     def test_unauthorized_device_does_not_claim_success(self):
         result = self.run_phone(UNAUTHORIZED='1')
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('authorize USB debugging', result.stdout)
+        self.assertIn('ERROR_CODE|unauthorized', result.stdout)
+
+    def test_adb_connection_errors_are_distinct_and_do_not_run_commands(self):
+        cases = [({'ADB_STATE': 'absent'}, 'no_device'),
+                 ({'ADB_STATE': 'offline'}, 'offline'),
+                 ({'MULTIPLE_DEVICES': '1'}, 'multiple_devices'),
+                 ({'ADB_STATE': 'no permissions'}, 'adb_error'),
+                 ({'ADB_QUERY_FAIL': '1'}, 'adb_error')]
+        for env, code in cases:
+            with self.subTest(code=code, env=env):
+                (self.directory / 'adb.log').write_text('')
+                result = self.run_phone('reboot', **env)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn('ERROR_CODE|' + code, result.stdout)
+                calls = [json.loads(line) for line in (self.directory / 'adb.log').read_text().splitlines()]
+                self.assertEqual(calls, [['devices']])
 
     def test_root_denied_does_not_claim_success(self):
         result = self.run_phone('start_vpn', DENY_ROOT='1')
@@ -240,7 +265,7 @@ elif args[:2] == ['route', 'flush']:
         result = self.run_phone('start_vpn; reboot')
         self.assertNotEqual(result.returncode, 0)
         calls = [json.loads(line) for line in (self.directory / 'adb.log').read_text().splitlines()]
-        self.assertEqual(calls, [['get-state']])
+        self.assertEqual(calls, [['devices'], ['get-state']])
 
 
 if __name__ == '__main__':

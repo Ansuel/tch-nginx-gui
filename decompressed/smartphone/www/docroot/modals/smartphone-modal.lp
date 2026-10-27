@@ -11,17 +11,18 @@ local function read_phone(parameter)
     if not result or not result[1] then return nil, "Smartphone backend unavailable" end
     local text = string.untaint(result[1].value)
     local err = text:match("^ERROR|([^\r\n]+)")
-    if err then return nil, err end
+    if err then return nil, err, text:match("\nERROR_CODE|([a-z_]+)") end
     return text
 end
 local function get_phone_data()
-    local payload, err = read_phone("stats")
+    local payload, err, code = read_phone("stats")
     local d = {}
     for line in (payload or ""):gmatch("[^\r\n]+") do
         local k, v = line:match("^([^|]+)|(.+)$")
         if k and v then d[k] = v end
     end
     d.ERROR = err
+    d.ERROR_CODE = code
     return d
 end
 if ngx.req.get_method() == "POST" then

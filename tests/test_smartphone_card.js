@@ -8,7 +8,10 @@ const factory = shared.slice(shared.indexOf('\tfunction createAjaxUpdateCard('),
 let element = {}, requests = [], timers = new Map(), nextTimer = 0;
 const classes = {}, attributes = {}, labels = {
   'data-connected': 'Connected', 'data-tether-off': 'USB tethering disabled',
-  'data-data-off': 'Mobile data disabled', 'data-unavailable': 'Phone unavailable', 'data-checking': 'Checking connection'
+  'data-data-off': 'Mobile data disabled', 'data-unavailable': 'Phone unavailable', 'data-checking': 'Checking connection',
+  'data-unauthorized': 'ADB authorization required', 'data-offline': 'ADB device offline',
+  'data-no-device': 'Phone not detected by ADB', 'data-multiple-devices': 'Multiple ADB devices',
+  'data-adb-missing': 'ADB not installed'
 };
 function selection(name) {
   return {
@@ -89,6 +92,15 @@ tick(); requests[3].deliver({ERROR: 'USB authorization required'});
 assert.strictEqual(binding.phoneStatus(), 'Phone unavailable');
 assert.strictEqual(binding.phoneNetwork(), '—');
 assert.strictEqual(attributes['.smartphone-status:title'], 'USB authorization required');
+for (const [code, label] of Object.entries({unauthorized: 'ADB authorization required', offline: 'ADB device offline',
+  no_device: 'Phone not detected by ADB', multiple_devices: 'Multiple ADB devices', adb_missing: 'ADB not installed'})) {
+  // Reuse the last response handler without advancing lifecycle request counts.
+  requests[3].success({ERROR: 'Specific connection error', ERROR_CODE: code});
+  assert.strictEqual(binding.phoneStatus(), label);
+  assert(!classes['.light:green']);
+}
+requests[3].success({ERROR: 'Unknown error', ERROR_CODE: 'toString'});
+assert.strictEqual(binding.phoneStatus(), 'Phone unavailable');
 context.document.hidden = true;
 tick(); assert.strictEqual(requests.length, 4);
 context.document.hidden = false;

@@ -1,11 +1,28 @@
 #!/bin/sh
 # Run by Transformer as root; the web worker never needs USB or shell access.
 CMD=${1:-get_stats}
-error() { printf 'ERROR|%s\n' "$1"; exit 1; }
-ADB_BIN=$(command -v adb) || error "ADB is not installed on this router."
+error() {
+    printf 'ERROR|%s\n' "$1"
+    [ -z "${2:-}" ] || printf 'ERROR_CODE|%s\n' "$2"
+    exit 1
+}
+ADB_BIN=$(command -v adb) || error "ADB is not installed on this router." adb_missing
 command -v timeout >/dev/null 2>&1 || error "The timeout utility is required."
 adb() { timeout 2 "$ADB_BIN" "$@"; }
-adb get-state >/dev/null 2>&1 || error "Connect one Android device and authorize USB debugging."
+# Inspect transports before get-state: its failure alone cannot distinguish
+# missing devices, an unaccepted RSA key, offline transports or multiple phones.
+devices=$(adb devices 2>/dev/null) || error "Unable to query ADB devices." adb_error
+states=$(printf '%s\n' "$devices" | awk 'NF >= 2 && $1 != "List" && $1 !~ /^\*/ {print $2}')
+count=$(printf '%s\n' "$states" | awk 'NF {n++} END {print n+0}')
+[ "$count" -ne 0 ] || error "No Android device detected by ADB. Connect the phone and enable USB debugging." no_device
+[ "$count" -eq 1 ] || error "Multiple ADB devices detected. Connect only one Android device." multiple_devices
+case "$states" in
+    unauthorized) error "ADB is not authorized. Unlock the phone and authorize USB debugging for this router." unauthorized ;;
+    offline) error "The ADB device is offline. Reconnect the USB cable and check USB debugging." offline ;;
+    device) ;;
+    *) error "The ADB device is unavailable. Check USB permissions and USB debugging." adb_error ;;
+esac
+adb get-state >/dev/null 2>&1 || error "ADB connection failed. Reconnect the phone and check USB debugging." adb_error
 android_shell() {
     # ADB 1.0.32 does not propagate Android shell exit codes. Read our marker
     # instead, including when su is absent or authorization is rejected.
