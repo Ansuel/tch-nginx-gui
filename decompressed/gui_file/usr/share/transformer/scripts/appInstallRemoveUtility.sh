@@ -3,6 +3,10 @@
 marketing_version="$(uci get -q version.@version[0].marketing_version)"
 cpu_type="$(uname -m)"
 
+dumaos_platform_supported() {
+  case "$cpu_type:$(uname -r)" in armv7*:4.1.52*) return 0 ;; *) return 1 ;; esac
+}
+
 # Shared TUN lifecycle for WireGuard, OpenVPN and Tailscale.  The reviewed
 # DGA4130 module is for ARMv7 kernel 4.1.52; the legacy MIPS module is limited
 # to MIPS Homeware 17.2 with kernel 3.4.11-rt19. Other
@@ -497,45 +501,210 @@ app_luci() {
 }
 
 app_amule() {
-  install() {
-    [ "$cpu_type" = "mips" ] || return 1
-    require_usb_storage || return 1
-    require_free_space 16384 /usr || return 1
-    install_from_github FrancYescO/sharing_tg789 amule || return 1
-    [ -x /usr/bin/amuled ] || return 1
-    uci set modgui.app.amule_webui="1"
-    uci commit modgui
+  amule_state=/etc/modgui-amule
+  amule_write_init() {
+    cat > /etc/init.d/amule <<'AMULE_INIT' || return 1
+#!/bin/sh /etc/rc.common
+
+START=95
+STOP=10
+USE_PROCD=1
+
+start_service() {
+  usb=$(awk '$1 ~ /^\/dev\/sd[a-z][0-9]*$/ && $2 ~ /^\/tmp\/run\/mountd\/sd[a-z][0-9]*$/ && $4 ~ /(^|,)rw(,|$)/ {print $2; exit}' /proc/mounts)
+  [ -n "$usb" ] || { echo "aMule requires mounted writable USB storage"; return 1; }
+  config="$usb/sharing/config/amule"
+  downloads="$usb/sharing/download/amule"
+  mkdir -p "$config" "$downloads/files" "$downloads/temp" || return 1
+  probe=$(mktemp "$config/.write.XXXXXX") || return 1
+  rm -f "$probe"
+  if [ ! -e "$config/amule.conf" ]; then
+    password=$(md5sum /etc/modgui-amule.password | awk '{print $1}')
+    [ -n "$password" ] || return 1
+    cat > "$config/amule.conf" <<EOF
+[eMule]
+Nick=aMule
+MaxConnections=50
+MaxConnectionsPerFiveSeconds=5
+Autoconnect=0
+Reconnect=0
+ConnectToED2K=0
+ConnectToKad=0
+UPnPEnabled=0
+TempDir=$downloads/temp
+IncomingDir=$downloads/files
+AddNewFilesPaused=1
+NewVersionCheck=0
+[ExternalConnect]
+AcceptExternalConnections=1
+ECAddress=127.0.0.1
+ECPort=4712
+ECPassword=$password
+UPnPECEnabled=0
+[WebServer]
+Enabled=1
+Password=$password
+Port=4711
+UPnPWebServerEnabled=0
+Template=default
+UseLowRightsUser=0
+EOF
+    chmod 600 "$config/amule.conf"
+  fi
+  printf '%s\n' "$config" > /var/run/modgui-amule.config || return 1
+  procd_open_instance
+  procd_set_param command /usr/bin/amuled -c "$config"
+  procd_set_param stdout 1
+  procd_set_param stderr 1
+  procd_close_instance
+}
+
+stop_service() {
+  [ -f /var/run/modgui-amule.config ] || return 0
+  config=$(cat /var/run/modgui-amule.config)
+  # amuleweb forks out of the daemon's procd process tree. Match its exact
+  # configuration argument, rather than stopping unrelated aMule instances.
+  for pid in $(pidof amuleweb 2>/dev/null); do
+    if tr '\000' '\n' < "/proc/$pid/cmdline" 2>/dev/null |
+      grep -Fxq -- "--amule-config-file=$config/amule.conf"; then
+      kill -TERM "$pid" 2>/dev/null || true
+      for attempt in 1 2 3 4 5; do
+        kill -0 "$pid" 2>/dev/null || break
+        sleep 1
+      done
+      kill -0 "$pid" 2>/dev/null && return 1
+    fi
+  done
+  rm -f /var/run/modgui-amule.config
+}
+AMULE_INIT
+    chmod 755 /etc/init.d/amule
   }
-  remove() {
-    if [ -f /usr/share/transformer/scripts/remove_amule.sh ]; then
-      sh /usr/share/transformer/scripts/remove_amule.sh || return 1
-      rm -f /usr/share/transformer/scripts/remove_amule.sh
-    elif opkg list-installed | grep -q '^amule '; then
-      echo "Missing aMule removal manifest; refusing an incomplete removal"
+  amule_publish_password() {
+    # Only the nginx worker identity may read the UI copy. The original secret
+    # stays root-only, and no credential is exposed through the shared RPC bus.
+    (umask 077; cp /etc/modgui-amule.password /etc/modgui-amule-web.password) || return 1
+    chown nobody /etc/modgui-amule-web.password && chmod 400 /etc/modgui-amule-web.password
+  }
+  amule_record_packages() {
+    opkg list-installed | awk '{print $1}' > "$amule_state/after"
+    : > "$amule_state/packages"
+    while read -r package; do
+      grep -Fxq "$package" "$amule_state/before" || echo "$package" >> "$amule_state/packages"
+    done < "$amule_state/after"
+  }
+  amule_remove() {
+    if [ ! -d "$amule_state" ]; then
+      if opkg status amule 2>/dev/null | grep -q '^Status:.* installed$'; then
+        echo "Unmanaged aMule installation; refusing to remove existing packages"
+        return 1
+      fi
+      set_extension_state amule_webui 0
+      return $?
+    fi
+    [ ! -x /etc/init.d/amule ] || {
+      /etc/init.d/amule stop || return 1
+      /etc/init.d/amule disable 2>/dev/null || true
+    }
+    # Remove only packages introduced by this installation, in dependency order.
+    for pass in 1 2 3 4 5 6; do
+      while read -r package; do
+        opkg status "$package" 2>/dev/null | grep -q '^Status:.* installed$' || continue
+        opkg remove "$package" >/dev/null 2>&1 || true
+      done < "$amule_state/packages"
+    done
+    while read -r package; do
+      if opkg status "$package" 2>/dev/null | grep -q '^Status:.* installed$'; then
+        echo "aMule package still required by another application: $package"
+        return 1
+      fi
+    done < "$amule_state/packages"
+    # USB configuration and downloads are user data and survive removal.
+    rm -f /etc/init.d/amule
+    rm -f /etc/modgui-amule-web.password
+    rm -rf "$amule_state"
+    set_extension_state amule_webui 0
+  }
+  case "$1" in
+  install)
+    case "$cpu_type" in armv7*|mips) ;; *) echo "aMule supports ARMv7 and MIPS gateways"; return 1 ;; esac
+    if [ -f "$amule_state/installed" ]; then
+      [ -x /usr/bin/amuled ] && [ -x /usr/bin/amuleweb ] || return 1
+      amule_write_init || return 1
+      amule_publish_password || return 1
+      set_extension_state amule_webui 1
+      return $?
+    fi
+    if [ -e "$amule_state" ] || [ -e /etc/init.d/amule ] ||
+      opkg status amule 2>/dev/null | grep -q '^Status:.* installed$'; then
+      echo "An aMule installation already exists; refusing to overwrite it"
       return 1
     fi
-    uci set modgui.app.amule_webui="0"
-    uci commit modgui
-  }
-  start() {
-    /etc/init.d/amule start
-  }
-  stop() {
-    /etc/init.d/amule stop
-  }
-
-  case $1 in
-  install)
-    install "$2"
+    case "$cpu_type" in
+      mips) require_usb_storage && require_free_space 4096 /usr || return 1 ;;
+      *) require_free_space 16384 /usr || return 1; opkg update || return 1 ;;
+    esac
+    (
+      umask 077
+      mkdir -p "$amule_state" || exit 1
+      opkg list-installed | awk '{print $1}' > "$amule_state/before"
+      : > "$amule_state/packages"
+      stage="/tmp/modgui-amule.$$"
+      success=0
+      cleanup() {
+        if [ "$success" != 1 ]; then
+          amule_record_packages
+          amule_remove || echo "aMule rollback incomplete; retained $amule_state"
+        fi
+        rm -rf "$stage"
+      }
+      trap cleanup EXIT
+      trap 'exit 1' HUP INT TERM
+      if [ "$cpu_type" = mips ]; then
+        mkdir -p "$stage" || exit 1
+        curl -fkLsS --connect-timeout 15 --max-time 120 \
+          https://api.github.com/repos/FrancYescO/sharing_tg789/tarball/4a262ed51847dc192d96a4e2c938540cc89a41db \
+          --output "$stage/source.tgz" || exit 1
+        [ "$(sha256sum "$stage/source.tgz" | awk '{print $1}')" = d3f1d4fe4b0816d873d6e504d07aa9226afa5467f14dfb27cdc07665ddd4cdc6 ] || {
+          echo "aMule MIPS archive checksum mismatch"; exit 1;
+        }
+        tar -xzf "$stage/source.tgz" -C "$stage" || exit 1
+        set --
+        for ipk in "$stage"/FrancYescO-sharing_tg789-*/*.ipk; do
+          package=$(basename "$ipk"); package=${package%%_*}
+          opkg status "$package" 2>/dev/null | grep -q '^Status:.* installed$' || set -- "$@" "$ipk"
+        done
+        [ "$#" -gt 0 ] && opkg install "$@" || exit 1
+      else
+        opkg install amule || exit 1
+      fi
+      amule_record_packages
+      [ -x /usr/bin/amuled ] && [ -x /usr/bin/amuleweb ] || exit 1
+      amule_write_init || exit 1
+      # Credentials are unique to the gateway; do not ship a shared password.
+      if [ ! -s /etc/modgui-amule.password ]; then
+        head -c 18 /dev/urandom | hexdump -v -e '1/1 "%02x"' > /etc/modgui-amule.password
+      fi
+      [ -s /etc/modgui-amule.password ] || exit 1
+      amule_publish_password || exit 1
+      touch "$amule_state/installed"
+      set_extension_state amule_webui 1 || exit 1
+      success=1
+      echo "aMule installed, stopped. Attach writable USB storage before starting."
+      echo "WebUI password: /etc/modgui-amule.password (root only, preserved on removal)."
+    )
     ;;
   start)
-    start
+    [ -f "$amule_state/installed" ] || return 1
+    require_usb_storage || return 1
+    /etc/init.d/amule start
     ;;
   stop)
-    stop
+    [ -f "$amule_state/installed" ] || return 1
+    /etc/init.d/amule stop
     ;;
   remove)
-    remove
+    amule_remove
     ;;
   *)
     echo "Unsupported action"
@@ -915,7 +1084,7 @@ require_usb_storage() {
       print $2; exit
     }' /proc/mounts)
   if [ -z "$modgui_usb_root" ]; then
-    echo "This legacy MIPS app requires a mounted writable USB disk"
+    echo "This application requires a mounted writable USB disk"
     return 1
   fi
   probe=$(mktemp "$modgui_usb_root/.modgui-write.XXXXXX") || return 1
@@ -3045,6 +3214,10 @@ app_dumaos() {
       return 1
       ;;
     esac
+    dumaos_platform_supported || {
+      echo "DumaOS requires a supported ARMv7 gateway with kernel 4.1.52; this kernel is unsupported"
+      return 1
+    }
     if [ "$(dumaos_installed_version)" != "$dumaos_version" ]; then
       require_free_space 40960 /usr || return 1
       require_free_space 10240 /tmp || return 1
@@ -3386,6 +3559,7 @@ call_app_type() {
 case "$1" in
 check)
   case "$2" in
+    dumaos) dumaos_platform_supported ;;
     tun) modgui_has_tun || modgui_reviewed_tun_build || [ -n "$(modgui_kernel_package '^kmod-tun(-|$)')" ] ;;
     wireguard) [ -d /sys/module/wireguard ] || [ -n "$(modgui_kernel_package '^kmod-wireguard(-|$)')" ] ;;
     *) return 1 ;;

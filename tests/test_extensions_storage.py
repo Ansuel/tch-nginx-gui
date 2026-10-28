@@ -86,10 +86,10 @@ dofile(arg[1])
             card = html.split('<legend>' + title + '</legend>', 1)[1].split('</fieldset>', 1)[0]
             self.assertIn('>USB required</span>', card)
 
-    def test_arm_downloaders_also_use_usb_but_amule_is_mips_only(self):
+    def test_arm_downloaders_and_amule_report_usb_requirement(self):
         html = self.render('armv7l', 'normal')
-        self.assertEqual(html.count('>USB required</span>'), 2)
-        self.assertNotIn('<legend>aMule</legend>', html)
+        self.assertEqual(html.count('>USB required</span>'), 3)
+        self.assertIn('<legend>aMule</legend>', html)
 
     def test_missing_mounts_or_failed_stats_render_unavailable(self):
         for mode in ('missing', 'failed'):

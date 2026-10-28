@@ -189,6 +189,9 @@ package.preload["web.ui_helper"] = function()
 end
 io.popen = function() return {read = function() return "0" end, close = function() end} end
 io.open = function(path)
+    if path == "/etc/modgui-amule-web.password" then
+        return { read = function() return [[test<&"'password]] end, close = function() end }
+    end
     if path ~= "/opt/AdGuardHome/AdGuardHome.yaml" then return nil end
     local lines = {"http:", "  address: 0.0.0.0:8081", "dns:", "  port: 53"}
     local index = 0
@@ -215,6 +218,12 @@ dofile(arg[1])
                 if installed == "0":
                     self.assertNotIn('<a ', result.stdout)
                     self.assertIn('>DumaOS</span>', result.stdout)
+                    modal = subprocess.run(
+                        ["lua", "-", str(MODAL), installed, architecture, host], input=harness,
+                        text=True, capture_output=True, check=True,
+                    )
+                    self.assertNotIn('id="amule-web-password"', modal.stdout)
+                    self.assertNotIn("test&lt;", modal.stdout)
                     continue
                 for url, title in (
                     (f"http://{address}:9080/", "LuCI"),
@@ -228,17 +237,21 @@ dofile(arg[1])
                     if architecture == "mips" and title == "AdGuard Home":
                         continue
                     self.assertIn(f'href="{url}">{title}</a>', result.stdout)
+                self.assertIn(f'href="http://{address}:4711/">aMule</a>', result.stdout)
                 architecture_url, architecture_title = (
                     ("/desktop/", "DumaOS") if architecture == "armv7"
                     else (f"http://{address}:4711/", "aMule")
                 )
                 self.assertIn(f'href="{architecture_url}">{architecture_title}</a>', result.stdout)
-                self.assertEqual(result.stdout.count('class="card-direct-link"'), 8 if architecture == "armv7" else 7)
+                self.assertEqual(result.stdout.count('class="card-direct-link"'), 9 if architecture == "armv7" else 7)
                 self.assertNotIn('>WireGuard</a>', result.stdout)
                 modal = subprocess.run(
                     ["lua", "-", str(MODAL), installed, architecture, host], input=harness,
                     text=True, capture_output=True, check=True,
                 )
+                self.assertIn('id="amule-web-password" class="input-block-level" type="password" readonly', modal.stdout)
+                self.assertIn('value="test&lt;&amp;&quot;&#39;password"', modal.stdout)
+                self.assertIn('id="amule-show-password" type="checkbox"', modal.stdout)
                 for port in ("9080", "9091", "4044", "5678"):
                     self.assertIn(f'http://{address}:{port}', modal.stdout)
                 if architecture == "armv7":

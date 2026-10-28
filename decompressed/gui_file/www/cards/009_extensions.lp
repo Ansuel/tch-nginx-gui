@@ -47,7 +47,7 @@ if marketing_version >= 16.3 then
 end
 mapParams.voipblock_for_mmpbx = "uci.modgui.app.voipblock_for_mmpbx"
 mapParams.voipblock_for_asterisk = "uci.modgui.app.voipblock_for_asterisk"
-if cputype:match("mips") then
+if cputype:match("^mips") or cputype:match("^armv7") then
 	mapParams.amule_webui = "uci.modgui.app.amule_webui"
 end
 mapParams.aria2_webui = "uci.modgui.app.aria2_webui"

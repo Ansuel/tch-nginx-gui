@@ -278,7 +278,7 @@ create_gui_type() {
     fi
   fi
   if [ ! "$(uci get -q modgui.app.amule_webui)" ]; then
-    if [ -d /www/docroot/amule ]; then
+    if [ -x /usr/bin/amuled ] && [ -x /etc/init.d/amule ]; then
       uci set modgui.app.amule_webui="1"
     else
       uci set modgui.app.amule_webui="0"
