@@ -6,12 +6,13 @@ const client = card.match(/<script>\n([\s\S]*?)\n<\/script>/)[1];
 const shared = fs.readFileSync('decompressed/gui_file/www/docroot/js/shared-script.js', 'utf8');
 const factory = shared.slice(shared.indexOf('\tfunction createAjaxUpdateCard('), shared.indexOf('\n\tfunction linkCheckUpdate()'));
 let element = {}, requests = [], timers = new Map(), nextTimer = 0;
-const classes = {}, attributes = {}, labels = {
+const classes = {}, attributes = {}, visibility = {}, labels = {
   'data-connected': 'Connected', 'data-tether-off': 'USB tethering disabled',
   'data-data-off': 'Mobile data disabled', 'data-unavailable': 'Phone unavailable', 'data-checking': 'Checking connection',
   'data-unauthorized': 'ADB authorization required', 'data-offline': 'ADB device offline',
   'data-no-device': 'Phone not detected by ADB', 'data-multiple-devices': 'Multiple ADB devices',
-  'data-adb-missing': 'ADB not installed'
+  'data-adb-missing': 'ADB not installed', 'data-usb-only': 'USB detected; ADB unavailable',
+  'data-link-up': 'Link up', 'data-link-down': 'Link down', 'data-no-interface': 'Interface not detected'
 };
 function selection(name) {
   return {
@@ -20,9 +21,10 @@ function selection(name) {
       attributes[name + ':' + key] = value; return this;
     },
     toggleClass(key, value) { classes[name + ':' + key] = !!value; return this; },
+    toggle(value) { visibility[name] = !!value; return this; },
     each(callback) {
       if (name === '[data-bind]') {
-        for (const field of ['phoneBattery', 'phoneStatus', 'phoneNetwork', 'phoneSignal']) callback.call({bind: 'text: ' + field});
+        for (const field of ['phoneDevice', 'phoneBattery', 'phoneStatus', 'phoneNetwork', 'phoneSignal', 'phoneTether']) callback.call({bind: 'text: ' + field});
       } else { for (let i = 0; i < 5; i++) callback.call('bar' + i, i); }
       return this;
     }
@@ -78,19 +80,22 @@ assert.strictEqual(binding.phoneStatus(), 'Connected (VERY)');
 assert.strictEqual(binding.phoneBattery(), '(⚡ 72%)');
 assert.strictEqual(binding.phoneNetwork(), '5G (NSA)');
 assert.strictEqual(binding.phoneSignal(), '75% (-90 dBm)');
+assert(visibility['.smartphone-network-row'] && visibility['.smartphone-signal-row'] && visibility['.smartphone-signal-bars']);
 assert(classes['.light:green']);
 assert.strictEqual([0,1,2,3,4].filter(i => classes['bar' + i + ':bar-small-active']).length, 4);
 tick(); requests[1].deliver({...sample, TETHER: 'Inattivo', SIGNAL_RAW: '2147483647', BATT: '999%'});
 assert.strictEqual(binding.phoneStatus(), 'USB tethering disabled (VERY)');
 assert(!classes['.light:green'] && classes['.light:orange']);
-assert.strictEqual(binding.phoneSignal(), '—');
-assert.strictEqual(binding.phoneBattery(), '(—)');
+assert.strictEqual(binding.phoneSignal(), '');
+assert.strictEqual(binding.phoneBattery(), '');
+assert(!visibility['.smartphone-signal-row'] && !visibility['.smartphone-signal-bars']);
 assert(![0,1,2,3,4].some(i => classes['bar' + i + ':bar-small-active']));
 tick(); requests[2].deliver({...sample, DATA_ST: '0', OPER: '<img src=x onerror=evil()>'});
 assert.strictEqual(binding.phoneStatus(), 'Mobile data disabled (<img src=x onerror=evil()>)');
 tick(); requests[3].deliver({ERROR: 'USB authorization required'});
 assert.strictEqual(binding.phoneStatus(), 'Phone unavailable');
-assert.strictEqual(binding.phoneNetwork(), '—');
+assert.strictEqual(binding.phoneNetwork(), '');
+assert(!visibility['.smartphone-network-row'] && !visibility['.smartphone-signal-row']);
 assert.strictEqual(attributes['.smartphone-status:title'], 'USB authorization required');
 for (const [code, label] of Object.entries({unauthorized: 'ADB authorization required', offline: 'ADB device offline',
   no_device: 'Phone not detected by ADB', multiple_devices: 'Multiple ADB devices', adb_missing: 'ADB not installed'})) {
@@ -101,6 +106,18 @@ for (const [code, label] of Object.entries({unauthorized: 'ADB authorization req
 }
 requests[3].success({ERROR: 'Unknown error', ERROR_CODE: 'toString'});
 assert.strictEqual(binding.phoneStatus(), 'Phone unavailable');
+requests[3].success({ERROR: 'Enable USB debugging', ERROR_CODE: 'usb_only', USB_DEV: 'moto g32',
+  HOST_IF: 'usb0', HOST_ADMIN: 'up', HOST_CARRIER: '1', HOST_IPV4: '10.1.2.3/24'});
+assert.strictEqual(binding.phoneStatus(), 'USB detected; ADB unavailable');
+assert.strictEqual(binding.phoneDevice(), '(moto g32)');
+assert(classes['.light:orange'] && !classes['.light:off']);
+assert.strictEqual(attributes['.simple-desc:title'], 'moto g32');
+assert.strictEqual(binding.phoneTether(), 'usb0 · Link up');
+assert(visibility['.smartphone-tether-row']);
+assert.strictEqual(attributes['.smartphone-tether-row:title'], '10.1.2.3/24');
+requests[3].success({ERROR: 'Accept the RSA prompt', ERROR_CODE: 'unauthorized', USB_DEV: 'moto g32'});
+assert.strictEqual(binding.phoneStatus(), 'ADB authorization required');
+assert(!visibility['.smartphone-tether-row']);
 context.document.hidden = true;
 tick(); assert.strictEqual(requests.length, 4);
 context.document.hidden = false;

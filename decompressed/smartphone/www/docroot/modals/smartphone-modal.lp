@@ -11,13 +11,13 @@ local function read_phone(parameter)
     if not result or not result[1] then return nil, "Smartphone backend unavailable" end
     local text = string.untaint(result[1].value)
     local err = text:match("^ERROR|([^\r\n]+)")
-    if err then return nil, err, text:match("\nERROR_CODE|([a-z_]+)") end
+    if err then return nil, err, text:match("\nERROR_CODE|([a-z_]+)"), text end
     return text
 end
 local function get_phone_data()
-    local payload, err, code = read_phone("stats")
+    local payload, err, code, diagnostics = read_phone("stats")
     local d = {}
-    for line in (payload or ""):gmatch("[^\r\n]+") do
+    for line in (payload or diagnostics or ""):gmatch("[^\r\n]+") do
         local k, v = line:match("^([^|]+)|(.+)$")
         if k and v then d[k] = v end
     end
@@ -76,10 +76,24 @@ end
 
     ngx.print('<div class="alert alert-warning" id="phone-error"' .. (d.ERROR and '' or ' style="display:none"') .. '>' .. (d.ERROR or '') .. '</div>')
     ngx.print('<fieldset><legend>Informazioni Dispositivo</legend>')
-    ngx.print(ui_helper.createLabel("Modello:", d.DEV or "N/A", lbl))
+    ngx.print(ui_helper.createLabel("Modello:", '<span id="live_model">' .. (d.DEV or d.USB_DEV or "N/A") .. '</span>', lbl))
     ngx.print(ui_helper.createLabel("Potenza Segnale:", '<span id="live_sig">'..(d.SIG or "N/A")..'</span>', lbl))
     ngx.print(ui_helper.createLabel("Dati Cellulari:", '<span id="live_data">' .. (d.DATA_ST == "1" and "Attivi" or "Inattivi") .. '</span>', lbl))
     ngx.print('</fieldset>')
+
+    local function host_link(data)
+        if not data.HOST_IF then return data.USB_NETWORK == "1" and "Interfaccia non rilevata" or "N/A" end
+        return data.HOST_ADMIN == "up" and data.HOST_CARRIER == "1" and "Attivo" or "Inattivo"
+    end
+    ngx.print('<fieldset><legend>Tethering sul router</legend>')
+    ngx.print(ui_helper.createLabel("Interfaccia:", '<span id="host_if">' .. (d.HOST_IF or "N/A") .. '</span>', lbl))
+    ngx.print(ui_helper.createLabel("Link USB:", '<span id="host_link">' .. host_link(d) .. '</span>', lbl))
+    ngx.print(ui_helper.createLabel("IPv4:", '<span id="host_ipv4">' .. (d.HOST_IPV4 or "Non assegnato") .. '</span>', lbl))
+    ngx.print(ui_helper.createLabel("Gateway:", '<span id="host_gateway">' .. (d.HOST_GATEWAY or "Non configurato") .. '</span>', lbl))
+    ngx.print(ui_helper.createLabel("Velocità USB:", '<span id="host_speed">' .. (d.USB_SPEED and (d.USB_SPEED .. " Mbit/s") or "N/A") .. '</span>', lbl))
+    ngx.print(ui_helper.createLabel("Moduli caricati:", '<span id="host_modules">' .. (d.HOST_MODULES or "Nessuno rilevato") .. '</span>', lbl))
+    ngx.print(ui_helper.createLabel("Installazione driver:", '<span id="host_drivers">' .. (d.HOST_DRIVER_STATUS or "N/A") .. '</span>', lbl))
+    ngx.print('<p>Il link USB non indica che il router stia usando il telefono come accesso Internet. La WAN va configurata separatamente.</p></fieldset>')
 
     ngx.print('<fieldset><legend>Batteria e Salute</legend>')
     ngx.print(ui_helper.createLabel("Livello:", '<span id="live_batt">'..(d.BATT or "N/A")..'</span>', lbl))
@@ -247,6 +261,15 @@ end
         if (!document.getElementById('live-chart')) { isModalActive = false; return; }
         var error = j.ERROR || (j.status === "error" && j.message);
         $("#phone-error").text(error || "").toggle(!!error);
+        $("#live_model").text(j.DEV || j.USB_DEV || "N/A");
+        $("#host_if").text(j.HOST_IF || "N/A");
+        $("#host_link").text(j.HOST_IF ? (j.HOST_ADMIN === "up" && j.HOST_CARRIER === "1" ? "Attivo" : "Inattivo") :
+            (j.USB_NETWORK === "1" ? "Interfaccia non rilevata" : "N/A"));
+        $("#host_ipv4").text(j.HOST_IPV4 || "Non assegnato");
+        $("#host_gateway").text(j.HOST_GATEWAY || "Non configurato");
+        $("#host_speed").text(j.USB_SPEED ? j.USB_SPEED + " Mbit/s" : "N/A");
+        $("#host_modules").text(j.HOST_MODULES || "Nessuno rilevato");
+        $("#host_drivers").text(j.HOST_DRIVER_STATUS || "N/A");
         $("#live_data").text(j.DATA_ST === "1" ? "Attivi" : "Inattivi");
         $(".phone-root-control").toggle(j.ROOT_ACCESS === "1");
         $(".phone-tailscale-control").toggle(j.ROOT_ACCESS === "1" && j.TAILSCALE_CLI === "1");

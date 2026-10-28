@@ -3152,7 +3152,7 @@ app_smartphone() (
   adb_owned=/etc/.modgui-smartphone-adb-owned
   archive_hash=/etc/.modgui-smartphone-archive-sha256
   stage=/tmp/modgui-smartphone.$$
-  files="usr/bin/phone_stats.sh usr/share/modgui-smartphone/radio.awk usr/share/transformer/mappings/rpc/smartphone.map www/docroot/modals/smartphone-modal.lp www/docroot/modals/smartphone-screen.lp www/cards/017_smartphone.lp"
+  files="usr/bin/phone_stats.sh usr/share/modgui-smartphone/radio.awk usr/share/modgui-smartphone/drivers.sh usr/share/transformer/mappings/rpc/smartphone.map www/docroot/modals/smartphone-modal.lp www/docroot/modals/smartphone-screen.lp www/cards/017_smartphone.lp"
 
   set_state() {
       uci set "modgui.app.smartphone_app=$1" && uci commit modgui
@@ -3281,6 +3281,11 @@ app_smartphone() (
           mv "$backup.new" "$backup" || exit 1
           trap - EXIT HUP INT TERM
           rm -rf "$stage"
+          # USB networking is optional for ADB telemetry. Keep the app usable
+          # when the firmware feed lacks compatible modules, and expose status.
+          if ! sh /usr/share/modgui-smartphone/drivers.sh; then
+              echo "Smartphone USB installed; some tethering drivers are unavailable. See Smartphone details."
+          fi
           ;;
       remove)
           [ -f "$owned" ] || { set_state 0; exit $?; }

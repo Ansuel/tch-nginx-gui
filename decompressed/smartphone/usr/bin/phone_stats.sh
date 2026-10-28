@@ -4,17 +4,84 @@ CMD=${1:-get_stats}
 error() {
     printf 'ERROR|%s\n' "$1"
     [ -z "${2:-}" ] || printf 'ERROR_CODE|%s\n' "$2"
+    [ -z "$usb_info" ] || printf '%s\n' "$usb_info"
+    [ -z "$host_info" ] || printf '%s\n' "$host_info"
     exit 1
 }
+# USB discovery is independent of ADB authorization. Recognize ADB and USB
+# network functions, not unrelated disks, printers or USB controller hubs.
+usb_diagnostics() {
+    for usb in /sys/bus/usb/devices/*; do
+        [ -f "$usb/idVendor" ] || continue
+        candidate=0
+        usb_adb=0
+        usb_network=0
+        for interface in "$usb":*; do
+            [ -r "$interface/bInterfaceClass" ] || continue
+            read -r class < "$interface/bInterfaceClass"
+            read -r subclass < "$interface/bInterfaceSubClass"
+            read -r protocol < "$interface/bInterfaceProtocol"
+            case "$class:$subclass:$protocol" in
+                ff:42:01) candidate=1; usb_adb=1 ;;
+                e0:01:03|ef:04:01|ef:01:01|02:02:ff|02:06:00|02:0d:00) candidate=1; usb_network=1 ;;
+            esac
+        done
+        [ "$candidate" = 1 ] || continue
+        product=$(tr '\r\n|' '   ' < "$usb/product" 2>/dev/null | cut -c1-120 | sed 's/[[:space:]]*$//')
+        [ -n "$product" ] || product="USB device"
+        printf 'USB_DEV|%s\nUSB_ADB|%s\nUSB_NETWORK|%s\n' "$product" "$usb_adb" "$usb_network"
+        speed=$(cat "$usb/speed" 2>/dev/null)
+        case "$speed" in ''|*[!0-9.]*) ;; *) printf 'USB_SPEED|%s\n' "$speed" ;; esac
+        # Only report interfaces belonging to this USB device, never eth0/WAN.
+        for net in "$usb":*/net/*; do
+            [ -d "$net" ] || continue
+            iface=${net##*/}
+            case "$iface" in ''|*[!a-zA-Z0-9_.-]*) continue ;; esac
+            printf 'HOST_IF|%s\n' "$iface"
+            flags=$(cat "$net/flags" 2>/dev/null)
+            case "$flags" in
+                0x[0-9a-fA-F]*) if [ "$((flags & 1))" -eq 1 ]; then echo 'HOST_ADMIN|up'; else echo 'HOST_ADMIN|down'; fi ;;
+            esac
+            carrier=$(cat "$net/carrier" 2>/dev/null)
+            case "$carrier" in 0|1) printf 'HOST_CARRIER|%s\n' "$carrier" ;; esac
+            ip -o -4 addr show dev "$iface" 2>/dev/null | awk '$3 == "inet" {print "HOST_IPV4|" $4; exit}'
+            ip -4 route show dev "$iface" 2>/dev/null | awk '$1 == "default" && $2 == "via" {print "HOST_GATEWAY|" $3; exit}'
+            break
+        done
+        return
+    done
+}
+usb_info=$(usb_diagnostics)
+host_diagnostics() {
+    modules=""
+    for module in usbnet cdc_ether rndis_host cdc_ncm; do
+        [ ! -d "/sys/module/$module" ] || modules="${modules:+$modules, }$module"
+    done
+    [ -z "$modules" ] || printf 'HOST_MODULES|%s\n' "$modules"
+    if [ -f /etc/modgui-smartphone-drivers.status ]; then
+        printf 'HOST_DRIVER_STATUS|'
+        tr '\r\n|' '   ' < /etc/modgui-smartphone-drivers.status
+        printf '\n'
+    fi
+}
+host_info=$(host_diagnostics)
 ADB_BIN=$(command -v adb) || error "ADB is not installed on this router." adb_missing
 command -v timeout >/dev/null 2>&1 || error "The timeout utility is required."
-adb() { timeout 2 "$ADB_BIN" "$@"; }
+# Old Technicolor BusyBox uses timeout -t SECS; newer versions use SECS.
+case "$(timeout --help 2>&1)" in
+    *"-t SECS"*) timed() { timeout -t "$@"; } ;;
+    *) timed() { timeout "$@"; } ;;
+esac
+adb() { timed 2 "$ADB_BIN" "$@"; }
 # Inspect transports before get-state: its failure alone cannot distinguish
 # missing devices, an unaccepted RSA key, offline transports or multiple phones.
 devices=$(adb devices 2>/dev/null) || error "Unable to query ADB devices." adb_error
 states=$(printf '%s\n' "$devices" | awk 'NF >= 2 && $1 != "List" && $1 !~ /^\*/ {print $2}')
 count=$(printf '%s\n' "$states" | awk 'NF {n++} END {print n+0}')
-[ "$count" -ne 0 ] || error "No Android device detected by ADB. Connect the phone and enable USB debugging." no_device
+if [ "$count" -eq 0 ]; then
+    [ -z "$usb_info" ] || error "USB device detected, but ADB is unavailable. Enable USB debugging on the phone and reconnect it." usb_only
+    error "No Android device detected by ADB. Connect the phone and enable USB debugging." no_device
+fi
 [ "$count" -eq 1 ] || error "Multiple ADB devices detected. Connect only one Android device." multiple_devices
 case "$states" in
     unauthorized) error "ADB is not authorized. Unlock the phone and authorize USB debugging for this router." unauthorized ;;
@@ -26,7 +93,7 @@ adb get-state >/dev/null 2>&1 || error "ADB connection failed. Reconnect the pho
 android_shell() {
     # ADB 1.0.32 does not propagate Android shell exit codes. Read our marker
     # instead, including when su is absent or authorization is rejected.
-    shell_output=$(timeout "${2:-2}" "$ADB_BIN" shell "$1; printf '\nTCH_STATUS|%s\n' \"\$?\"") || return 1
+    shell_output=$(timed "${2:-2}" "$ADB_BIN" shell "$1; printf '\nTCH_STATUS|%s\n' \"\$?\"") || return 1
     shell_output=$(printf '%s\n' "$shell_output" | tr -d '\r')
     shell_status=$(printf '%s\n' "$shell_output" | tail -n 1)
     [ "$shell_status" = 'TCH_STATUS|0' ] || return 1
@@ -49,7 +116,7 @@ capture_screen() {
     trap cleanup_screen EXIT
     trap 'exit 1' HUP INT TERM
     android_shell "umask 077; screencap -p $remote_image" 5 >/dev/null 2>&1 || error "Unable to capture the display. Wake the phone and try again."
-    timeout 8 "$ADB_BIN" pull "$remote_image" "$screen_tmp" >/dev/null 2>&1 || error "Unable to transfer the screen capture."
+    timed 8 "$ADB_BIN" pull "$remote_image" "$screen_tmp" >/dev/null 2>&1 || error "Unable to transfer the screen capture."
     signature=$(head -c 8 "$screen_tmp" | base64 | tr -d '\r\n')
     size=$(wc -c < "$screen_tmp")
     [ "$signature" = iVBORw0KGgo= ] && [ "$size" -le 8388608 ] || error "Invalid or oversized screen capture."
@@ -253,6 +320,8 @@ else
 fi
 
 # Print final payload
+[ -z "$usb_info" ] || printf '%s\n' "$usb_info"
+[ -z "$host_info" ] || printf '%s\n' "$host_info"
 echo "DEV|$MANUF $MODEL"
 echo "OS|Android $OS"
 echo "BATT|$LEVEL%"

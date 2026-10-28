@@ -18,7 +18,17 @@ class PhoneStatsTest(unittest.TestCase):
         self.directory = Path(self.temp.name)
         self.env = dict(os.environ, PATH=f'{self.directory}:/usr/bin:/bin',
                         PHONE_TEST_DIR=str(self.directory))
-        self.write('timeout', '#!/bin/sh\nshift\nexec "$@"\n')
+        self.write('timeout', '''#!/bin/sh
+if [ "$1" = --help ]; then
+    if [ "$TIMEOUT_LEGACY" = 1 ]; then echo 'Usage: timeout [-t SECS] PROG ARGS';
+    else echo 'Usage: timeout SECS PROG ARGS'; fi
+    exit 0
+fi
+if [ "$TIMEOUT_LEGACY" = 1 ]; then [ "$1" = -t ] || exit 90; shift; fi
+case "$1" in ''|*[!0-9]*) exit 91 ;; esac
+shift
+exec "$@"
+''')
         self.write('adb', f'#!{sys.executable}\n' + '''import json, os, pathlib, subprocess, sys
 root = pathlib.Path(os.environ['PHONE_TEST_DIR'])
 args = sys.argv[1:]
@@ -106,7 +116,11 @@ path.write_text(json.dumps(state))
         self.write('ip', f'#!{sys.executable}\n' + '''import os, pathlib, sys
 root = pathlib.Path(os.environ['PHONE_TEST_DIR']); args = sys.argv[1:]
 rule = root / 'rule'; route = root / 'route'
-if args == ['rule', 'show']:
+if args == ['-o', '-4', 'addr', 'show', 'dev', 'usb0']:
+    if os.environ.get('HOST_TEST_IP'): print('26: usb0 inet 10.2.3.4/24 brd 10.2.3.255 scope global usb0')
+elif args == ['-4', 'route', 'show', 'dev', 'usb0']:
+    if os.environ.get('HOST_TEST_IP'): print('default via 10.2.3.1 dev usb0')
+elif args == ['rule', 'show']:
     if rule.exists(): print(rule.read_text())
 elif args[:2] == ['rule', 'add']:
     rule.write_text('29999: from all iif rndis0 lookup 29999')
@@ -132,6 +146,9 @@ elif args[:2] == ['route', 'flush']:
         source = SCRIPT.read_text().replace(
             '/usr/share/modgui-smartphone/radio.awk',
             str(ROOT / 'decompressed/smartphone/usr/share/modgui-smartphone/radio.awk'))
+        source = source.replace('/sys/bus/usb/devices', str(self.directory / 'usb'))
+        source = source.replace('/sys/module/', str(self.directory / 'modules') + '/')
+        source = source.replace('/etc/modgui-smartphone-drivers.status', str(self.directory / 'drivers.status'))
         script.write_text(source.replace('/var/run/modgui-smartphone-screen', str(self.directory / 'screen')))
         script.chmod(0o755)
         return subprocess.run([str(script), action], env={**self.env, **env},
@@ -215,6 +232,44 @@ elif args[:2] == ['route', 'flush']:
                 self.assertIn('ERROR_CODE|' + code, result.stdout)
                 calls = [json.loads(line) for line in (self.directory / 'adb.log').read_text().splitlines()]
                 self.assertEqual(calls, [['devices']])
+
+    def test_legacy_busybox_timeout_is_supported(self):
+        result = self.run_phone(TIMEOUT_LEGACY='1')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('BATT|75%', result.stdout)
+
+    def test_usb_identity_is_available_without_an_adb_transport(self):
+        usb = self.directory / 'usb' / '2-1'
+        usb.mkdir(parents=True)
+        (usb / 'idVendor').write_text('22b8\n')
+        (usb / 'product').write_text('moto g32\n')
+        interface = usb.with_name('2-1:1.0')
+        interface.mkdir()
+        for name, value in [('Class', 'ef'), ('SubClass', '04'), ('Protocol', '01')]:
+            (interface / ('bInterface' + name)).write_text(value + '\n')
+        net = interface / 'net/usb0'
+        net.mkdir(parents=True)
+        (net / 'flags').write_text('0x1003\n')
+        (net / 'carrier').write_text('1\n')
+        (usb / 'speed').write_text('12\n')
+        (self.directory / 'modules/rndis_host').mkdir(parents=True)
+        (self.directory / 'drivers.status').write_text('USB drivers loaded.\n')
+        result = self.run_phone(ADB_STATE='absent', TIMEOUT_LEGACY='1', HOST_TEST_IP='1')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('ERROR_CODE|usb_only', result.stdout)
+        self.assertIn('USB_DEV|moto g32', result.stdout)
+        self.assertIn('USB_ADB|0', result.stdout)
+        self.assertIn('HOST_IF|usb0', result.stdout)
+        self.assertIn('HOST_ADMIN|up', result.stdout)
+        self.assertIn('HOST_CARRIER|1', result.stdout)
+        self.assertIn('USB_SPEED|12', result.stdout)
+        self.assertIn('HOST_MODULES|rndis_host', result.stdout)
+        self.assertIn('HOST_DRIVER_STATUS|USB drivers loaded.', result.stdout)
+        self.assertIn('HOST_IPV4|10.2.3.4/24', result.stdout)
+        self.assertIn('HOST_GATEWAY|10.2.3.1', result.stdout)
+        result = self.run_phone(UNAUTHORIZED='1')
+        self.assertIn('ERROR_CODE|unauthorized', result.stdout)
+        self.assertIn('USB_DEV|moto g32', result.stdout)
 
     def test_root_denied_does_not_claim_success(self):
         result = self.run_phone('start_vpn', DENY_ROOT='1')

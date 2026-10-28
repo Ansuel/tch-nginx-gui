@@ -13,16 +13,16 @@ class SmartphoneScreenTest(unittest.TestCase):
     def test_connection_error_code_survives_rpc_and_modal_response(self):
         self.run_lua(r'''
 local root = arg[1]
-for _, code in ipairs({"unauthorized", "offline", "no_device", "multiple_devices", "adb_missing", "adb_error"}) do
+for _, code in ipairs({"unauthorized", "offline", "no_device", "multiple_devices", "adb_missing", "adb_error", "usb_only"}) do
     local registration
     register = function(mapping) registration = mapping end
     io.popen = function()
-        return {read = function() return "ERROR|Connection problem\nERROR_CODE|" .. code .. "\nEXIT_STATUS|1\n" end,
+        return {read = function() return "ERROR|Connection problem\nERROR_CODE|" .. code .. "\nUSB_DEV|moto g32\nHOST_IF|usb0\nHOST_CARRIER|1\nEXIT_STATUS|1\n" end,
             close = function() end}
     end
     assert(loadfile(root .. "/usr/share/transformer/mappings/rpc/smartphone.map"))()
     local stats = registration.get.stats()
-    assert(stats == "ERROR|Connection problem\nERROR_CODE|" .. code)
+    assert(stats == "ERROR|Connection problem\nERROR_CODE|" .. code .. "\nUSB_DEV|moto g32\nHOST_IF|usb0\nHOST_CARRIER|1")
     local ok, err = registration.set.action(nil, nil, "reboot")
     assert(ok == nil and err == "Connection problem")
     string.untaint = function(v) return v end
@@ -35,7 +35,8 @@ for _, code in ipairs({"unauthorized", "offline", "no_device", "multiple_devices
     package.loaded["web.ui_helper"] = {}
     package.loaded["web.lp"] = {}
     package.loaded.dkjson = {encode = function(data)
-        assert(data.ERROR == "Connection problem" and data.ERROR_CODE == code)
+        assert(data.ERROR == "Connection problem" and data.ERROR_CODE == code and data.USB_DEV == "moto g32")
+        assert(data.HOST_IF == "usb0" and data.HOST_CARRIER == "1")
         return "encoded"
     end}
     assert(loadfile(root .. "/www/docroot/modals/smartphone-modal.lp"))()

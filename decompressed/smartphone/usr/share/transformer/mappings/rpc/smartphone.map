@@ -8,15 +8,17 @@ local function run(action)
     }
     if not allowed[action] then return nil, "Unsupported smartphone action" end
     local deadline = action == "capture_screen" and "22" or "18"
-    local pipe = io.popen("timeout " .. deadline .. " /usr/bin/phone_stats.sh " .. action ..
-        " 2>/dev/null; printf '\\nEXIT_STATUS|%s\\n' \"$?\"")
+    local command = " /usr/bin/phone_stats.sh " .. action .. " 2>/dev/null"
+    local pipe = io.popen("if timeout --help 2>&1 | grep -q -- '-t SECS'; then timeout -t " .. deadline .. command ..
+        "; else timeout " .. deadline .. command .. "; fi; printf '\\nEXIT_STATUS|%s\\n' \"$?\"")
     if not pipe then return nil, "Unable to start smartphone helper" end
     local output = pipe:read("*a")
     pipe:close()
     local body, status = output:match("^(.*)\nEXIT_STATUS|(%d+)%s*$")
     if status ~= "0" then
-        return nil, (body and body:match("ERROR|([^\r\n]+)")) or "Smartphone request failed or timed out",
-            body and body:match("\nERROR_CODE|([a-z_]+)")
+        -- Keep USB identity and the specific ADB state in error stats, too.
+        if action == "get_stats" and body and body:match("^ERROR|") then return body end
+        return nil, (body and body:match("ERROR|([^\r\n]+)")) or "Smartphone request failed or timed out"
     end
     return body
 end
@@ -32,8 +34,8 @@ register {
     },
     get = {
         stats = function()
-            local result, err, code = run("get_stats")
-            return result or ("ERROR|" .. err .. (code and ("\nERROR_CODE|" .. code) or ""))
+            local result, err = run("get_stats")
+            return result or ("ERROR|" .. err)
         end,
         peers = function()
             local result, err = run("get_peers")
