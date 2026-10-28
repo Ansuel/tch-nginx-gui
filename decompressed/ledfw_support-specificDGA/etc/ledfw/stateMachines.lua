@@ -31,11 +31,7 @@ end
 
 local wifi_led_nsc = is_WiFi_LED_on_if_NSC()
 
--- Colore del LED Power quando il modem e' operativo (opzione UCI ledfw.status_led.power_color).
--- Valori ammessi: green (default), blue, orange, red, cyan, magenta, white. Qualsiasi altro valore o
--- opzione assente = green, quindi senza configurazione nulla cambia.
--- Il colore viene riletto da UCI ogni volta che si entra nello stato "operativo"
--- (stesso schema runFunc + staticLed(funzione) usato per il LED internet).
+
 local power_ok_led = "power:green"
 
 local function get_power_ok_color()
@@ -58,10 +54,7 @@ local function get_power_ok_led()
     return power_ok_led
 end
 
--- ATTENZIONE all'ordine: cyan/magenta/white condividono i canali hardware con
--- gli altri colori, quindi prima si spengono TUTTI i colori e solo per ultimo
--- si accende quello scelto (altrimenti uno "spegni" successivo spegne anche il
--- colore appena acceso).
+
 local function power_ok_actions()
     return {
         runFunc(refresh_power_ok_led, {}),
