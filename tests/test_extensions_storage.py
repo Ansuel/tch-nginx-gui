@@ -40,7 +40,7 @@ gettext = {textdomain = function() end}
 ngx = {var = {host = 'gateway.test'}, req = {get_method = function() return 'GET' end},
     print = function(value) io.write(type(value) == 'table' and table.concat(value) or value) end}
 package.preload.datamodel = function() return {get = function(path)
-    return {{value = path:find('CPUtype') and arg[2] or '19.4'}}
+    return {{value = path:find('Supported$') and '1' or (path:find('CPUtype') and arg[2] or '19.4')}}
 end} end
 package.preload['web.content_helper'] = function() return {getExactContent = function(params)
     for key in pairs(params) do params[key] = '0' end

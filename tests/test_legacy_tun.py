@@ -399,9 +399,10 @@ modgui_has_tun() { attempts=$((attempts + 1)); [ "$attempts" -ge "$1" ]; }
         source = INSTALLER.read_text()
         for path in ('www/docroot/modals/applications-modal.lp', 'www/cards/009_extensions.lp'):
             gui = (ROOT / path).read_text()
-            gui = gui[gui.index('local function tun_install_supported()'):]
-            command = re.search(r'io.popen\("([^"\n]+)", "r"\)', gui)[1]
-            self.assertEqual(command, '/usr/share/transformer/scripts/appInstallRemoveUtility.sh check tun; echo $?')
+            self.assertIn('TunSupported', gui)
+            self.assertNotIn('appInstallRemoveUtility.sh check tun', gui)
+        mapping = (ROOT / 'usr/share/transformer/mappings/rpc/system.modgui.map').read_text()
+        self.assertIn('TunSupported = function() return vpn_supported("tun") end', mapping)
         start = source.rindex('case "$1" in\ncheck)')
         definitions, dispatch = source[:start], source[start:]
         for cpu, kernel, version, available, expected in (

@@ -15,7 +15,11 @@ local function getFrequencyBand(v)
   end
   local path = format("rpc.wireless.radio.@%s.supported_frequency_bands",v)
   local radio = getValue(path)
-  frequency[v] = radio
+  -- Missing radio data can be transient while the wireless backend recovers.
+  -- Do not keep an empty result for the lifetime of the nginx worker.
+  if radio ~= "" then
+    frequency[v] = radio
+  end
   return radio
 end
 

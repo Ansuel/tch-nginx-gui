@@ -36,6 +36,11 @@ versions. On ARMv7 the feed setup registers
 names are normalized, for example `VBNT-O_fastweb` becomes `vbnto`. Existing
 custom feeds with the same source name are preserved.
 
+VPN availability in the Extensions card/modal is checked by Transformer and exposed
+as boolean datamodel fields. The nginx worker must not invoke opkg probes: legacy
+opkg requires a privileged lock even for reads and otherwise falsely reports that
+compatible modules are missing. Probe results are cached for 30 seconds.
+
 Native WireGuard is preferred when a package matches the running kernel release
 and has no known ABI mismatch. An explicit kernel dependency must match the
 installed kernel package exactly; an unpinned package is also checked against the

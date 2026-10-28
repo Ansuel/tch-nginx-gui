@@ -46,6 +46,21 @@ local gui_info_cache = {
   KernelVersion = getUnameData('r')
 }
 
+-- Package capability probes need root because legacy opkg locks even for reads.
+-- Expose their boolean result to the unprivileged web worker.
+local vpn_capability_cache = {}
+local function vpn_supported(check)
+  local cached = vpn_capability_cache[check]
+  if cached and os.time() - cached.checked < 30 then return cached.value end
+  local command = io.popen("/usr/share/transformer/scripts/appInstallRemoveUtility.sh check " .. check .. " 2>/dev/null; echo $?", "r")
+  if not command then return "0" end
+  local result = command:read("*l")
+  command:close()
+  local value = result == "0" and "1" or "0"
+  vpn_capability_cache[check] = { value = value, checked = os.time() }
+  return value
+end
+
 local SYSTEM_MODGUI_ = {
   objectType = {
     name = "rpc.system.modgui.",
@@ -68,6 +83,14 @@ local SYSTEM_MODGUI_ = {
       KernelVersion = {
         access = "readOnly",
         type = "string"
+      },
+      TunSupported = {
+        access = "readOnly",
+        type = "boolean"
+      },
+      WireGuardSupported = {
+        access = "readOnly",
+        type = "boolean"
       }
     }
   },
@@ -106,7 +129,9 @@ local SYSTEM_MODGUI_ = {
       return disabled
     end,
     CPUtype = gui_info_cache.CPUtype,
-    KernelVersion = gui_info_cache.KernelVersion
+    KernelVersion = gui_info_cache.KernelVersion,
+    TunSupported = function() return vpn_supported("tun") end,
+    WireGuardSupported = function() return vpn_supported("wireguard") end
   },
   set = {
     modoverlay_disabled = function(mapping, paramName, paramValue)

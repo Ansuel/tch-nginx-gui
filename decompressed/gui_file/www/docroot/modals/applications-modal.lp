@@ -250,32 +250,14 @@ local function append_extension_card(state_key, app, title, description, link, c
 	html[#html+1] = "</div>"
 end
 
-local function kernel_has_tun()
-	local command = io.popen("[ -c /dev/net/tun ] || zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'; echo $?", "r")
-	if not command then
-		return false
-	end
-	local result = command:read("*line")
-	command:close()
-	return result == "0"
-end
-
 local function native_wireguard_supported()
-	local command = io.popen("/usr/share/transformer/scripts/appInstallRemoveUtility.sh check wireguard; echo $?", "r")
-	if not command then return false end
-	local result = command:read("*all")
-	command:close()
-	return result == "0\n"
+    local result = proxy.get("rpc.system.modgui.WireGuardSupported")
+    return result and result[1] and result[1].value == "1"
 end
 
 local function tun_install_supported()
-	if kernel_has_tun() then return true end
-	local command = io.popen("/usr/share/transformer/scripts/appInstallRemoveUtility.sh check tun; echo $?", "r")
-	if not command then return false end
-	-- Lua 5.1 on these devices does not reliably return an exit status from close.
-	local result = command:read("*all")
-	command:close()
-	return result == "0\n"
+    local result = proxy.get("rpc.system.modgui.TunSupported")
+    return result and result[1] and result[1].value == "1"
 end
 
 if StateParams["luci_webui"] ~= nil then

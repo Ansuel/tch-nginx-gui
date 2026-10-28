@@ -13,23 +13,13 @@ local cputype = proxy.get("rpc.system.modgui.CPUtype")[1].value
 
 local extension_supported = 0
 
-local function kernel_has_tun()
-	local command = io.popen("[ -c /dev/net/tun ] || zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'; echo $?", "r")
-	if not command then
-		return false
-	end
-	local result = command:read("*line")
-	command:close()
-	return result == "0"
+local function vpn_supported(name)
+    local result = proxy.get("rpc.system.modgui." .. name)
+    return result and result[1] and result[1].value == "1"
 end
 
 local function tun_install_supported()
-	if kernel_has_tun() then return true end
-	local command = io.popen("/usr/share/transformer/scripts/appInstallRemoveUtility.sh check tun; echo $?", "r")
-	if not command then return false end
-	local result = command:read("*line")
-	command:close()
-	return result == "0"
+    return vpn_supported("TunSupported")
 end
 
 if marketing_version then
@@ -71,7 +61,7 @@ if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
 	end
 end
 if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" or cputype == "mips" then
-	if tun_install_supported() then
+	if vpn_supported("WireGuardSupported") or tun_install_supported() then
 		mapParams.wireguard_application = "uci.modgui.app.wireguard_app"
 	end
 end

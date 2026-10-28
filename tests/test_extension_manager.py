@@ -168,7 +168,7 @@ ngx = {
 }
 package.preload["datamodel"] = function()
     return { get = function(path)
-        return {{value = path:find("CPUtype") and arg[3] or "19.4"}}
+        return {{value = path:find("Supported$") and (arg[5] or "1") or (path:find("CPUtype") and arg[3] or "19.4")}}
     end }
 end
 package.preload["web.content_helper"] = function()
@@ -185,9 +185,14 @@ package.preload["web.ui_helper"] = function()
         createSimpleLight = function(state, title)
             return '<span data-state="' .. state .. '">' .. title .. '</span>'
         end,
+        createSimpleButton = function(title) return title end,
     }, { __index = function() return function() return "" end end })
 end
-io.popen = function() return {read = function() return "0" end, close = function() end} end
+io.popen = function(command)
+    assert(not command:find("check tun", 1, true), "Web worker must not run opkg probes")
+    assert(not command:find("check wireguard", 1, true), "Web worker must not run opkg probes")
+    return {read = function() return "0" end, close = function() end}
+end
 io.open = function(path)
     if path == "/etc/modgui-amule-web.password" then
         return { read = function() return [[test<&"'password]] end, close = function() end }
@@ -258,6 +263,14 @@ dofile(arg[1])
                     self.assertIn(f'http://{address}:8081', modal.stdout)
                 else:
                     self.assertIn(f'http://{address}:4711', modal.stdout)
+
+        for supported in ("0", "1"):
+            result = subprocess.run(
+                ["lua", "-", str(MODAL), "0", "armv7", "gateway.test", supported],
+                input=harness, text=True, capture_output=True, check=True,
+            )
+            for title in ("WireGuard", "OpenVPN", "Tailscale"):
+                self.assertEqual("Install " + title in result.stdout, supported == "1")
 
     def test_extensions_are_whitelisted_dispatched_and_mapped(self):
         installer = INSTALLER.read_text()
@@ -352,7 +365,8 @@ dofile(arg[1])
         self.assertIn("option allow_lan '0'", defaults)
         self.assertIn("option allow_wan '0'", defaults)
         self.assertNotIn("firewall.modgui_wireguard_udp=rule", wireguard)
-        self.assertIn("kernel_has_tun", modal)
+        self.assertIn("rpc.system.modgui.TunSupported", modal)
+        self.assertIn("rpc.system.modgui.WireGuardSupported", modal)
         self.assertIn("no reviewed TUN module", modal)
 
     def test_reviewed_tun_module_requires_matching_platform_and_kernel(self):
