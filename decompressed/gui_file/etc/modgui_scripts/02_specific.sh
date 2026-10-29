@@ -99,11 +99,27 @@ EOF
   return 0
 }
 
+remove_legacy_kernel_feed() {
+  local config feed_name directory
+  for config in "$opkg_file" "$opkg_config_dir"/*.conf; do
+    [ -f "$config" ] || continue
+    for feed_name in $(awk '$1 ~ /^src(\/gz)?$/ && $3 ~ /^https?:\/\/raw\.githubusercontent\.com\/Ansuel\/GUI_ipk\/kernel-4\.1\/target\/packages\/?$/ {print $2}' "$config"); do
+      case "$feed_name" in ''|*[!A-Za-z0-9_.-]*) continue ;; esac
+      # Removed feeds can leave usable stale indexes after opkg update.
+      for directory in /var/opkg-lists /tmp/opkg-lists /usr/lib/opkg/lists $(awk '$1 == "lists_dir" {print $NF}' "$opkg_file" "$opkg_config_dir"/*.conf 2>/dev/null); do
+        rm -f "$directory/$feed_name"
+      done
+    done
+    sed -i '\|^[[:space:]]*src[^[:space:]]*[[:space:]][[:space:]]*[^[:space:]]*[[:space:]][[:space:]]*https\?://raw\.githubusercontent\.com/Ansuel/GUI_ipk/kernel-4\.1/target/packages/*[[:space:]]*\(#.*\)\{0,1\}$|d' "$config"
+  done
+}
+
 apply_right_opkg_repo() {
   logecho "Checking opkg feeds..."
 
   opkg_file="/etc/opkg.conf"
   opkg_config_dir="/etc/opkg"
+  remove_legacy_kernel_feed
 
   if [ "$cpu_type" = "armv7l" ]; then
     append_gui_vpn_feeds
@@ -122,7 +138,6 @@ src/gz chaos_calmer_packages https://raw.githubusercontent.com/Ansuel/GUI_ipk/ke
 src/gz chaos_calmer_luci https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/luci
 src/gz chaos_calmer_routing https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/routing
 src/gz chaos_calmer_telephony https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/telephony
-src/gz chaos_calmer_core https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/target/packages
 EOF
       fi
       sed -i '/repository\/homeware\/18\/brcm63xx-tch/d' /etc/opkg.conf #remove old setted feeds
@@ -145,7 +160,6 @@ src/gz chaos_calmer_packages https://raw.githubusercontent.com/Ansuel/GUI_ipk/ke
 src/gz chaos_calmer_luci https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/luci
 src/gz chaos_calmer_routing https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/routing
 src/gz chaos_calmer_telephony https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/telephony
-src/gz chaos_calmer_core https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/target/packages
 EOF
       fi
       sed -i '/repository\/homeware\/18\/brcm63xx-tch/d' /etc/opkg.conf #remove old setted feeds

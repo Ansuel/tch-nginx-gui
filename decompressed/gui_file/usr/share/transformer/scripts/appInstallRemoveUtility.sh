@@ -81,6 +81,42 @@ modgui_install_tun() {
   consumer="$1"
   modgui_tun_profile || true
   modgui_tun_migrate_owners
+  # A device node proves registration, not ABI compatibility. The legacy
+  # ARM 4.1.38 package can load and crash only when creating an interface.
+  if ! modgui_reviewed_tun_build; then
+    tun_installed="$(opkg status kmod-tun 2>/dev/null)"
+    if printf '%s\n' "$tun_installed" | grep -q '^Status:.*installed'; then
+      tun_candidate="$(modgui_kernel_package '^kmod-tun(-|$)')"
+      [ -n "$tun_candidate" ] || return 1
+      tun_selected="$(opkg status "$tun_candidate" 2>/dev/null)"
+      if ! printf '%s\n' "$tun_selected" | grep -q '^Status:.*installed' ||
+          ! modgui_kernel_abi_matches "$tun_candidate" "$tun_selected"; then
+        [ -f "$modgui_tun_owned" ] || {
+          echo "An unverified TUN is installed; replace it with $tun_candidate before starting a VPN"
+          return 1
+        }
+        # Upgrade only GUI-owned modules, using the normal opkg dependency
+        # resolver. An active tunnel must prevent migration before any write.
+        tun_migration_unloaded=0
+        if grep -q '^tun ' /proc/modules; then
+          rmmod tun 2>/dev/null || { echo "TUN is in use; stop its VPNs before upgrading"; return 1; }
+          tun_migration_unloaded=1
+        fi
+        if ! opkg install "$tun_candidate"; then
+          # A failed preinst must not leave the previous installation unloaded.
+          [ "$tun_migration_unloaded" = 0 ] || modprobe tun 2>/dev/null || true
+          return 1
+        fi
+        tun_selected="$(opkg status "$tun_candidate" 2>/dev/null)"
+        printf '%s\n' "$tun_selected" | grep -q '^Status:.*installed' &&
+          modgui_kernel_abi_matches "$tun_candidate" "$tun_selected" || return 1
+        modprobe tun 2>/dev/null || insmod "/lib/modules/$(uname -r)/tun.ko" 2>/dev/null || return 1
+        modgui_wait_tun || return 1
+        printf '%s\n' "$tun_candidate" > "$modgui_tun_package_owned"
+        printf 'tun\n' > "$modgui_tun_boot"
+      fi
+    fi
+  fi
   if modgui_has_tun; then
     [ ! -f "$modgui_tun_owned" ] || touch "/etc/.modgui-tun-user-$consumer"
     return 0
@@ -1848,6 +1884,7 @@ modgui_kernel_abi_matches() (
     [ "$required_kernel" = "$installed_kernel" ]
     return $?
   fi
+  abi_confirmed=0
   set -- /var/opkg-lists /usr/lib/opkg/lists
   for config in /etc/opkg.conf /etc/opkg/*.conf; do
     [ -f "$config" ] || continue
@@ -1858,7 +1895,8 @@ modgui_kernel_abi_matches() (
   for directory in "$@"; do
     for index in "$directory"/*; do
       [ -f "$index" ] || continue
-      feed_kernel="$(awk -v wanted="$abi_package" '
+      # opkg can retain gzip-compressed indexes on these firmwares.
+      feed_kernel="$( (gzip -dc "$index" 2>/dev/null || cat "$index") | awk -v wanted="$abi_package" '
         BEGIN {RS=""; FS="\n"}
         {
           name=""; version=""
@@ -1870,39 +1908,49 @@ modgui_kernel_abi_matches() (
           if (name == "kernel") kernel=version
         }
         END {if (has_module && kernel != "") print kernel}
-      ' "$index")"
+      ')"
       [ -n "$feed_kernel" ] || continue
+      abi_confirmed=1
       if [ "$feed_kernel" != "$installed_kernel" ]; then
         echo "Kernel ABI mismatch for $abi_package: installed $installed_kernel, feed $feed_kernel" >&2
         return 1
       fi
     done
   done
+  [ "$abi_confirmed" = 1 ] || {
+    echo "Unverified kernel ABI for $abi_package: refusing an unpinned module" >&2
+    return 1
+  }
   return 0
 )
 
 # Resolve modules from configured opkg indexes for the running kernel.
-modgui_kernel_package() {
+modgui_kernel_package() (
   package_pattern="$1"
   running_kernel="$(uname -r)"
-  # Older opkg takes its global lock even for reads. Finish list before info;
-  # a streaming pipeline can start info while list still owns that lock.
+  # Never choose an unpinned legacy build ahead of a model-specific package.
+  # Complete each opkg read before starting another (old opkg locks for reads).
   candidates="$(opkg list | awk -v pattern="$package_pattern" '$1 ~ pattern {print $1}')"
-  printf '%s\n' "$candidates" | while read -r candidate; do
-    [ -n "$candidate" ] || continue
-    metadata="$(opkg info "$candidate")"
-    modgui_kernel_abi_matches "$candidate" "$metadata" || continue
-    package_kernel="$(printf '%s\n' "$metadata" | sed -n 's/^Version: //p' | head -n 1)"
-    case "$package_kernel" in
-      "$running_kernel"|"$running_kernel"-*|"$running_kernel"+*) printf '%s\n' "$candidate"; break ;;
-      *)
-        dependency_kernel="$(printf '%s\n' "$metadata" | sed -n 's/.*kernel (= \([^)]*\)).*/\1/p' | head -n 1)"
-        case "$dependency_kernel" in
-          "$running_kernel"|"$running_kernel"-*|"$running_kernel"+*) printf '%s\n' "$candidate"; break ;;
-        esac ;;
-    esac
+  for selection in pinned legacy; do
+    for candidate in $candidates; do
+      metadata="$(opkg info "$candidate")"
+      dependency_kernel="$(printf '%s\n' "$metadata" | sed -n 's/.*kernel (= \([^)]*\)).*/\1/p' | head -n 1)"
+      if [ "$selection" = pinned ]; then
+        [ -n "$dependency_kernel" ] || continue
+      else
+        [ -z "$dependency_kernel" ] || continue
+      fi
+      modgui_kernel_abi_matches "$candidate" "$metadata" || continue
+      package_kernel="$(printf '%s\n' "$metadata" | sed -n 's/^Version: //p' | head -n 1)"
+      case "$package_kernel" in
+        "$running_kernel"|"$running_kernel"-*|"$running_kernel"+*) printf '%s\n' "$candidate"; return 0 ;;
+      esac
+      case "$dependency_kernel" in
+        "$running_kernel"|"$running_kernel"-*|"$running_kernel"+*) printf '%s\n' "$candidate"; return 0 ;;
+      esac
+    done
   done
-}
+)
 
 modgui_load_wireguard() {
   modprobe udp_tunnel 2>/dev/null || return 1
@@ -2668,7 +2716,17 @@ app_openvpn() {
       return 1
     }
     if modgui_reviewed_tun_build; then
-      opkg install openvpn-easy-rsa openssl-util liblzo &&
+      # The reviewed standalone TUN avoids the incompatible legacy kmod-tun.
+      # Still install the additional userspace dependencies of newer runtimes.
+      openvpn_runtime_deps=""
+      openvpn_metadata="$(opkg info openvpn-openssl)"
+      for dependency in libcap-ng liblz4; do
+        if printf '%s\n' "$openvpn_metadata" | sed -n 's/^Depends: //p' |
+          tr ',' '\n' | grep -Eq "^[[:space:]]*$dependency([[:space:](]|$)"; then
+          openvpn_runtime_deps="$openvpn_runtime_deps $dependency"
+        fi
+      done
+      opkg install openvpn-easy-rsa openssl-util liblzo $openvpn_runtime_deps &&
         opkg install --nodeps --force-depends openvpn-openssl
     else
       opkg install openvpn-openssl openvpn-easy-rsa

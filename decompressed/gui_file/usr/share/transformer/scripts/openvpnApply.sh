@@ -66,6 +66,9 @@ if [ "$client_enabled" = "1" ]; then
         fi
         printf 'up "/usr/share/transformer/scripts/openvpnClientRoute.sh up"\n'
         printf 'down "/usr/share/transformer/scripts/openvpnClientRoute.sh down"\n'
+        # Negotiate the selected cipher on 2.5+, while older MIPS clients
+        # ignore this optional directive.
+        printf 'setenv opt data-ciphers %s\n' "$client_cipher"
         printf 'verb 3\n'
     } > /etc/openvpn/modgui-client.conf.tmp || exit 1
     mv /etc/openvpn/modgui-client.conf.tmp /etc/openvpn/modgui-client.conf || exit 1
@@ -75,6 +78,11 @@ if [ "$enabled" = "1" ] || [ "$client_enabled" = "1" ]; then
     [ -c /dev/net/tun ] || { echo "TUN is unavailable" >&2; exit 1; }
     if [ "$enabled" = "1" ]; then
     /usr/share/transformer/scripts/openvpnGenerateKeys.sh || exit 1
+    case "$(openvpn --version 2>/dev/null | head -n 1)" in
+        'OpenVPN 2.5.'*|'OpenVPN 2.6.'*|'OpenVPN 2.7.'*)
+            uci set openvpn.server.data_ciphers=AES-256-CBC || exit 1 ;;
+        *) uci -q delete openvpn.server.data_ciphers || true ;;
+    esac
     # OpenVPN server mode requires tcp-server; tcp selects client mode.
     uci set openvpn.server.proto="$server_proto"
     uci commit openvpn

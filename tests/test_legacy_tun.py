@@ -16,6 +16,76 @@ INSTALLER = ROOT / 'usr/share/transformer/scripts/appInstallRemoveUtility.sh'
 
 
 class LegacyTun(unittest.TestCase):
+    def test_gui_owned_unpinned_tun_migrates_only_when_unused(self):
+        source = INSTALLER.read_text().split('\n# 1st arg directory')[0]
+        for busy, failed in ((False, False), (True, False), (False, True)):
+            with self.subTest(busy=busy, failed=failed), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / 'etc/modules.d').mkdir(parents=True)
+                (root / 'etc/.modgui-tun-installed').touch()
+                private = source.replace('/etc/', str(root / 'etc') + '/')
+                script = private + '''
+modgui_tun_profile() { return 1; }
+modgui_tun_migrate_owners() { :; }
+modgui_reviewed_tun_build() { return 1; }
+modgui_kernel_package() { echo kmod-tun; }
+modgui_kernel_abi_matches() { printf '%s' "$2" | command grep -q exact; }
+modgui_has_tun() { return 0; }
+modgui_wait_tun() { return 0; }
+grep() { if [ "$3" = /proc/modules ]; then return 0; else command grep "$@"; fi; }
+rmmod() { echo UNLOAD; return "$busy"; }
+modprobe() { echo LOAD; }
+opkg() {
+ case "$1" in
+ status) echo 'Status: install ok installed'; [ "$upgraded" != 1 ] || echo 'Depends: kernel (= exact)' ;;
+ install) echo "INSTALL:$2"; [ "$failed" = 0 ] || return 1; upgraded=1 ;;
+ esac
+}
+busy="$1"
+failed="$2"
+upgraded=0
+modgui_install_tun openvpn
+'''
+                result = subprocess.run(['sh', '-c', script, 'probe', str(int(busy)), str(int(failed))], capture_output=True, text=True)
+                self.assertEqual(result.returncode == 0, not busy and not failed, result.stderr)
+                self.assertIn('UNLOAD', result.stdout)
+                self.assertEqual('INSTALL:kmod-tun' in result.stdout, not busy)
+                self.assertEqual('LOAD' in result.stdout.splitlines(), not busy)
+                if not busy and not failed:
+                    self.assertEqual((root / 'etc/.modgui-tun-package-installed').read_text().strip(), 'kmod-tun')
+
+    def test_reviewed_tun_still_installs_new_openvpn_runtime_dependencies(self):
+        source = INSTALLER.read_text()
+        start = source.index('      openvpn_runtime_deps=""')
+        end = source.index('    else\n      opkg install openvpn-openssl', start)
+        block = source[start:end]
+        for modern in (False, True):
+            with self.subTest(modern=modern):
+                dependencies = 'libc, kmod-tun, liblzo' + (', libcap-ng (>= 0.8), liblz4' if modern else '')
+                script = "opkg() { if [ \"$1\" = info ]; then echo 'Depends: " + dependencies + "'; else echo \"$*\"; fi; }\n" + block
+                result = subprocess.run(['sh', '-c', script], capture_output=True, text=True, check=True)
+                self.assertEqual('libcap-ng' in result.stdout, modern)
+                self.assertEqual('liblz4' in result.stdout, modern)
+                self.assertIn('install --nodeps --force-depends openvpn-openssl', result.stdout)
+
+    def test_existing_device_node_does_not_bypass_abi_validation(self):
+        source = INSTALLER.read_text().split('\n# 1st arg directory')[0]
+        script = source + '''
+modgui_tun_profile() { return 1; }
+modgui_tun_migrate_owners() { :; }
+modgui_reviewed_tun_build() { return 1; }
+modgui_kernel_package() { echo kmod-tun-specific; }
+modgui_has_tun() { echo UNEXPECTED_DEVICE_PROBE; return 0; }
+opkg() {
+ [ "$2" != kmod-tun ] || printf '%s\n' 'Status: install ok installed' 'Depends: kernel'
+}
+modgui_install_tun openvpn
+'''
+        result = subprocess.run(['sh', '-c', script], capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn('UNEXPECTED_DEVICE_PROBE', result.stdout)
+        self.assertIn('unverified TUN', result.stdout)
+
     def test_tailscale_cleanup_waits_for_exit_and_removes_only_its_rules(self):
         source = (ROOT / 'usr/share/modgui-tailscale/tailscale.init').read_text()
         functions = source[source.index('service_stopped() {'):]
@@ -263,6 +333,7 @@ for _, test in ipairs({{'udp', 'udp'}, {'tcp', 'tcp-client'}, {'tcp-server', 'tc
  assert(profile:find('proto ' .. test[2] .. '\\n', 1, true))
  assert(profile:find('tls-version-min 1.2', 1, true))
  assert(profile:find('remote-cert-tls server', 1, true))
+ assert(profile:find('setenv opt data-ciphers AES-256-CBC', 1, true))
 end
 '''.replace('SOURCE', repr(source))
         # Python repr uses string escapes also accepted by Lua for this source.

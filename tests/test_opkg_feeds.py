@@ -1,6 +1,7 @@
 """Exercise feed registration against isolated opkg configuration files."""
 from pathlib import Path
 import shlex
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -10,6 +11,74 @@ SOURCE = ROOT / 'decompressed/gui_file/etc/modgui_scripts/02_specific.sh'
 
 
 class OpkgFeeds(unittest.TestCase):
+    def test_legacy_kernel_feed_and_its_cached_indexes_are_removed(self):
+        source = SOURCE.read_text()
+        helper = source[source.index('remove_legacy_kernel_feed()'):source.index('apply_right_opkg_repo()')]
+        for ending in ('', '/', ' # obsolete', '/ # obsolete'):
+            with self.subTest(ending=ending), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                directory = root / 'opkg'
+                directory.mkdir()
+                cache = root / 'cache'
+                cache.mkdir()
+                legacy = 'https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/target/packages' + ending
+                conf = root / 'opkg.conf'
+                conf.write_text(f'lists_dir ext {cache}\nsrc/gz chaos_calmer_core {legacy}\nsrc/gz keep https://example.invalid/packages\n')
+                extra = directory / 'customfeeds.conf'
+                extra.write_text(f'src/gz old_custom {legacy}\nsrc/gz userspace https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/base\n')
+                for name in ('chaos_calmer_core', 'old_custom', 'keep'):
+                    (cache / name).write_text('cached index')
+                # Keep every path private, including the default index directories.
+                private = helper.replace('/var/opkg-lists', str(cache)).replace('/tmp/opkg-lists', str(cache)).replace('/usr/lib/opkg/lists', str(cache))
+                if shutil.which('gsed'):
+                    private = private.replace('sed -i', shutil.which('gsed') + ' -i')
+                script = private + f'\nopkg_file={shlex.quote(str(conf))}\nopkg_config_dir={shlex.quote(str(directory))}\nremove_legacy_kernel_feed\nremove_legacy_kernel_feed\n'
+                subprocess.run(['sh', '-c', script], check=True)
+                self.assertNotIn('target/packages', conf.read_text())
+                self.assertNotIn('target/packages', extra.read_text())
+                self.assertIn('src/gz keep ', conf.read_text())
+                self.assertIn('kernel-4.1/base', extra.read_text())
+                self.assertFalse((cache / 'chaos_calmer_core').exists())
+                self.assertFalse((cache / 'old_custom').exists())
+                self.assertTrue((cache / 'keep').exists())
+
+    def test_no_install_branch_adds_the_legacy_kernel_feed(self):
+        source = SOURCE.read_text()
+        apply = source[source.index('apply_right_opkg_repo()'):source.index('ledfw_extract()')]
+        self.assertIn('remove_legacy_kernel_feed', apply)
+        self.assertNotIn('kernel-4.1/target/packages', apply)
+
+    def test_arm_feed_setup_does_not_reintroduce_legacy_kernel_source(self):
+        source = SOURCE.read_text()
+        functions = source[source.index('append_missing_opkg_feeds()'):source.index('ledfw_extract()')]
+        for version in ('18.3', '19.4'):
+            with self.subTest(version=version), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                (root / 'opkg').mkdir()
+                conf = root / 'opkg.conf'
+                conf.write_text('src/gz chaos_calmer_core https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/target/packages\n')
+                private = functions.replace('/etc/opkg', str(root / 'opkg'))
+                for directory in ('/var/opkg-lists', '/tmp/opkg-lists', '/usr/lib/opkg/lists'):
+                    private = private.replace(directory, str(root / 'cache'))
+                if shutil.which('gsed'):
+                    private = private.replace('sed -i', shutil.which('gsed') + ' -i')
+                script = private + f'''
+logecho() {{ :; }}
+cpu_type=armv7l
+marketing_version={version}
+uname() {{ echo 4.1.38; }}
+uci() {{ echo VBNT-O; }}
+curl() {{ return 0; }}
+opkg() {{ echo 'arch brcm963xx 100'; }}
+apply_right_opkg_repo
+apply_right_opkg_repo
+'''
+                subprocess.run(['sh', '-c', script], check=False, capture_output=True, text=True)
+                result = conf.read_text()
+                self.assertNotIn('kernel-4.1/target/packages', result)
+                self.assertIn('kernel/4.1.38-vbnto', result)
+                self.assertIn('kernel-4.1/base', result)
+
     def test_vpn_feeds_follow_running_kernel_and_skip_missing_indexes(self):
         source = SOURCE.read_text()
         helper = source[source.index('append_missing_opkg_feeds()'):source.index('apply_right_opkg_repo()')]

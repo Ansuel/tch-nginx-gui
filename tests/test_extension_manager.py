@@ -4,6 +4,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+import gzip
 import unittest
 
 
@@ -846,6 +847,61 @@ VPN_KERNEL_HELPER = INSTALLER_SOURCE[INSTALLER_SOURCE.index("modgui_kernel_abi_m
 
 
 class KernelVPN(unittest.TestCase):
+    def test_compressed_index_supplies_legacy_kernel_abi(self):
+        for abi in ('exact', 'wrong'):
+            with self.subTest(abi=abi), tempfile.TemporaryDirectory() as directory:
+                Path(directory, 'feed').write_bytes(gzip.compress((
+                    'Package: kernel\nVersion: 4.1.38-1-' + abi + '\n\n'
+                    'Package: kmod-tun\nVersion: 4.1.38-1\n\n').encode()))
+                helper = VPN_KERNEL_HELPER.replace('/var/opkg-lists', directory).replace('/usr/lib/opkg/lists', directory).replace('/etc/opkg', directory + '/opkg')
+                script = helper + '''
+uname() { echo 4.1.38; }
+opkg() {
+  case "$1" in
+    status) echo 'Version: 4.1.38-1-exact' ;;
+    list) echo 'kmod-tun - 4.1.38-1' ;;
+    info) printf '%s\n' 'Version: 4.1.38-1' 'Depends: kernel' ;;
+  esac
+}
+modgui_kernel_package '^kmod-tun(-|$)'
+'''
+                result = subprocess.run(['sh', '-c', script], capture_output=True, text=True)
+                self.assertEqual(result.stdout.strip(), 'kmod-tun' if abi == 'exact' else '')
+
+    def test_pinned_module_is_preferred_over_legacy_generic(self):
+        script = VPN_KERNEL_HELPER + '''
+uname() { echo 4.1.38; }
+opkg() {
+  case "$1 $2" in
+    'status kernel') echo 'Version: 4.1.38-1-exact' ;;
+    'list ') printf '%s\n' 'kmod-tun - 4.1.38-1' 'kmod-tun-specific - 4.1.38-1' ;;
+    'info kmod-tun') printf '%s\n' 'Version: 4.1.38-1' 'Depends: kernel' ;;
+    'info kmod-tun-specific') printf '%s\n' 'Version: 4.1.38-1' 'Depends: kernel (= 4.1.38-1-exact)' ;;
+  esac
+}
+modgui_kernel_package '^kmod-tun(-|$)'
+'''
+        result = subprocess.run(['sh', '-c', script], capture_output=True, text=True, check=True)
+        self.assertEqual(result.stdout.strip(), 'kmod-tun-specific')
+
+    def test_unpinned_module_without_abi_evidence_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            helper = VPN_KERNEL_HELPER.replace('/var/opkg-lists', directory).replace('/usr/lib/opkg/lists', directory).replace('/etc/opkg', directory + '/opkg')
+            script = helper + '''
+uname() { echo 4.1.38; }
+opkg() {
+  case "$1" in
+    status) echo 'Version: 4.1.38-1-exact' ;;
+    list) echo 'kmod-tun - 4.1.38-1' ;;
+    info) printf '%s\n' 'Version: 4.1.38-1' 'Depends: kernel' ;;
+  esac
+}
+modgui_kernel_package '^kmod-tun(-|$)'
+'''
+            result = subprocess.run(['sh', '-c', script], capture_output=True, text=True)
+            self.assertEqual(result.stdout, '')
+            self.assertIn('Unverified kernel ABI', result.stderr)
+
     def test_list_finishes_before_another_opkg_read_takes_the_lock(self):
         with tempfile.TemporaryDirectory() as directory:
             script = VPN_KERNEL_HELPER + '''
