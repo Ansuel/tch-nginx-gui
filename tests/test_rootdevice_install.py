@@ -14,6 +14,42 @@ ROOT = Path(__file__).resolve().parents[1] / 'decompressed/gui_file'
 
 
 class RootdeviceInstall(unittest.TestCase):
+    def test_tim_unlock_flag_compatibility(self):
+        source = (ROOT / 'usr/share/transformer/scripts/ispConfigHelper.sh').read_text()
+        function = source[source.index('cwmp_specific_TIM() {'):
+                          source.index('check_clean() {')]
+        harness = '''
+logecho() { printf '%s\\n' "$1"; }
+curl() { return 0; }
+uci() {
+    case "$*" in
+        'get cwmpd.cwmpd_config.acs_url') echo 'https://existing.example/acs' ;;
+        '-q get env.var.unlockedstatus')
+            [ "$UNLOCK_FLAG" != missing ] || return 1
+            printf '%s\\n' "$UNLOCK_FLAG"
+            ;;
+        'set env.var.unlockedstatus=0')
+            [ "$UNLOCK_FLAG" != missing ] || { echo 'uci: Invalid argument' >&2; return 1; }
+            [ "$UNLOCK_FLAG" != rejected ] || { echo 'uci: Permission denied' >&2; return 1; }
+            echo reset
+            ;;
+        *) echo "Unexpected UCI call: $*" >&2; return 99 ;;
+    esac
+}
+'''
+        for flag in ('missing', '0', '1', 'rejected'):
+            with self.subTest(flag=flag):
+                result = subprocess.run(
+                    ['sh', '-c', 'UNLOCK_FLAG=$1\n' + harness + function +
+                     '\ncwmp_specific_TIM', 'test', flag],
+                    capture_output=True, text=True, timeout=5)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stderr,
+                                 'uci: Permission denied\n' if flag == 'rejected' else '')
+                self.assertEqual(result.stdout.splitlines().count('reset'),
+                                 int(flag == '1'))
+                self.assertIn('CWMP Server detected: Undetected', result.stdout)
+
     def test_led_archive_from_unrelated_working_directory(self):
         tar = shutil.which('gtar') or shutil.which('tar')
         version = subprocess.run([tar, '--version'], capture_output=True, text=True)

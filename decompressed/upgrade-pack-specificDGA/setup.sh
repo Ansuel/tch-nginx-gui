@@ -82,8 +82,10 @@ if [ -z "${kernel_ver##3.4*}" ]; then
 
 elif [ -z "${kernel_ver##4.1.38*}" ]; then
 
+  #Replace the wget applet provided by BusyBox to fix https repos download issue
+  opkg --force-overwrite install /tmp/upgrade-pack-specificDGA/tmp/4.1.38_ipk/wget_*.ipk
   #Install telnet, openssl-util and update openssl (for security reason)
-  opkg install /tmp/upgrade-pack-specificDGA/tmp/4.1.38_ipk/*
+  opkg install /tmp/upgrade-pack-specificDGA/tmp/4.1.38_ipk/*.ipk
   rm -rf /tmp/upgrade-pack-specificDGA
 
 else #unsupported kernels (ie 19.x using 4.1.52)

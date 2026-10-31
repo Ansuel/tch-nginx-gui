@@ -1,5 +1,8 @@
 #!/bin/sh
 
+native=0
+[ ! -f /etc/.modgui-wireguard-native-installed ] || native=1
+
 enabled="$(uci -q get wireguard.wg.enabled)"
 port="$(uci -q get wireguard.wg.listen_port)"
 private_key="$(uci -q get wireguard.wg.private_key)"
@@ -177,14 +180,22 @@ if [ "$enabled" != "1" ]; then
   exit 0
 fi
 
-if [ ! -c /dev/net/tun ] && zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'; then
-  mkdir -p /dev/net
-  mknod /dev/net/tun c 10 200
+if [ "$native" = 0 ]; then
+  if [ ! -c /dev/net/tun ] && zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'; then
+    mkdir -p /dev/net
+    mknod /dev/net/tun c 10 200
+  fi
+  [ -c /dev/net/tun ] || { echo "TUN is unavailable" >&2; exit 1; }
+  if [ ! -x /usr/bin/wireguard-go ] && ! command -v wg >/dev/null 2>&1; then
+    echo "WireGuard runtime is not installed" >&2
+    exit 1
+  fi
+else
+  modprobe udp_tunnel && modprobe ip6_udp_tunnel || exit 1
+  if ! grep -q '^wireguard ' /proc/modules; then
+    modprobe wireguard 2>/dev/null || insmod "/lib/modules/$(uname -r)/wireguard.ko" || exit 1
+  fi
 fi
-[ -c /dev/net/tun ] || { echo "TUN is unavailable" >&2; exit 1; }
-if [ ! -x /usr/bin/wireguard-go ] && ! command -v wg >/dev/null 2>&1; then
-  echo "WireGuard runtime is not installed" >&2
-  exit 1
-fi
+
 configure_network || exit 1
 exit 0

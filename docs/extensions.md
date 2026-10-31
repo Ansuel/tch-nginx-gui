@@ -7,15 +7,16 @@ background, so reopen the card after an operation to refresh its state.
 | Extension | Architectures | Source | Notes |
 | --- | --- | --- | --- |
 | Adblock | ARM and MIPS | Configured `opkg` feeds | Enabled after installation and managed by its init service. |
+| aMule | ARMv7 and MIPS | ARM: configured `opkg` feed; MIPS: pinned legacy IPKs | Installs stopped. Writable USB storage is required to start; configuration and downloads survive removal. WebUI uses port 4711. |
 | rsyncd | ARM and MIPS | Configured `opkg` feeds | No unauthenticated shares are created. Configure `/etc/rsyncd.conf` before starting it. |
 | Ookla Speedtest | ARM, ARM64 | Official Ookla archive | Start opens the terminal with live progress and the result; the latest result is also retained in the card. |
 | OpenSpeedTest | All | Pinned OpenSpeedTest archive | Browser-based LAN/Wi-Fi test on port 5678; requires about 40 MB of free persistent storage. |
 | AdGuard Home | ARM, ARM64 | Official AdGuard stable archive | Installed under `/opt/AdGuardHome`; initial setup is available on port 3000. |
-| WireGuard | ARM, ARM64 with built-in or reviewed installable TUN | Pinned `openwrt-wireguard-go` package | Installs the userspace runtime and a card to manage the tunnel interface, peers and an opt-in firewall zone; everything stays disabled until configured. |
+| WireGuard | Matching kernel module in opkg, or ARM/ARM64/MIPS with reviewed TUN | Configured opkg feeds | Installs the selected runtime and a card to manage the tunnel interface, peers and an opt-in firewall zone; everything stays disabled until configured. |
 | L2TP/IPsec VPN | ARMv7 and MIPS | Pinned `modgui-vpn`, configured opkg feeds | Adds the legacy strongSwan/xl2tpd server card; installation leaves the server disabled. |
 | OpenVPN | ARMv7 and MIPS with TUN | `openvpn-openssl`, `openvpn-easy-rsa` | Adds server and client tabs, user management, profile export and optional SSID-to-client routing; both modes install disabled. |
 | Tailscale | ARMv7, ARM64 with kernel TUN | Official pinned Tailscale static archive | Adds a native status card and controls for tailnet login, subnet routes, exit-node advertising, accepted routes and Tailscale SSH; installs disabled. |
-| DumaOS | ARMv7 | Pinned `dumaos-repack` 2.0-32 IPK | Installs the DumaOS 3.3.90 UI/QoS stack and links its authenticated interface from the Extensions card; requires a reboot after installation and removal. |
+| DumaOS | Supported ARMv7, kernel 4.1.52 | Pinned `dumaos-repack` 2.0-46 IPK | Installs the DumaOS 3.3.90 UI/QoS stack and links its authenticated interface from the Extensions card. Other kernels, including 4.1.38, are rejected before installation. |
 
 AdGuard Home installation deliberately does not stop dnsmasq, claim DNS port 53,
 or change DHCP settings. Complete its first-run wizard and choose non-conflicting
@@ -28,11 +29,29 @@ AdGuard Home on those gateways because runtime lease data does not survive a reb
 Adblock and rsyncd require valid feeds for the gateway firmware. If `opkg update`
 or package installation fails, fix the feeds before retrying from the card.
 
-WireGuard is offered only when the running kernel has TUN support or ModGUI has a
-reviewed matching module. Its package URL
-is pinned to repository commit `7ac8fe29a7ab64eb0c9c9774bb36cf2c7648399e`
-and the downloaded IPK is checked with SHA-256 before installation. The runtime
-uses roughly 20 MB of RAM for each active interface. Installation now adds a native
+WireGuard and SPU install from the configured opkg feeds, with no fixed package
+versions. On ARMv7 the feed setup registers
+`https://francyesco.github.io/GUI_ipk/base` and probes both
+`kernel/<uname -r>` and `kernel/<uname -r>-<product>` under that site. Product
+names are normalized, for example `VBNT-O_fastweb` becomes `vbnto`. Existing
+custom feeds with the same source name are preserved.
+
+VPN availability in the Extensions card/modal is checked by Transformer and exposed
+as boolean datamodel fields. The nginx worker must not invoke opkg probes: legacy
+opkg requires a privileged lock even for reads and otherwise falsely reports that
+compatible modules are missing. Probe results are cached for 30 seconds.
+
+Native WireGuard is preferred when a package matches the running kernel release
+and has no known ABI mismatch. An explicit kernel dependency must match the
+installed kernel package exactly; an unpinned package is also checked against the
+virtual kernel published in its feed. The kernel loader must accept the module;
+forced loading is never used. Tools and protocol integration come from opkg.
+A GUI-owned Go installation is migrated while preserving tunnel configuration;
+its installed package is cached only for rollback during that migration.
+Unmanaged Go installations and other configured tunnels prevent migration.
+If no matching native package exists, the installer uses `wireguard-go` from
+the configured feeds with the shared TUN lifecycle. The existing module loader
+handles boot loading. Installation adds a
 WireGuard card (and a transformer-backed management modal) to configure the tunnel
 address, listen port, a server keypair and per-peer entries. Enabling the interface
 creates a netifd `modgui_wg0` interface, the matching peers and an opt-in firewall
@@ -74,15 +93,38 @@ removed when the service or extension is disabled. Removing the extension also
 deletes its local node identity, so the old machine entry may still need to be removed
 from the Tailscale admin console.
 
-The DumaOS integration pins the latest reviewed `dumaos-repack` release, `2.0-32`
-at commit `884a5351b3a7659f7bf8397ee079eec5ea33cfe0`, and verifies both the IPK and the
+The DumaOS integration pins `dumaos-repack` release `2.0-46` and verifies both the IPK and the
 optional Linux 4.1.52 `act_connmark` QoS module before installation. It is shown
 only on ARMv7 gateways and requires about 40 MB of persistent free space. The
-package replaces core `ubus` components with compatible MR22 versions, so reboot
-the gateway after installation and again after removal. Its name in the Extensions
+published package supports kernel 4.1.52 and the AGTEF firmware ABI. The Extensions
+modal reports unsupported kernels instead of offering installation. The package
+activates the MR22 `ubus` ABI transactionally, with a verified stock backup and
+automatic rollback on failed health checks; removal restores the stock stack.
+Its name in the Extensions
 card opens the authenticated DumaOS interface through the main gateway web server.
 The separate DumaOS card is removed on installation and GUI upgrades; the Extensions
 modal can still start and stop the two DumaOS services.
+
+aMule uses the configured feed on ARMv7 (`3.0.0-1` in the feed validated on
+2026-10-28). MIPS uses the checksum-verified legacy archive at commit
+`4a262ed51847dc192d96a4e2c938540cc89a41db`, without running its upstream setup or
+removal scripts. Installation records the packages it adds; removal never forces
+dependency removal or removes packages that were already installed. An unmanaged
+installation is left intact and reported as such.
+
+The service starts only with writable USB storage, detects both whole disks and
+partitions, and keeps configuration under `sharing/config/amule` and downloads
+under `sharing/download/amule`. A new configuration uses a unique WebUI password
+stored in `/etc/modgui-amule.password` (readable by root) and available in the
+authenticated Extensions modal through a masked field with a Show password toggle.
+The original stays root-only; a separate mode-0400 copy is readable only by the
+nginx worker, and is deleted on removal. No password RPC is published. It binds external
+control to loopback. The password and USB data survive removal and reinstallation.
+Existing USB configuration, including its password, is preserved. No firewall or
+UPnP rule is added. Installation leaves the service stopped; Start and Stop are
+available on both architectures. The installer generates `/etc/init.d/amule`
+directly, without requiring a separate GUI init asset. Stop also terminates the matching `amuleweb`
+child that otherwise survives the daemon on older firmware.
 
 ## Hardware validation
 
@@ -180,3 +222,25 @@ In a second local-only smoke test, the new client connected to the gateway's
 own OpenVPN server on `127.0.0.1`, authenticated and received `10.8.0.6` on
 `tun1`. No SSID was selected or forwarded. Temporary credentials were removed,
 and both OpenVPN modes and the server WAN rule were returned to disabled.
+
+SPU installs alongside L2TP/IPsec when the configured feeds offer a matching `kmod-bcmspu` or `kmod-bcm63xx-tch-spu` package for the running kernel. Module options are inspected: `blog_offload=N` is set only when the driver exposes that parameter. The existing module loader preserves those options at boot. Package or load failures leave software crypto available. SPU remains installed and loaded when the VPN stops or is removed because other IPsec consumers may use it. The earlier validation observed SPU drops under load; it does not establish loss-free hardware operation.
+
+SPU does not accelerate WireGuard's ChaCha20/Poly1305. OpenVPN using AES can potentially use SPU through an OpenSSL engine such as devcrypto/afalg, provided the kernel bridge, engine and matching algorithms are available. The current GUI does not enable such an engine, and OpenVPN/SPU acceleration has not been validated; OpenVPN alone therefore does not install SPU automatically.
+
+Kernel build sources, IPKs and per-module validation belong to
+[GUI_ipk](https://github.com/FrancYescO/GUI_ipk), rather than this GUI overlay:
+
+| Distribution | Current contents |
+| --- | --- |
+| [4.1.52 feed](https://francyesco.github.io/GUI_ipk/kernel/4.1.52/index.html) | TUN, WireGuard, SPU, QoS, netfilter and CDC/RNDIS packages; kernel sources and validation remain in GUI_ipk. |
+| [VBNT-O 4.1.38 feed](https://francyesco.github.io/GUI_ipk/kernel/4.1.38-vbnto/index.html) | Router-tested TUN, WireGuard and SPU for the VBNT-O ABI. |
+| [VBNT-S 4.1.38 feed](https://francyesco.github.io/GUI_ipk/kernel/4.1.38-vbnts/index.html) | Router-tested TUN, WireGuard and SPU for the VBNT-S ABI. |
+| [VBNT-S expanded release](https://github.com/FrancYescO/GUI_ipk/releases/tag/kernel-4.1.38-vbnts-candidates-d399eee) | 213 compiled modules and 212 staged candidate IPKs, including QoS and USB tethering. These additional modules still need router validation. |
+| [VBNT-O validation](https://francyesco.github.io/GUI_ipk/validation/4.1.38/index.html) | Per-payload results; functional validation is distinct from load/unload checks. |
+
+The published VBNT-O results include 58 candidates with functional checks,
+including `act_connmark`, `act_skbedit` and `sch_hfsc`. These exact payloads can
+be considered for packaging in that profile's verified feed.
+Those results do not validate the separately compiled VBNT-S modules. USB
+candidates need device-level tests; the `4.1.38` `xt_nat` candidate remains quarantined and has no
+candidate IPK. Staged candidates are not automatically selected by the GUI.

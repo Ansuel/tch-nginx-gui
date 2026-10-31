@@ -13,28 +13,13 @@ local cputype = proxy.get("rpc.system.modgui.CPUtype")[1].value
 
 local extension_supported = 0
 
-local function kernel_has_tun()
-	local command = io.popen("[ -c /dev/net/tun ] || zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'; echo $?", "r")
-	if not command then
-		return false
-	end
-	local result = command:read("*line")
-	command:close()
-	return result == "0"
+local function vpn_supported(name)
+    local result = proxy.get("rpc.system.modgui." .. name)
+    return result and result[1] and result[1].value == "1"
 end
 
 local function tun_install_supported()
-	if kernel_has_tun() then return true end
-	local command = io.popen([[(case "$(uname -m):$(uname -r)" in
-armv7l:4.1.52) exit 0 ;;
-mips:3.4.11-rt19)
-  case "$(uci -q get 'version.@version[0].marketing_version')" in 17.2|17.2.*|17.2\ *) exit 0 ;; esac ;;
-esac
-exit 1); echo $?]], "r")
-	if not command then return false end
-	local result = command:read("*line")
-	command:close()
-	return result == "0"
+    return vpn_supported("TunSupported")
 end
 
 if marketing_version then
@@ -52,7 +37,7 @@ if marketing_version >= 16.3 then
 end
 mapParams.voipblock_for_mmpbx = "uci.modgui.app.voipblock_for_mmpbx"
 mapParams.voipblock_for_asterisk = "uci.modgui.app.voipblock_for_asterisk"
-if cputype:match("mips") then
+if cputype:match("^mips") or cputype:match("^armv7") then
 	mapParams.amule_webui = "uci.modgui.app.amule_webui"
 end
 mapParams.aria2_webui = "uci.modgui.app.aria2_webui"
@@ -76,7 +61,7 @@ if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
 	end
 end
 if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" or cputype == "mips" then
-	if tun_install_supported() then
+	if vpn_supported("WireGuardSupported") or tun_install_supported() then
 		mapParams.wireguard_application = "uci.modgui.app.wireguard_app"
 	end
 end

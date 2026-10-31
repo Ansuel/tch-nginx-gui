@@ -81,7 +81,7 @@ if marketing_version >= 16.3 then
 end
 mapParams.voipblock_for_mmpbx = "uci.modgui.app.voipblock_for_mmpbx"
 mapParams.voipblock_for_asterisk = "uci.modgui.app.voipblock_for_asterisk"
-if cputype:match("mips") then
+if cputype:match("^mips") or cputype:match("^armv7") then
 	mapParams.amule_webui = "uci.modgui.app.amule_webui"
 end
 mapParams.aria2_webui = "uci.modgui.app.aria2_webui"
@@ -205,7 +205,7 @@ storage[#storage+1] = '</div>'
 notices[#notices+1] = table.concat(storage)
 
 local usb_required = {
-	amule_webui = cputype:match("^mips"),
+	amule_webui = true,
 	aria2_webui = true,
 	transmission_webui = true,
 }
@@ -250,29 +250,14 @@ local function append_extension_card(state_key, app, title, description, link, c
 	html[#html+1] = "</div>"
 end
 
-local function kernel_has_tun()
-	local command = io.popen("[ -c /dev/net/tun ] || zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'; echo $?", "r")
-	if not command then
-		return false
-	end
-	local result = command:read("*line")
-	command:close()
-	return result == "0"
+local function native_wireguard_supported()
+    local result = proxy.get("rpc.system.modgui.WireGuardSupported")
+    return result and result[1] and result[1].value == "1"
 end
 
 local function tun_install_supported()
-	if kernel_has_tun() then return true end
-	local command = io.popen([[(case "$(uname -m):$(uname -r)" in
-armv7l:4.1.52) exit 0 ;;
-mips:3.4.11-rt19)
-  case "$(uci -q get 'version.@version[0].marketing_version')" in 17.2|17.2.*|17.2\ *) exit 0 ;; esac ;;
-esac
-exit 1); echo $?]], "r")
-	if not command then return false end
-	-- Lua 5.1 on these devices does not reliably return an exit status from close.
-	local result = command:read("*all")
-	command:close()
-	return result == "0\n"
+    local result = proxy.get("rpc.system.modgui.TunSupported")
+    return result and result[1] and result[1].value == "1"
 end
 
 if StateParams["luci_webui"] ~= nil then
@@ -305,10 +290,18 @@ if StateParams["amule_webui"] ~= nil then
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. amule_direct_link .. '">' .. amule_direct_link .. "</a>"
 	html[#html+1] = "<br/>"
 	if mapParams["amule_webui"] and mapParams["amule_webui"] == "1" then
-        if cputype:match("mips") then
-            html[#html+1] = ui_helper.createSimpleButton(T"Start".." aMule", "fa fa-play", btn_table.amule.start)
-            html[#html+1] = ui_helper.createSimpleButton(T"Stop".." aMule", "fa fa-stop", btn_table.amule.stop)
-        end
+		local password_file = io.open("/etc/modgui-amule-web.password", "r")
+		if password_file then
+			local password = (password_file:read(256) or ""):gsub("[\r\n]+$", "")
+			password_file:close()
+			if password ~= "" then
+				html[#html+1] = '<label for="amule-web-password">' .. T"WebUI password" .. '</label>'
+				html[#html+1] = '<input id="amule-web-password" class="input-block-level" type="password" readonly autocomplete="off" value="' .. escape_html(password) .. '">'
+				html[#html+1] = '<label class="checkbox" for="amule-show-password"><input id="amule-show-password" type="checkbox" aria-controls="amule-web-password">' .. T"Show password" .. '</label>'
+			end
+		end
+		html[#html+1] = ui_helper.createSimpleButton(T"Start".." aMule", "fa fa-play", btn_table.amule.start)
+		html[#html+1] = ui_helper.createSimpleButton(T"Stop".." aMule", "fa fa-stop", btn_table.amule.stop)
 		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." aMule", "fa fa-times-circle", btn_table.amule.remove)
 	else
 		html[#html+1] = ui_helper.createSimpleButton(T"Install".." aMule", "fa fa-download", btn_table.amule.install)
@@ -452,12 +445,12 @@ if StateParams["openspeedtest_application"] ~= nil then
 end
 
 if StateParams["wireguard_application"] ~= nil then
-	if tun_install_supported() then
+	if native_wireguard_supported() or tun_install_supported() then
 		append_extension_card(
 			"wireguard_application",
 			"wireguard",
 			T"WireGuard",
-			T"Installs the checksum-verified userspace WireGuard runtime and a native card to configure the tunnel interface, peers and firewall rules. Everything stays disabled until configured.",
+			T"Installs native WireGuard matching the running kernel from the configured package feeds, or the userspace runtime when unavailable, and a card to configure the tunnel interface, peers and firewall rules. Everything stays disabled until configured.",
 			nil,
 			false
 		)
@@ -527,6 +520,10 @@ if StateParams["tailscale_application"] ~= nil then
 end
 
 if StateParams["dumaos_application"] ~= nil then
+	local check = io.popen("/usr/share/transformer/scripts/appInstallRemoveUtility.sh check dumaos; echo $?", "r")
+	local supported = check and check:read("*line") == "0"
+	if check then check:close() end
+	if supported or mapParams.dumaos_application == "1" then
 	local dumaos_link = "/desktop/"
 	append_extension_card(
 		"dumaos_application",
@@ -536,6 +533,11 @@ if StateParams["dumaos_application"] ~= nil then
 		dumaos_link,
 		true
 	)
+	else
+		html[#html+1] = '<div class="application-card"><fieldset><legend>' .. T"DumaOS" .. '</legend>'
+		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: DumaOS requires a supported ARMv7 gateway with kernel 4.1.52.", specific_box)
+		html[#html+1] = '</fieldset></div>'
+	end
 end
 
 if StateParams["voipblock_for_mmpbx"] ~= nil then
@@ -653,6 +655,9 @@ ngx.print('\
 \
 <script>\
 (function() {\
+    $("#amule-show-password").on("change", function() {\
+      $("#amule-web-password").attr("type", this.checked ? "text" : "password");\
+    });\
     $("div[id^=\'btn-\']").on("click", function() {\
       var btnact = $(this).attr("id").replace("btn-", "");\
       modgui.postAction(btnact,1);\

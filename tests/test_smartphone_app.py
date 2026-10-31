@@ -1,5 +1,6 @@
 """Exercise optional app installation against a temporary root and package manager."""
 import os
+import io
 from pathlib import Path
 import shlex
 import shutil
@@ -67,6 +68,12 @@ esac
                     relative = file.relative_to(APP).as_posix()
                     if incomplete and relative.endswith('smartphone.map'):
                         continue
+                    if relative.endswith('/drivers.sh'):
+                        body = b'#!/bin/sh\necho install >> "$APP_FIXTURE/driver-installs"\nexit "${FAIL_DRIVERS:-0}"\n'
+                        entry = tarfile.TarInfo(relative)
+                        entry.size = len(body)
+                        archive.addfile(entry, io.BytesIO(body))
+                        continue
                     archive.add(file, arcname=relative)
 
     def run_app(self, action, **env):
@@ -96,6 +103,13 @@ esac
         self.assertFalse((self.root / 'www/cards/017_smartphone.lp').exists())
         self.assertIn('remove adb', (self.root / 'opkg.log').read_text())
         self.assert_ok(self.run_app('install'))
+        self.assertEqual((self.root / 'driver-installs').read_text().splitlines(), ['install', 'install'])
+
+    def test_optional_driver_failure_keeps_telemetry_app_installed(self):
+        result = self.run_app('install', FAIL_DRIVERS='1')
+        self.assert_ok(result)
+        self.assertTrue((self.root / 'etc/.modgui-smartphone-installed').exists())
+        self.assertIn('some tethering drivers are unavailable', result.stdout)
 
     def test_existing_adb_is_retained_on_remove(self):
         self.write_mock('adb', 'exit 0\n')

@@ -2,9 +2,33 @@
 from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 import unittest
 
 MODAL = Path(__file__).resolve().parents[1] / 'decompressed/gui_file/www/docroot/modals/applications-modal.lp'
+
+
+class InstallerStorage(unittest.TestCase):
+    def test_unlimited_tmpfs_uses_ram_without_overriding_full_filesystems(self):
+        source = (MODAL.parents[3] / "usr/share/transformer/scripts/appInstallRemoveUtility.sh").read_text()
+        function = source[source.index("require_free_space() {"):source.index("\nadblock_cleanup_dns()")]
+        cases = (
+            ("tmpfs", 0, 0, "MemAvailable: 70000 kB\n", True),
+            ("tmpfs", 0, 0, "MemAvailable: 30000 kB\n", False),
+            ("tmpfs", 65536, 0, "MemAvailable: 70000 kB\n", False),
+            ("ext4", 0, 0, "MemAvailable: 70000 kB\n", False),
+            ("tmpfs", 0, 0, "MemFree: 10000 kB\nBuffers: 10000 kB\nCached: 30000 kB\n", True),
+        )
+        for filesystem, total, free, memory, expected in cases:
+            with self.subTest(filesystem=filesystem, total=total, memory=memory), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / "mounts").write_text(f"tmpfs /tmp {filesystem} rw 0 0\n")
+                (root / "meminfo").write_text(memory)
+                private = function.replace("/proc/mounts", str(root / "mounts")).replace("/proc/meminfo", str(root / "meminfo"))
+                script = private + '\ndf() { echo "Filesystem 1024-blocks Used Available Capacity Mounted"; echo "tmpfs DFTOTAL 0 DFFREE 0% /tmp"; }\nrequire_free_space 40960 /tmp/staging\n'
+                script = script.replace("DFTOTAL", str(total)).replace("DFFREE", str(free))
+                result = subprocess.run(["sh", "-c", script], capture_output=True, text=True)
+                self.assertEqual(result.returncode == 0, expected, result.stdout + result.stderr)
 
 
 @unittest.skipUnless(shutil.which('lua'), 'Lua interpreter required')
@@ -16,7 +40,7 @@ gettext = {textdomain = function() end}
 ngx = {var = {host = 'gateway.test'}, req = {get_method = function() return 'GET' end},
     print = function(value) io.write(type(value) == 'table' and table.concat(value) or value) end}
 package.preload.datamodel = function() return {get = function(path)
-    return {{value = path:find('CPUtype') and arg[2] or '19.4'}}
+    return {{value = path:find('Supported$') and '1' or (path:find('CPUtype') and arg[2] or '19.4')}}
 end} end
 package.preload['web.content_helper'] = function() return {getExactContent = function(params)
     for key in pairs(params) do params[key] = '0' end
@@ -62,10 +86,10 @@ dofile(arg[1])
             card = html.split('<legend>' + title + '</legend>', 1)[1].split('</fieldset>', 1)[0]
             self.assertIn('>USB required</span>', card)
 
-    def test_arm_downloaders_also_use_usb_but_amule_is_mips_only(self):
+    def test_arm_downloaders_and_amule_report_usb_requirement(self):
         html = self.render('armv7l', 'normal')
-        self.assertEqual(html.count('>USB required</span>'), 2)
-        self.assertNotIn('<legend>aMule</legend>', html)
+        self.assertEqual(html.count('>USB required</span>'), 3)
+        self.assertIn('<legend>aMule</legend>', html)
 
     def test_missing_mounts_or_failed_stats_render_unavailable(self):
         for mode in ('missing', 'failed'):

@@ -165,47 +165,67 @@ var modgui = modgui || {};
     }
 
 	function linkCheckUpdate() {
-		$(".check_update").on("click", function (e) {
+		var target = "/modals/modgui-modal.lp?auto_update=true";
+		$(".check_update").off("click.guiUpdate").on("click.guiUpdate", function (e) {
+			e.preventDefault();
 			e.stopPropagation();
-			if(KoRequest.CheckVer) return;
-			postAction("checkver", null, null, '/modals/modgui-modal.lp?auto_update=true');
+			if ($(this).attr("id") === "btn-check-update") return postAction("checkver", 1, null, target);
+			if (KoRequest.CheckVer) return false;
+			var link = $(this);
+			var registration = {};
+			var pending = false;
+			var deadline = Date.now() + 90000;
+			KoRequest.CheckVer = registration;
+			$(".check_update_error").remove();
 			$(".check_update_spinner").addClass("fa-spin");
-				KoRequest.CheckVer = {
-					interval : setInterval(function () {
-						$.ajax({
-							url:"/ajax/commandlogread.lua?auto_update=true",
-							data: [tch.elementCSRFtoken()],
-							type: "POST",
-							dataType: "json",
-							timeout: 500,
-							success: function (data) {
-								if (data.state == "Checking") {
-									if (data.new_version_text) {
-										if (data.new_version_text == "Unknown") {
-											$(".gui_version_status").removeClass("yellow");
-											$(".gui_version_status").addClass("green");
-											$(".gui_version_status_text").text(gui_var.gui_updated);
-											$("#upgrade-alert").addClass("hide");
-										} else {
-											$(".gui_version_status").removeClass("green");
-											$(".gui_version_status").addClass("yellow");
-											$("#upgradebtn").removeClass("hide");
-											$(".gui_version_status_text").text(gui_var.gui_outdated);
-											$("#upgrade-alert").removeClass("hide");
-											$("#new-version-text").text(data.new_version_text);
-										}
-									}
-								} else if (data.state == "Complete") {
-									$(".gui_version_status_text").parent().fadeOut().fadeIn();
-									$(".check_update_spinner").removeClass("fa-spin");
-									clearInterval(KoRequest.CheckVer.interval);
-									KoRequest.CheckVer = null;
-								}
-							}
-						})
-					}, "500")
-				}
-		})
+			function finish(error) {
+				if (KoRequest.CheckVer !== registration) return;
+				clearInterval(registration.interval);
+				KoRequest.CheckVer = null;
+				$(".check_update_spinner").removeClass("fa-spin");
+				if (error) $("<span>").addClass("check_update_error text-error").attr("role", "alert").text(error).appendTo(link.parent());
+			}
+			function poll() {
+				if (KoRequest.CheckVer !== registration) return;
+				if (Date.now() > deadline) { finish("Update check timed out. Please retry."); return; }
+				if (pending) return;
+				pending = true;
+				$.ajax({url: target, type: "POST",
+					data: {action: "get_update_status", CSRFtoken: $("meta[name=CSRFtoken]").attr("content")}, dataType: "json", timeout: 8000
+				}).done(function (data) {
+					if (KoRequest.CheckVer !== registration) return;
+					if (data.state === "Error") { finish(data.log || "Update check failed. Please retry."); return; }
+					if (data.state !== "Complete") return;
+					if (!data.new_version_text) { finish("Unable to read update result. Please retry."); return; }
+					var outdated = data.new_version_text !== "Unknown";
+					$(".gui_version_status").removeClass("yellow green").addClass(outdated ? "yellow" : "green");
+					$(".gui_version_status_text").text(outdated ? gui_var.gui_outdated : gui_var.gui_updated);
+					if (outdated) $(".gui_update_action").each(function () {
+						$(this).empty().append($("<a>").attr("href", "#").addClass("upgrade_gui").text(gui_var.gui_outdated));
+					});
+					$("#upgradebtn,#upgrade-alert").toggleClass("hide", !outdated);
+					$("#new-version-text").text(data.new_version_text);
+					finish();
+					linkCheckUpdate();
+				}).fail(function (request) {
+					finish(request.responseJSON && request.responseJSON.error || "Unable to check updates. Please retry.");
+				}).always(function () { pending = false; });
+			}
+			$.ajax({url: target, type: "POST", dataType: "json", timeout: 10000,
+				data: {action: "checkver", CSRFtoken: $("meta[name=CSRFtoken]").attr("content")}
+			}).done(function (data) {
+				if (KoRequest.CheckVer !== registration) return;
+				if (!data || (data.success !== true && data.success !== "true")) { finish(data && data.error || "Unable to start update check."); return; }
+				registration.interval = setInterval(poll, 1000);
+				poll();
+			}).fail(function (request) { finish(request.responseJSON && request.responseJSON.error || "Unable to start update check."); });
+			return false;
+		});
+		$(".upgrade_gui").off("click.guiUpdate").on("click.guiUpdate", function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			return postAction("system_upgrade_gui", 1, null, target);
+		});
 	};
 
 	function freshStyle(stylesheet) {

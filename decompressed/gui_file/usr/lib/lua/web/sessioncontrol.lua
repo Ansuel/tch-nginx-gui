@@ -19,6 +19,8 @@ local s_mgr_map = {} -- Mapping of managers to ports.
 
 --- Handler function for the ngx timer.
 local function handler(premature, mgr)
+  -- This timer has fired. Only mark it pending again after scheduling succeeds.
+  mgr.timerset = false
   if premature then
     return
   end
@@ -30,6 +32,7 @@ local function handler(premature, mgr)
       ngx.log(ngx.ERR, "failed to create timer: ", err)
       return
     end
+    mgr.timerset = true
   else
     --All sessions deleted, no timer needed
     mgr.timerset = false
@@ -372,9 +375,12 @@ function M.getmgr(name)
     local ok, err = ngx.timer.at(mgr["timeout"], handler, mgr)
     if not ok then
       ngx.log(ngx.ERR, "failed to create timer: ", err)
-      return
+      -- Keep requests usable and reclaim expired sessions synchronously.
+      -- Leave timerset false so the next request can retry the timer.
+      mgr:cleanup()
+    else
+      mgr.timerset = true
     end
-    mgr.timerset = true
   end
   return mgr
 end

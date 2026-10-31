@@ -22,6 +22,7 @@ live_peers=0
 wg_tool=""
 [ -x /usr/bin/wg-go ] && wg_tool="/usr/bin/wg-go"
 [ -n "$wg_tool" ] || wg_tool="$(command -v wg 2>/dev/null)"
+[ ! -f /etc/.modgui-wireguard-native-installed ] || wg_tool=/usr/bin/wg
 if [ "$running" = "true" ] && [ -n "$wg_tool" ]; then
   live_peers="$("$wg_tool" show "$interface" latest-handshakes 2>/dev/null |
     awk -v now="$(date +%s)" '$2 != "" && $2 != "(never)" && now - $2 < 360 { count++ } END { print count + 0 }')"

@@ -4565,6 +4565,15 @@ msgstr "USB: nessuna unità montata"
 msgid "Read-only"
 msgstr "Sola lettura"
 
+msgid "Unavailable: DumaOS requires a supported ARMv7 gateway with kernel 4.1.52."
+msgstr "Non disponibile: DumaOS richiede un gateway ARMv7 supportato con kernel 4.1.52."
+
+msgid "WebUI password"
+msgstr "Password dell’interfaccia web"
+
+msgid "Show password"
+msgstr "Mostra password"
+
 msgid "USB required"
 msgstr "USB richiesta"
 

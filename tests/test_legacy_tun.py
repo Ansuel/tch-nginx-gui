@@ -16,6 +16,76 @@ INSTALLER = ROOT / 'usr/share/transformer/scripts/appInstallRemoveUtility.sh'
 
 
 class LegacyTun(unittest.TestCase):
+    def test_gui_owned_unpinned_tun_migrates_only_when_unused(self):
+        source = INSTALLER.read_text().split('\n# 1st arg directory')[0]
+        for busy, failed in ((False, False), (True, False), (False, True)):
+            with self.subTest(busy=busy, failed=failed), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / 'etc/modules.d').mkdir(parents=True)
+                (root / 'etc/.modgui-tun-installed').touch()
+                private = source.replace('/etc/', str(root / 'etc') + '/')
+                script = private + '''
+modgui_tun_profile() { return 1; }
+modgui_tun_migrate_owners() { :; }
+modgui_reviewed_tun_build() { return 1; }
+modgui_kernel_package() { echo kmod-tun; }
+modgui_kernel_abi_matches() { printf '%s' "$2" | command grep -q exact; }
+modgui_has_tun() { return 0; }
+modgui_wait_tun() { return 0; }
+grep() { if [ "$3" = /proc/modules ]; then return 0; else command grep "$@"; fi; }
+rmmod() { echo UNLOAD; return "$busy"; }
+modprobe() { echo LOAD; }
+opkg() {
+ case "$1" in
+ status) echo 'Status: install ok installed'; [ "$upgraded" != 1 ] || echo 'Depends: kernel (= exact)' ;;
+ install) echo "INSTALL:$2"; [ "$failed" = 0 ] || return 1; upgraded=1 ;;
+ esac
+}
+busy="$1"
+failed="$2"
+upgraded=0
+modgui_install_tun openvpn
+'''
+                result = subprocess.run(['sh', '-c', script, 'probe', str(int(busy)), str(int(failed))], capture_output=True, text=True)
+                self.assertEqual(result.returncode == 0, not busy and not failed, result.stderr)
+                self.assertIn('UNLOAD', result.stdout)
+                self.assertEqual('INSTALL:kmod-tun' in result.stdout, not busy)
+                self.assertEqual('LOAD' in result.stdout.splitlines(), not busy)
+                if not busy and not failed:
+                    self.assertEqual((root / 'etc/.modgui-tun-package-installed').read_text().strip(), 'kmod-tun')
+
+    def test_reviewed_tun_still_installs_new_openvpn_runtime_dependencies(self):
+        source = INSTALLER.read_text()
+        start = source.index('      openvpn_runtime_deps=""')
+        end = source.index('    else\n      opkg install openvpn-openssl', start)
+        block = source[start:end]
+        for modern in (False, True):
+            with self.subTest(modern=modern):
+                dependencies = 'libc, kmod-tun, liblzo' + (', libcap-ng (>= 0.8), liblz4' if modern else '')
+                script = "opkg() { if [ \"$1\" = info ]; then echo 'Depends: " + dependencies + "'; else echo \"$*\"; fi; }\n" + block
+                result = subprocess.run(['sh', '-c', script], capture_output=True, text=True, check=True)
+                self.assertEqual('libcap-ng' in result.stdout, modern)
+                self.assertEqual('liblz4' in result.stdout, modern)
+                self.assertIn('install --nodeps --force-depends openvpn-openssl', result.stdout)
+
+    def test_existing_device_node_does_not_bypass_abi_validation(self):
+        source = INSTALLER.read_text().split('\n# 1st arg directory')[0]
+        script = source + '''
+modgui_tun_profile() { return 1; }
+modgui_tun_migrate_owners() { :; }
+modgui_reviewed_tun_build() { return 1; }
+modgui_kernel_package() { echo kmod-tun-specific; }
+modgui_has_tun() { echo UNEXPECTED_DEVICE_PROBE; return 0; }
+opkg() {
+ [ "$2" != kmod-tun ] || printf '%s\n' 'Status: install ok installed' 'Depends: kernel'
+}
+modgui_install_tun openvpn
+'''
+        result = subprocess.run(['sh', '-c', script], capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn('UNEXPECTED_DEVICE_PROBE', result.stdout)
+        self.assertIn('unverified TUN', result.stdout)
+
     def test_tailscale_cleanup_waits_for_exit_and_removes_only_its_rules(self):
         source = (ROOT / 'usr/share/modgui-tailscale/tailscale.init').read_text()
         functions = source[source.index('service_stopped() {'):]
@@ -123,46 +193,35 @@ configured="$1"
                 else:
                     self.assertFalse((root / 'reloads').exists())
 
-    def test_mips_wireguard_archive_is_verified_and_owned_by_opkg(self):
+    def test_go_rollback_package_preserves_installed_version_and_only_owned_files(self):
         source = INSTALLER.read_text()
-        function = source[source.index('  wireguard_prepare_mips_package() {'):source.index('\n  wireguard_register_gui()')]
-        runtime_files = ['usr/bin/wireguard-go', 'usr/bin/wg-go', 'usr/bin/wg',
-                         'lib/netifd/proto/wireguard.sh', 'etc/hotplug.d/net/10-wireguard']
-        for corrupt in (False, True):
-            with self.subTest(corrupt=corrupt), tempfile.TemporaryDirectory() as directory:
-                root = Path(directory)
-                archive_path = root / 'runtime.tgz'
-                with tarfile.open(archive_path, 'w:gz') as archive:
-                    for name in runtime_files + ['etc/sysctl.d/99-wireguard.conf']:
-                        entry = tarfile.TarInfo(name)
-                        entry.size = 7
-                        archive.addfile(entry, io.BytesIO(b'runtime'))
-                checksum = hashlib.sha256(archive_path.read_bytes()).hexdigest()
-                script = '''
-wireguard_version=2023.09.29
-wireguard_tmp="$1/package.ipk"
-wireguard_sha256="$2"
-testroot="$1"
-curl() { cp "$testroot/runtime.tgz" "$4"; }
+        function = source[source.index('modgui_backup_wireguard_go() ('):source.index('modgui_install_native_wireguard() (')]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            payload = root / 'payload'
+            payload.mkdir()
+            (payload / 'wg-go').write_text('installed runtime')
+            (payload / 'unowned').write_text('must not enter backup')
+            stage = root / 'stage'
+            stage.mkdir()
+            script = function + f'''
+opkg() {{
+  case "$1" in
+    status) printf '%s\\n' 'Package: wireguard-go' 'Version: installed-version' 'Architecture: brcm63xx' 'Status: install ok installed' ;;
+    files) printf '%s\\n' '{payload}' '{payload}/wg-go' ;;
+  esac
+}}
+modgui_backup_wireguard_go '{stage}'
 '''
-                script += function.replace('/tmp/modgui-wireguard-mips.', str(root) + '/stage.')
-                script += '\nwireguard_prepare_mips_package\n'
-                result = subprocess.run(['sh', '-c', script, 'check', str(root),
-                                         'invalid' if corrupt else checksum], capture_output=True, text=True,
-                                        env=dict(os.environ, COPYFILE_DISABLE='1'))
-                self.assertEqual(result.returncode == 0, not corrupt, result.stderr)
-                self.assertFalse(list(root.glob('stage.*')))
-                if corrupt:
-                    self.assertFalse((root / 'package.ipk').exists())
-                    continue
-                with tarfile.open(root / 'package.ipk') as package:
-                    self.assertEqual(package.extractfile('debian-binary').read(), b'2.0\n')
-                    with tarfile.open(fileobj=package.extractfile('control.tar.gz')) as control:
-                        metadata = control.extractfile('control').read().decode()
-                        self.assertIn('Package: wireguard-go\n', metadata)
-                        self.assertIn('Architecture: brcm63xx\n', metadata)
-                    with tarfile.open(fileobj=package.extractfile('data.tar.gz')) as data:
-                        self.assertEqual(set(data.getnames()), set(runtime_files))
+            result = subprocess.run(['sh', '-c', script], capture_output=True, text=True, env=dict(os.environ, COPYFILE_DISABLE='1'))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            with tarfile.open(stage / 'go.ipk') as package:
+                with tarfile.open(fileobj=package.extractfile('control.tar.gz')) as control:
+                    metadata = control.extractfile('./control').read().decode()
+                    self.assertIn('Version: installed-version', metadata)
+                    self.assertNotIn('Status:', metadata)
+                with tarfile.open(fileobj=package.extractfile('data.tar.gz')) as data:
+                    self.assertEqual(data.getnames(), [str(payload / 'wg-go').lstrip('/')])
 
     @unittest.skipUnless(shutil.which('lua'), 'Lua interpreter required')
     def test_connected_count_rpc_reads_private_status_without_exposing_it(self):
@@ -274,6 +333,7 @@ for _, test in ipairs({{'udp', 'udp'}, {'tcp', 'tcp-client'}, {'tcp-server', 'tc
  assert(profile:find('proto ' .. test[2] .. '\\n', 1, true))
  assert(profile:find('tls-version-min 1.2', 1, true))
  assert(profile:find('remote-cert-tls server', 1, true))
+ assert(profile:find('setenv opt data-ciphers AES-256-CBC', 1, true))
 end
 '''.replace('SOURCE', repr(source))
         # Python repr uses string escapes also accepted by Lua for this source.
@@ -408,41 +468,37 @@ modgui_has_tun() { attempts=$((attempts + 1)); [ "$attempts" -ge "$1" ]; }
 
     def test_gui_and_installer_agree_on_supported_platforms(self):
         source = INSTALLER.read_text()
-        predicate = source[source.index('modgui_reviewed_tun_build() {'):source.index('\nmodgui_tun_profile()')]
-        self.assertNotIn('prod_friendly_name', predicate)
-        commands = []
         for path in ('www/docroot/modals/applications-modal.lp', 'www/cards/009_extensions.lp'):
             gui = (ROOT / path).read_text()
-            gui = gui[gui.index('local function tun_install_supported()'):]
-            command = re.search(r'io.popen\(\[\[(.*?)\]\], "r"\)', gui, re.S)[1]
-            self.assertNotIn('prod_friendly_name', command)
-            commands.append(command)
-        for cpu, kernel, version, model, expected in [
-            ('mips', '3.4.11-rt19', '17.2', 'MediaAccess TG788vn v2', True),
-            ('mips', '3.4.11-rt19', '17.2', 'TG789vac v2', True),
-            ('mips', '3.4.11-rt19', '16.3', 'TG789vac v2', False),
-            ('mips', '3.4.11-rt19', '17.20', 'TG789vac v2', False),
-            ('mips', '3.4.11-rt19', '17.2', 'unknown', True),
-            ('mips', '3.4.11-rt19', '17.2', '', True),
-            ('mips', '3.4.11-rt19', '17.2.1', 'another model', True),
-            ('mips', '3.4.11-rt19', '18.3', '', False),
-            ('mips', '3.4.11', '17.2', 'TG788vn v2', False),
-            ('mipsel', '3.4.11-rt19', '17.2', 'TG788vn v2', False),
-            ('armv7l', '4.1.52', '19.4', 'DGA4130', True),
-            ('armv7l', '4.1.38', '19.4', 'DGA4130', False),
-        ]:
-            with self.subTest(cpu=cpu, kernel=kernel, version=version, model=model):
-                setup = '''
-cpu_type="$1"; kernel="$2"; marketing_version="$3"; model="$4"
-uname() { if [ "$1" = -m ]; then echo "$cpu_type"; else echo "$kernel"; fi; }
-uci() { case "$*" in *marketing_version*) echo "$marketing_version";; *) echo "$model";; esac; }
-'''
-                args = ['check', cpu, kernel, version, model]
-                cli = subprocess.run(['sh', '-c', setup + predicate + '\nmodgui_reviewed_tun_build', *args])
-                self.assertEqual(cli.returncode == 0, expected)
-                for command in commands:
-                    ui = subprocess.run(['sh', '-c', setup + command, *args], capture_output=True, text=True)
-                    self.assertEqual(ui.stdout.strip() == '0', expected)
+            self.assertIn('TunSupported', gui)
+            self.assertNotIn('appInstallRemoveUtility.sh check tun', gui)
+        mapping = (ROOT / 'usr/share/transformer/mappings/rpc/system.modgui.map').read_text()
+        self.assertIn('TunSupported = function() return vpn_supported("tun") end', mapping)
+        start = source.rindex('case "$1" in\ncheck)')
+        definitions, dispatch = source[:start], source[start:]
+        for cpu, kernel, version, available, expected in (
+            ('mips', '3.4.11-rt19', '17.2', False, True),
+            ('mips', '3.4.11-rt19', '16.3', False, False),
+            ('mips', '3.4.11-rt19', '17.20', False, False),
+            ('armv7l', '4.1.52', '19.4', False, True),
+            ('armv7l', '4.1.38', '18.3', False, False),
+            ('armv7l', '4.1.38', '18.3', True, True),
+        ):
+            with self.subTest(cpu=cpu, kernel=kernel, available=available):
+                setup = '\n'.join((
+                    'test_cpu="$1"; test_kernel="$2"; test_version="$3"; available="$4"',
+                    'uname() { if [ "$1" = -m ]; then echo "$test_cpu"; else echo "$test_kernel"; fi; }',
+                    'uci() { echo "$test_version"; }',
+                ))
+                mocks = '\n'.join((
+                    'modgui_has_tun() { return 1; }',
+                    'modgui_kernel_package() { [ "$available" = 1 ] && echo kmod-tun-profile; }',
+                    'set -- check tun',
+                ))
+                script = setup + '\n' + definitions + '\n' + mocks + '\n' + dispatch
+                result = subprocess.run(['sh', '-c', script, 'check', cpu, kernel, version, str(int(available))],
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode == 0, expected, result.stderr)
 
     def test_arm_tun_download_retains_legacy_tls_and_verifies_module(self):
         prefix = INSTALLER.read_text().split('\n#  1st arg : directory')[0]

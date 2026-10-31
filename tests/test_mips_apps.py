@@ -76,6 +76,7 @@ require_free_space 16384 /usr
         result = self.run_sh(function('app_amule', 'app_aria2') + '''
 opkg() { :; }
 uci() { :; }
+set_extension_state() { :; }
 app_amule remove
 ''')
         self.assertEqual(result.returncode, 0, result.stderr)

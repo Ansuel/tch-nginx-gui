@@ -3,6 +3,10 @@
 marketing_version="$(uci get -q version.@version[0].marketing_version)"
 cpu_type="$(uname -m)"
 
+dumaos_platform_supported() {
+  case "$cpu_type:$(uname -r)" in armv7*:4.1.52*) return 0 ;; *) return 1 ;; esac
+}
+
 # Shared TUN lifecycle for WireGuard, OpenVPN and Tailscale.  The reviewed
 # DGA4130 module is for ARMv7 kernel 4.1.52; the legacy MIPS module is limited
 # to MIPS Homeware 17.2 with kernel 3.4.11-rt19. Other
@@ -21,6 +25,10 @@ modgui_has_tun() {
 }
 
 modgui_wait_tun() {
+  # Manual-only modules need a misc device node on older mdev firmwares.
+  if [ ! -e /dev/net/tun ] && [ "$(cat /sys/class/misc/tun/dev 2>/dev/null)" = 10:200 ]; then
+    mkdir -p /dev/net && mknod /dev/net/tun c 10 200 || return 1
+  fi
   tun_attempt=0
   until modgui_has_tun; do
     tun_attempt=$((tun_attempt + 1))
@@ -73,6 +81,42 @@ modgui_install_tun() {
   consumer="$1"
   modgui_tun_profile || true
   modgui_tun_migrate_owners
+  # A device node proves registration, not ABI compatibility. The legacy
+  # ARM 4.1.38 package can load and crash only when creating an interface.
+  if ! modgui_reviewed_tun_build; then
+    tun_installed="$(opkg status kmod-tun 2>/dev/null)"
+    if printf '%s\n' "$tun_installed" | grep -q '^Status:.*installed'; then
+      tun_candidate="$(modgui_kernel_package '^kmod-tun(-|$)')"
+      [ -n "$tun_candidate" ] || return 1
+      tun_selected="$(opkg status "$tun_candidate" 2>/dev/null)"
+      if ! printf '%s\n' "$tun_selected" | grep -q '^Status:.*installed' ||
+          ! modgui_kernel_abi_matches "$tun_candidate" "$tun_selected"; then
+        [ -f "$modgui_tun_owned" ] || {
+          echo "An unverified TUN is installed; replace it with $tun_candidate before starting a VPN"
+          return 1
+        }
+        # Upgrade only GUI-owned modules, using the normal opkg dependency
+        # resolver. An active tunnel must prevent migration before any write.
+        tun_migration_unloaded=0
+        if grep -q '^tun ' /proc/modules; then
+          rmmod tun 2>/dev/null || { echo "TUN is in use; stop its VPNs before upgrading"; return 1; }
+          tun_migration_unloaded=1
+        fi
+        if ! opkg install "$tun_candidate"; then
+          # A failed preinst must not leave the previous installation unloaded.
+          [ "$tun_migration_unloaded" = 0 ] || modprobe tun 2>/dev/null || true
+          return 1
+        fi
+        tun_selected="$(opkg status "$tun_candidate" 2>/dev/null)"
+        printf '%s\n' "$tun_selected" | grep -q '^Status:.*installed' &&
+          modgui_kernel_abi_matches "$tun_candidate" "$tun_selected" || return 1
+        modprobe tun 2>/dev/null || insmod "/lib/modules/$(uname -r)/tun.ko" 2>/dev/null || return 1
+        modgui_wait_tun || return 1
+        printf '%s\n' "$tun_candidate" > "$modgui_tun_package_owned"
+        printf 'tun\n' > "$modgui_tun_boot"
+      fi
+    fi
+  fi
   if modgui_has_tun; then
     [ ! -f "$modgui_tun_owned" ] || touch "/etc/.modgui-tun-user-$consumer"
     return 0
@@ -129,16 +173,22 @@ modgui_install_tun() {
     return 0
   fi
 
-  if ! opkg list-installed 2>/dev/null | grep -q '^kmod-tun '; then
-    opkg install kmod-tun || return 1
-    touch "$modgui_tun_package_owned"
+  tun_candidate="$(modgui_kernel_package '^kmod-tun(-|$)')"
+  [ -n "$tun_candidate" ] || {
+    echo "No TUN package with matching kernel/ABI is available"
+    return 1
+  }
+  if ! opkg list-installed 2>/dev/null | awk -v package="$tun_candidate" '$1 == package {found=1} END {exit !found}'; then
+    opkg install "$tun_candidate" || return 1
+    printf '%s\n' "$tun_candidate" > "$modgui_tun_package_owned"
   fi
-  modprobe tun 2>/dev/null || true
+  modprobe tun 2>/dev/null || insmod "/lib/modules/$(uname -r)/tun.ko" 2>/dev/null || true
   modgui_wait_tun || {
     echo "No compatible TUN module is available for this firmware"
     return 1
   }
   [ ! -f "$modgui_tun_package_owned" ] || {
+    printf 'tun\n' > "$modgui_tun_boot"
     touch "$modgui_tun_owned" "/etc/.modgui-tun-user-$consumer"
   }
 }
@@ -160,7 +210,10 @@ modgui_release_tun() {
   fi
   rm -f "$modgui_tun_boot"
   if [ -f "$modgui_tun_package_owned" ]; then
-    opkg remove kmod-tun >/dev/null 2>&1 || return 0
+    tun_owned_package="$(cat "$modgui_tun_package_owned")"
+    [ -n "$tun_owned_package" ] || tun_owned_package=kmod-tun
+    case "$tun_owned_package" in kmod-tun|kmod-tun-*) ;; *) return 1 ;; esac
+    opkg remove "$tun_owned_package" >/dev/null 2>&1 || return 0
     rm -f "$modgui_tun_package_owned"
   elif [ -f "$modgui_tun_file" ] &&
     [ "$(sha256sum "$modgui_tun_file" | awk '{print $1}')" = "$modgui_tun_sha256" ]; then
@@ -484,45 +537,210 @@ app_luci() {
 }
 
 app_amule() {
-  install() {
-    [ "$cpu_type" = "mips" ] || return 1
-    require_usb_storage || return 1
-    require_free_space 16384 /usr || return 1
-    install_from_github FrancYescO/sharing_tg789 amule || return 1
-    [ -x /usr/bin/amuled ] || return 1
-    uci set modgui.app.amule_webui="1"
-    uci commit modgui
+  amule_state=/etc/modgui-amule
+  amule_write_init() {
+    cat > /etc/init.d/amule <<'AMULE_INIT' || return 1
+#!/bin/sh /etc/rc.common
+
+START=95
+STOP=10
+USE_PROCD=1
+
+start_service() {
+  usb=$(awk '$1 ~ /^\/dev\/sd[a-z][0-9]*$/ && $2 ~ /^\/tmp\/run\/mountd\/sd[a-z][0-9]*$/ && $4 ~ /(^|,)rw(,|$)/ {print $2; exit}' /proc/mounts)
+  [ -n "$usb" ] || { echo "aMule requires mounted writable USB storage"; return 1; }
+  config="$usb/sharing/config/amule"
+  downloads="$usb/sharing/download/amule"
+  mkdir -p "$config" "$downloads/files" "$downloads/temp" || return 1
+  probe=$(mktemp "$config/.write.XXXXXX") || return 1
+  rm -f "$probe"
+  if [ ! -e "$config/amule.conf" ]; then
+    password=$(md5sum /etc/modgui-amule.password | awk '{print $1}')
+    [ -n "$password" ] || return 1
+    cat > "$config/amule.conf" <<EOF
+[eMule]
+Nick=aMule
+MaxConnections=50
+MaxConnectionsPerFiveSeconds=5
+Autoconnect=0
+Reconnect=0
+ConnectToED2K=0
+ConnectToKad=0
+UPnPEnabled=0
+TempDir=$downloads/temp
+IncomingDir=$downloads/files
+AddNewFilesPaused=1
+NewVersionCheck=0
+[ExternalConnect]
+AcceptExternalConnections=1
+ECAddress=127.0.0.1
+ECPort=4712
+ECPassword=$password
+UPnPECEnabled=0
+[WebServer]
+Enabled=1
+Password=$password
+Port=4711
+UPnPWebServerEnabled=0
+Template=default
+UseLowRightsUser=0
+EOF
+    chmod 600 "$config/amule.conf"
+  fi
+  printf '%s\n' "$config" > /var/run/modgui-amule.config || return 1
+  procd_open_instance
+  procd_set_param command /usr/bin/amuled -c "$config"
+  procd_set_param stdout 1
+  procd_set_param stderr 1
+  procd_close_instance
+}
+
+stop_service() {
+  [ -f /var/run/modgui-amule.config ] || return 0
+  config=$(cat /var/run/modgui-amule.config)
+  # amuleweb forks out of the daemon's procd process tree. Match its exact
+  # configuration argument, rather than stopping unrelated aMule instances.
+  for pid in $(pidof amuleweb 2>/dev/null); do
+    if tr '\000' '\n' < "/proc/$pid/cmdline" 2>/dev/null |
+      grep -Fxq -- "--amule-config-file=$config/amule.conf"; then
+      kill -TERM "$pid" 2>/dev/null || true
+      for attempt in 1 2 3 4 5; do
+        kill -0 "$pid" 2>/dev/null || break
+        sleep 1
+      done
+      kill -0 "$pid" 2>/dev/null && return 1
+    fi
+  done
+  rm -f /var/run/modgui-amule.config
+}
+AMULE_INIT
+    chmod 755 /etc/init.d/amule
   }
-  remove() {
-    if [ -f /usr/share/transformer/scripts/remove_amule.sh ]; then
-      sh /usr/share/transformer/scripts/remove_amule.sh || return 1
-      rm -f /usr/share/transformer/scripts/remove_amule.sh
-    elif opkg list-installed | grep -q '^amule '; then
-      echo "Missing aMule removal manifest; refusing an incomplete removal"
+  amule_publish_password() {
+    # Only the nginx worker identity may read the UI copy. The original secret
+    # stays root-only, and no credential is exposed through the shared RPC bus.
+    (umask 077; cp /etc/modgui-amule.password /etc/modgui-amule-web.password) || return 1
+    chown nobody /etc/modgui-amule-web.password && chmod 400 /etc/modgui-amule-web.password
+  }
+  amule_record_packages() {
+    opkg list-installed | awk '{print $1}' > "$amule_state/after"
+    : > "$amule_state/packages"
+    while read -r package; do
+      grep -Fxq "$package" "$amule_state/before" || echo "$package" >> "$amule_state/packages"
+    done < "$amule_state/after"
+  }
+  amule_remove() {
+    if [ ! -d "$amule_state" ]; then
+      if opkg status amule 2>/dev/null | grep -q '^Status:.* installed$'; then
+        echo "Unmanaged aMule installation; refusing to remove existing packages"
+        return 1
+      fi
+      set_extension_state amule_webui 0
+      return $?
+    fi
+    [ ! -x /etc/init.d/amule ] || {
+      /etc/init.d/amule stop || return 1
+      /etc/init.d/amule disable 2>/dev/null || true
+    }
+    # Remove only packages introduced by this installation, in dependency order.
+    for pass in 1 2 3 4 5 6; do
+      while read -r package; do
+        opkg status "$package" 2>/dev/null | grep -q '^Status:.* installed$' || continue
+        opkg remove "$package" >/dev/null 2>&1 || true
+      done < "$amule_state/packages"
+    done
+    while read -r package; do
+      if opkg status "$package" 2>/dev/null | grep -q '^Status:.* installed$'; then
+        echo "aMule package still required by another application: $package"
+        return 1
+      fi
+    done < "$amule_state/packages"
+    # USB configuration and downloads are user data and survive removal.
+    rm -f /etc/init.d/amule
+    rm -f /etc/modgui-amule-web.password
+    rm -rf "$amule_state"
+    set_extension_state amule_webui 0
+  }
+  case "$1" in
+  install)
+    case "$cpu_type" in armv7*|mips) ;; *) echo "aMule supports ARMv7 and MIPS gateways"; return 1 ;; esac
+    if [ -f "$amule_state/installed" ]; then
+      [ -x /usr/bin/amuled ] && [ -x /usr/bin/amuleweb ] || return 1
+      amule_write_init || return 1
+      amule_publish_password || return 1
+      set_extension_state amule_webui 1
+      return $?
+    fi
+    if [ -e "$amule_state" ] || [ -e /etc/init.d/amule ] ||
+      opkg status amule 2>/dev/null | grep -q '^Status:.* installed$'; then
+      echo "An aMule installation already exists; refusing to overwrite it"
       return 1
     fi
-    uci set modgui.app.amule_webui="0"
-    uci commit modgui
-  }
-  start() {
-    /etc/init.d/amule start
-  }
-  stop() {
-    /etc/init.d/amule stop
-  }
-
-  case $1 in
-  install)
-    install "$2"
+    case "$cpu_type" in
+      mips) require_usb_storage && require_free_space 4096 /usr || return 1 ;;
+      *) require_free_space 16384 /usr || return 1; opkg update || return 1 ;;
+    esac
+    (
+      umask 077
+      mkdir -p "$amule_state" || exit 1
+      opkg list-installed | awk '{print $1}' > "$amule_state/before"
+      : > "$amule_state/packages"
+      stage="/tmp/modgui-amule.$$"
+      success=0
+      cleanup() {
+        if [ "$success" != 1 ]; then
+          amule_record_packages
+          amule_remove || echo "aMule rollback incomplete; retained $amule_state"
+        fi
+        rm -rf "$stage"
+      }
+      trap cleanup EXIT
+      trap 'exit 1' HUP INT TERM
+      if [ "$cpu_type" = mips ]; then
+        mkdir -p "$stage" || exit 1
+        curl -fkLsS --connect-timeout 15 --max-time 120 \
+          https://api.github.com/repos/FrancYescO/sharing_tg789/tarball/4a262ed51847dc192d96a4e2c938540cc89a41db \
+          --output "$stage/source.tgz" || exit 1
+        [ "$(sha256sum "$stage/source.tgz" | awk '{print $1}')" = d3f1d4fe4b0816d873d6e504d07aa9226afa5467f14dfb27cdc07665ddd4cdc6 ] || {
+          echo "aMule MIPS archive checksum mismatch"; exit 1;
+        }
+        tar -xzf "$stage/source.tgz" -C "$stage" || exit 1
+        set --
+        for ipk in "$stage"/FrancYescO-sharing_tg789-*/*.ipk; do
+          package=$(basename "$ipk"); package=${package%%_*}
+          opkg status "$package" 2>/dev/null | grep -q '^Status:.* installed$' || set -- "$@" "$ipk"
+        done
+        [ "$#" -gt 0 ] && opkg install "$@" || exit 1
+      else
+        opkg install amule || exit 1
+      fi
+      amule_record_packages
+      [ -x /usr/bin/amuled ] && [ -x /usr/bin/amuleweb ] || exit 1
+      amule_write_init || exit 1
+      # Credentials are unique to the gateway; do not ship a shared password.
+      if [ ! -s /etc/modgui-amule.password ]; then
+        head -c 18 /dev/urandom | hexdump -v -e '1/1 "%02x"' > /etc/modgui-amule.password
+      fi
+      [ -s /etc/modgui-amule.password ] || exit 1
+      amule_publish_password || exit 1
+      touch "$amule_state/installed"
+      set_extension_state amule_webui 1 || exit 1
+      success=1
+      echo "aMule installed, stopped. Attach writable USB storage before starting."
+      echo "WebUI password: /etc/modgui-amule.password (root only, preserved on removal)."
+    )
     ;;
   start)
-    start
+    [ -f "$amule_state/installed" ] || return 1
+    require_usb_storage || return 1
+    /etc/init.d/amule start
     ;;
   stop)
-    stop
+    [ -f "$amule_state/installed" ] || return 1
+    /etc/init.d/amule stop
     ;;
   remove)
-    remove
+    amule_remove
     ;;
   *)
     echo "Unsupported action"
@@ -902,7 +1120,7 @@ require_usb_storage() {
       print $2; exit
     }' /proc/mounts)
   if [ -z "$modgui_usb_root" ]; then
-    echo "This legacy MIPS app requires a mounted writable USB disk"
+    echo "This application requires a mounted writable USB disk"
     return 1
   fi
   probe=$(mktemp "$modgui_usb_root/.modgui-write.XXXXXX") || return 1
@@ -1192,7 +1410,22 @@ extract_bzip_archive() (
 require_free_space() {
   required_kb="$1"
   target_path="$2"
+  total_kb="$(df -Pk "$target_path" 2>/dev/null | awk 'END {print $2}')"
   available_kb="$(df -Pk "$target_path" 2>/dev/null | awk 'END {print $4}')"
+  # Some Homeware kernels report unlimited tmpfs as zero blocks. Do not
+  # mistake that for a full filesystem; bounded tmpfs and disks still use df.
+  if [ "$total_kb:$available_kb" = 0:0 ] && awk -v path="$target_path" '
+    $3 == "tmpfs" && ($2 == path || index(path, $2 "/") == 1) {found=1}
+    END {exit !found}
+  ' /proc/mounts; then
+    available_kb="$(awk '
+      /^MemAvailable:/ {available=$2; known=1}
+      /^MemFree:/ {free=$2}
+      /^Buffers:/ {buffers=$2}
+      /^Cached:/ {cached=$2}
+      END {if (known) print available; else printf "%.0f\n", free+buffers+cached}
+    ' /proc/meminfo)"
+  fi
   case "$available_kb" in
   *[!0-9]* | "")
     echo "Unable to determine free space on $target_path"
@@ -1639,57 +1872,216 @@ CONF_END
   esac
 }
 
+# Reject an explicit dependency mismatch, or a different virtual kernel ABI
+# published alongside the module. Release/vermagic alone does not establish ABI compatibility.
+modgui_kernel_abi_matches() (
+  abi_package="$1"
+  abi_metadata="$2"
+  installed_kernel="$(opkg status kernel 2>/dev/null | sed -n 's/^Version: //p' | head -n 1)"
+  [ -n "$installed_kernel" ] || return 0
+  required_kernel="$(printf '%s\n' "$abi_metadata" | sed -n 's/.*kernel (= \([^)]*\)).*/\1/p' | head -n 1)"
+  if [ -n "$required_kernel" ]; then
+    [ "$required_kernel" = "$installed_kernel" ]
+    return $?
+  fi
+  abi_confirmed=0
+  set -- /var/opkg-lists /usr/lib/opkg/lists
+  for config in /etc/opkg.conf /etc/opkg/*.conf; do
+    [ -f "$config" ] || continue
+    for directory in $(awk '$1 == "lists_dir" {print $NF}' "$config"); do
+      set -- "$@" "$directory"
+    done
+  done
+  for directory in "$@"; do
+    for index in "$directory"/*; do
+      [ -f "$index" ] || continue
+      # opkg can retain gzip-compressed indexes on these firmwares.
+      feed_kernel="$( (gzip -dc "$index" 2>/dev/null || cat "$index") | awk -v wanted="$abi_package" '
+        BEGIN {RS=""; FS="\n"}
+        {
+          name=""; version=""
+          for (i=1; i<=NF; i++) {
+            if ($i ~ /^Package: /) name=substr($i,10)
+            if ($i ~ /^Version: /) version=substr($i,10)
+          }
+          if (name == wanted) has_module=1
+          if (name == "kernel") kernel=version
+        }
+        END {if (has_module && kernel != "") print kernel}
+      ')"
+      [ -n "$feed_kernel" ] || continue
+      abi_confirmed=1
+      if [ "$feed_kernel" != "$installed_kernel" ]; then
+        echo "Kernel ABI mismatch for $abi_package: installed $installed_kernel, feed $feed_kernel" >&2
+        return 1
+      fi
+    done
+  done
+  [ "$abi_confirmed" = 1 ] || {
+    echo "Unverified kernel ABI for $abi_package: refusing an unpinned module" >&2
+    return 1
+  }
+  return 0
+)
+
+# Resolve modules from configured opkg indexes for the running kernel.
+modgui_kernel_package() (
+  package_pattern="$1"
+  running_kernel="$(uname -r)"
+  # Never choose an unpinned legacy build ahead of a model-specific package.
+  # Complete each opkg read before starting another (old opkg locks for reads).
+  candidates="$(opkg list | awk -v pattern="$package_pattern" '$1 ~ pattern {print $1}')"
+  for selection in pinned legacy; do
+    for candidate in $candidates; do
+      metadata="$(opkg info "$candidate")"
+      dependency_kernel="$(printf '%s\n' "$metadata" | sed -n 's/.*kernel (= \([^)]*\)).*/\1/p' | head -n 1)"
+      if [ "$selection" = pinned ]; then
+        [ -n "$dependency_kernel" ] || continue
+      else
+        [ -z "$dependency_kernel" ] || continue
+      fi
+      modgui_kernel_abi_matches "$candidate" "$metadata" || continue
+      package_kernel="$(printf '%s\n' "$metadata" | sed -n 's/^Version: //p' | head -n 1)"
+      case "$package_kernel" in
+        "$running_kernel"|"$running_kernel"-*|"$running_kernel"+*) printf '%s\n' "$candidate"; return 0 ;;
+      esac
+      case "$dependency_kernel" in
+        "$running_kernel"|"$running_kernel"-*|"$running_kernel"+*) printf '%s\n' "$candidate"; return 0 ;;
+      esac
+    done
+  done
+)
+
+modgui_load_wireguard() {
+  modprobe udp_tunnel 2>/dev/null || return 1
+  modprobe ip6_udp_tunnel 2>/dev/null || return 1
+  grep -q '^wireguard ' /proc/modules && return 0
+  modprobe wireguard 2>/dev/null || insmod "/lib/modules/$(uname -r)/wireguard.ko"
+}
+
+# Migration only: wireguard-tools replaces Go-owned files. Keep the installed
+# package for rollback if installing the native tools fails.
+modgui_backup_wireguard_go() (
+  backup_dir="$1"
+  mkdir -p "$backup_dir/control" || exit 1
+  opkg status wireguard-go | awk '
+    /^Status:|^Installed-Time:/ {next}
+    /^Conffiles:/ {skip=1; next}
+    skip && /^ / {next}
+    {skip=0; print}
+  ' > "$backup_dir/control/control"
+  grep -q '^Package: wireguard-go$' "$backup_dir/control/control" || exit 1
+  for script in preinst postinst prerm postrm conffiles; do
+    [ ! -f "/usr/lib/opkg/info/wireguard-go.$script" ] ||
+      cp -p "/usr/lib/opkg/info/wireguard-go.$script" "$backup_dir/control/$script" || exit 1
+  done
+  opkg files wireguard-go | while IFS= read -r path; do
+    case "$path" in
+      /*) [ ! -d "$path" ] || [ -L "$path" ] || continue; printf '%s\n' "${path#/}" ;;
+    esac
+  done > "$backup_dir/files"
+  [ -s "$backup_dir/files" ] || exit 1
+  tar -czf "$backup_dir/data.tar.gz" -C / -T "$backup_dir/files" &&
+    tar -czf "$backup_dir/control.tar.gz" -C "$backup_dir/control" . || exit 1
+  printf '2.0\n' > "$backup_dir/debian-binary"
+  tar -czf "$backup_dir/go.ipk" -C "$backup_dir" debian-binary control.tar.gz data.tar.gz
+)
+
+modgui_install_native_wireguard() (
+  module_package="$1"
+  [ -n "$module_package" ] || exit 1
+  if [ -f /etc/.modgui-wireguard-native-installed ]; then
+    opkg install "$module_package" wireguard-tools && modgui_load_wireguard
+    exit $?
+  fi
+  if opkg list-installed | grep -q '^wireguard-go '; then
+    [ -f /etc/.modgui-wireguard-go-installed ] || {
+      echo "A pre-existing Go runtime must be migrated manually"; exit 1;
+    }
+    if uci -q show network | grep "\.proto='wireguard'" | grep -v modgui_wg0 >/dev/null 2>&1; then
+      echo "Other interfaces still use the Go runtime"; exit 1
+    fi
+    migrate_go=1
+  else
+    migrate_go=0
+  fi
+  umask 077
+  stage="$(mktemp -d /tmp/modgui-native.XXXXXX)" || exit 1
+  go_removed=0
+  tools_attempted=0
+  tunnel_stopped=0
+  module_owned=0
+  tools_owned=0
+  opkg list-installed | grep -q "^$module_package " || module_owned=1
+  opkg list-installed | grep -q '^wireguard-tools ' || tools_owned=1
+  rollback() {
+    result=$?
+    if [ "$result" != 0 ]; then
+      [ "$tools_attempted" = 0 ] || opkg remove wireguard-tools
+      [ "$module_owned" = 0 ] || opkg remove "$module_package"
+      rm -f /etc/.modgui-wireguard-native-installed /etc/modules.d/40-modgui-wireguard
+      if [ "$go_removed" = 1 ]; then
+        opkg install "$stage/go.ipk" || echo "Restore Go from $stage/go.ipk before retrying"
+      fi
+      [ "$tunnel_stopped" = 0 ] || ifup modgui_wg0
+      if [ "$go_removed" = 1 ] && ! opkg list-installed | grep -q '^wireguard-go '; then
+        return
+      fi
+    fi
+    rm -rf "$stage"
+  }
+  trap rollback EXIT
+  trap 'exit 1' HUP INT TERM
+  # opkg checks downloaded packages against its current feed metadata.
+  opkg install "$module_package" || exit 1
+  modgui_load_wireguard || exit 1
+  if [ "$migrate_go" = 1 ]; then
+    modgui_backup_wireguard_go "$stage" || exit 1
+    if [ "$(uci -q get wireguard.wg.enabled)" = 1 ]; then
+      tunnel_stopped=1
+      ifdown modgui_wg0 || exit 1
+    fi
+    opkg remove wireguard-go || exit 1
+    go_removed=1
+  fi
+  if [ "$tools_owned" = 1 ]; then
+    tools_attempted=1
+    opkg install wireguard-tools || exit 1
+  fi
+  /usr/bin/wg --version && [ -x /lib/netifd/proto/wireguard.sh ] || exit 1
+  mkdir -p /etc/modules.d || exit 1
+  printf 'udp_tunnel\nip6_udp_tunnel\nwireguard\n' > /etc/modules.d/40-modgui-wireguard || exit 1
+  { if [ "$module_owned" = 1 ]; then echo "$module_package"; fi
+    if [ "$tools_owned" = 1 ]; then echo wireguard-tools; fi
+  } > /etc/.modgui-wireguard-native-installed || exit 1
+  [ "$tunnel_stopped" = 0 ] || ifup modgui_wg0 || exit 1
+  rm -f /etc/.modgui-wireguard-go-installed
+)
+
+modgui_install_spu() {
+  module_package="$(modgui_kernel_package '^kmod-(bcmspu|bcm63xx-tch-spu)(-|$)')"
+  [ -n "$module_package" ] || return 0
+  opkg install "$module_package"
+}
+
+modgui_load_spu() {
+  spu_module="/lib/modules/$(uname -r)/bcmspu.ko"
+  [ -f "$spu_module" ] || return 0
+  grep -q '^bcmspu ' /proc/modules && return 0
+  spu_options=""
+  if modinfo -p "$spu_module" 2>/dev/null | grep -q '^blog_offload:' ||
+    strings "$spu_module" 2>/dev/null | grep -q '^parm=blog_offload:'; then
+    spu_options="blog_offload=N"
+  fi
+  mkdir -p /etc/modules.d || return 1
+  printf 'bcmspu %s\n' "$spu_options" > /etc/modules.d/41-modgui-spu || return 1
+  modprobe bcmspu $spu_options 2>/dev/null || insmod "$spu_module" $spu_options
+}
+
 app_wireguard() {
-  wireguard_commit="7ac8fe29a7ab64eb0c9c9774bb36cf2c7648399e"
-  wireguard_version="2023.09.29"
   wireguard_owned="/etc/.modgui-wireguard-go-installed"
-  wireguard_tmp="/tmp/wireguard-go-install.$$.ipk"
 
   wireguard_gui_backup="/opt/modgui-wireguard-gui.tar.gz"
-
-  wireguard_tun_supported() {
-    modgui_has_tun
-  }
-
-  wireguard_install_tun() {
-    modgui_install_tun wireguard
-  }
-
-  wireguard_remove_tun() {
-    modgui_release_tun wireguard
-  }
-
-  wireguard_prepare_mips_package() {
-    # Upstream publishes MIPS as a tar archive, rather than an opkg package.
-    # Repackage only its runtime files so opkg owns and removes them normally.
-    wireguard_stage="/tmp/modgui-wireguard-mips.$$"
-    (umask 077; mkdir "$wireguard_stage") || return 1
-    if ! curl -kfL "https://github.com/seud0nym/openwrt-wireguard-go/releases/download/$wireguard_version/openwrt-wireguard-go_mips.tgz" \
-      --output "$wireguard_stage/runtime.tgz"; then
-      rm -rf "$wireguard_stage"; return 1
-    fi
-    if [ "$(sha256sum "$wireguard_stage/runtime.tgz" | awk '{print $1}')" != "$wireguard_sha256" ]; then
-      echo "WireGuard archive checksum mismatch"
-      rm -rf "$wireguard_stage"; return 1
-    fi
-    mkdir "$wireguard_stage/data" "$wireguard_stage/control" || { rm -rf "$wireguard_stage"; return 1; }
-    tar -xzf "$wireguard_stage/runtime.tgz" -C "$wireguard_stage/data" || { rm -rf "$wireguard_stage"; return 1; }
-    # Do not install the upstream global forwarding sysctl: firewall access is
-    # managed per tunnel by the GUI and remains disabled until configured.
-    if ! tar -czf "$wireguard_stage/data.tar.gz" -C "$wireguard_stage/data" \
-      usr/bin/wireguard-go usr/bin/wg-go usr/bin/wg \
-      lib/netifd/proto/wireguard.sh etc/hotplug.d/net/10-wireguard; then
-      rm -rf "$wireguard_stage"; return 1
-    fi
-    printf 'Package: wireguard-go\nVersion: %s\nArchitecture: brcm63xx\nMaintainer: ModGUI\nDescription: Verified upstream MIPS userspace WireGuard runtime\n' \
-      "$wireguard_version" > "$wireguard_stage/control/control"
-    printf '2.0\n' > "$wireguard_stage/debian-binary"
-    tar -czf "$wireguard_stage/control.tar.gz" -C "$wireguard_stage/control" control &&
-      tar -czf "$wireguard_tmp" -C "$wireguard_stage" debian-binary control.tar.gz data.tar.gz
-    wireguard_pack_result=$?
-    rm -rf "$wireguard_stage"
-    return "$wireguard_pack_result"
-  }
 
   wireguard_register_gui() {
     uci -q del_list web.ruleset_main.rules=wireguardmodal
@@ -1783,68 +2175,30 @@ app_wireguard() {
 
   case "$1" in
   install)
-    case "$cpu_type" in
-    armv7*)
-      wireguard_arch="arm_cortex-a9"
-      wireguard_sha256="0cd9777ae758b180a140a11e24eea1716c001fcd2ef82adb0b43225b4929610b"
-      ;;
-    aarch64 | arm64)
-      wireguard_arch="arm_cortex-a53"
-      wireguard_sha256="1025b7cf216301c1f8db5d93a3cf683d11eea6d9a3bf19b620e27a083aefc0ff"
-      ;;
-    mips)
-      modgui_reviewed_tun_build || { echo "This MIPS platform has not been validated for WireGuard"; return 1; }
-      wireguard_arch="brcm63xx"
-      wireguard_sha256="84a322e2a9cb3ce077e10eba608756265ccc004282568d2d9ccc2573f3b13972"
-      ;;
-    *)
-      echo "No reviewed WireGuard userspace runtime is available for this architecture"
-      return 1
-      ;;
-    esac
-    wireguard_install_tun || return 1
-    if opkg list-installed | grep -q '^wireguard-go '; then
+    opkg update || return 1
+    wireguard_module_package="$(modgui_kernel_package '^kmod-wireguard(-|$)')"
+    if [ -n "$wireguard_module_package" ]; then
+      require_free_space 1024 /usr || return 1
+      modgui_install_native_wireguard "$wireguard_module_package" || return 1
       wireguard_prepare_config || return 1
       wireguard_register_gui
       wireguard_backup_gui || return 1
+      /usr/share/transformer/scripts/wireguardApply.sh || return 1
+      modgui_release_tun wireguard
       set_extension_state wireguard_app 1
       /etc/init.d/transformer restart
       /etc/init.d/nginx restart
       return 0
     fi
-    case "$wireguard_arch" in
-      brcm63xx)
-        require_free_space 4096 /usr && wireguard_prepare_mips_package || {
-          rm -f "$wireguard_tmp"; wireguard_remove_tun; return 1;
-        } ;;
-      *)
-        require_free_space 8192 /usr || { wireguard_remove_tun; return 1; }
-        curl -kfL "https://raw.githubusercontent.com/seud0nym/openwrt-wireguard-go/$wireguard_commit/repository/$wireguard_arch/base/wireguard-go_${wireguard_version}_${wireguard_arch}.ipk" \
-          --output "$wireguard_tmp" || {
-            rm -f "$wireguard_tmp"
-            wireguard_remove_tun
-            return 1
-          }
-        wireguard_actual_sha256="$(sha256sum "$wireguard_tmp" | awk '{print $1}')"
-        if [ "$wireguard_actual_sha256" != "$wireguard_sha256" ]; then
-          echo "WireGuard package checksum mismatch"
-          rm -f "$wireguard_tmp"
-          wireguard_remove_tun
-          return 1
-        fi ;;
-    esac
-    touch "$wireguard_owned"
-    if ! opkg install "$wireguard_tmp"; then
-      rm -f "$wireguard_tmp" "$wireguard_owned"
-      wireguard_remove_tun
-      return 1
+    modgui_install_tun wireguard || return 1
+    if ! opkg list-installed | grep -q '^wireguard-go '; then
+      require_free_space 8192 /usr || return 1
+      opkg install wireguard-go || { modgui_release_tun wireguard; return 1; }
+      touch "$wireguard_owned"
     fi
-    rm -f "$wireguard_tmp"
     if [ ! -x /usr/bin/wireguard-go ] || [ ! -x /usr/bin/wg-go ] ||
       [ ! -x /lib/netifd/proto/wireguard.sh ]; then
-      opkg remove wireguard-go 2>/dev/null
-      rm -f "$wireguard_owned"
-      wireguard_remove_tun
+      echo "No usable WireGuard runtime in the configured feeds"
       return 1
     fi
     wireguard_prepare_config || return 1
@@ -1855,15 +2209,15 @@ app_wireguard() {
     /etc/init.d/nginx restart
     ;;
   remove)
-    if [ ! -f "$wireguard_owned" ] && opkg list-installed | grep -q '^wireguard-go '; then
+    if [ ! -f /etc/.modgui-wireguard-native-installed ] && [ ! -f "$wireguard_owned" ] && opkg list-installed | grep -q '^wireguard-go '; then
       echo "A pre-existing WireGuard runtime is installed; refusing to remove it"
       return 1
     fi
-    if uci -q show network 2>/dev/null | grep "\.proto='wireguard'" | grep -v modgui_wg0 >/dev/null 2>&1; then
+    if uci -q show network 2>/dev/null | grep -E "\.proto='(modgui_)?wireguard'" | grep -v modgui_wg0 >/dev/null 2>&1; then
       echo "Remove manually configured WireGuard network interfaces before uninstalling the runtime"
       return 1
     fi
-    if [ -f "$wireguard_owned" ]; then
+    if [ -f "$wireguard_owned" ] || [ -f /etc/.modgui-wireguard-native-installed ]; then
       uci -q set wireguard.wg.enabled=0
       for section in $(uci -q show wireguard 2>/dev/null | awk -F'[.=]' '$3 == "peer" {print $2}'); do
         uci -q delete "wireguard.$section"
@@ -1876,14 +2230,22 @@ app_wireguard() {
     if [ -f "$wireguard_owned" ] && opkg list-installed | grep -q '^wireguard-go '; then
       opkg remove wireguard-go || return 1
     fi
-    wireguard_remove_tun
+    if [ -f /etc/.modgui-wireguard-native-installed ]; then
+      while read -r package; do
+        case "$package" in wireguard-tools|kmod-wireguard|kmod-wireguard-*)
+          opkg remove "$package" || return 1 ;;
+        esac
+      done < /etc/.modgui-wireguard-native-installed
+      rm -f /etc/modules.d/40-modgui-wireguard /etc/.modgui-wireguard-native-installed
+    fi
+    modgui_release_tun wireguard
     uci -q delete web.wireguard_card
     uci -q delete web.wireguardmodal
     uci -q delete web.wireguardprofile
     uci -q del_list web.ruleset_main.rules=wireguardmodal
     uci -q del_list web.ruleset_main.rules=wireguardprofile
     uci commit web
-    rm -f "$wireguard_owned" "$wireguard_tmp" "$wireguard_gui_backup" \
+    rm -f "$wireguard_owned" "$wireguard_gui_backup" \
       /tmp/modgui-wireguard-client.conf /tmp/modgui-wireguard-client.name
     if opkg list-installed | grep -q '^wireguard-go '; then
       set_extension_state wireguard_app 1
@@ -1894,7 +2256,7 @@ app_wireguard() {
     /etc/init.d/nginx restart
     ;;
   start)
-    [ -x /usr/bin/wireguard-go ] || return 1
+    [ -x /usr/bin/wg ] || [ -x /usr/bin/wireguard-go ] || return 1
     wireguard_prepare_config || return 1
     uci set wireguard.wg.enabled=1
     uci commit wireguard
@@ -1923,6 +2285,12 @@ app_l2tpipsec() {
   l2tpipsec_owned="/etc/.modgui-l2tp-ipsec-installed"
   l2tpipsec_packages="/etc/.modgui-l2tp-ipsec-packages"
   l2tpipsec_gui_backup="/opt/modgui-l2tp-ipsec-gui.tar.gz"
+
+  l2tpipsec_install_spu() {
+    opkg update || { echo "Cannot refresh SPU packages; using software crypto"; return 0; }
+    modgui_install_spu || echo "SPU installation failed; IPsec will use software crypto"
+    modgui_load_spu || echo "SPU unavailable; IPsec will use software crypto"
+  }
 
   l2tpipsec_backup_gui() {
     mkdir -p /opt || return 1
@@ -2019,6 +2387,7 @@ app_l2tpipsec() {
       ;;
     esac
     if opkg list-installed | grep -q '^modgui-vpn '; then
+      l2tpipsec_install_spu
       set_extension_state l2tpipsec_app 1
       return 0
     fi
@@ -2068,6 +2437,7 @@ app_l2tpipsec() {
     rm -f "$l2tpipsec_before"
     touch "$l2tpipsec_owned"
     l2tpipsec_backup_gui || return 1
+    l2tpipsec_install_spu
     l2tpipsec_set_enabled 0
     /etc/init.d/l2tp-ipsec-server stop 2>/dev/null
     /etc/init.d/modgui-ipsec stop 2>/dev/null
@@ -2097,6 +2467,7 @@ app_l2tpipsec() {
     /etc/init.d/nginx restart
     ;;
   start)
+    modgui_load_spu || echo "SPU unavailable; IPsec will use software crypto"
     l2tpipsec_set_enabled 1
     /etc/init.d/modgui-ipsec restart || return 1
     /etc/init.d/l2tp-ipsec-server restart
@@ -2345,7 +2716,17 @@ app_openvpn() {
       return 1
     }
     if modgui_reviewed_tun_build; then
-      opkg install openvpn-easy-rsa openssl-util liblzo &&
+      # The reviewed standalone TUN avoids the incompatible legacy kmod-tun.
+      # Still install the additional userspace dependencies of newer runtimes.
+      openvpn_runtime_deps=""
+      openvpn_metadata="$(opkg info openvpn-openssl)"
+      for dependency in libcap-ng liblz4; do
+        if printf '%s\n' "$openvpn_metadata" | sed -n 's/^Depends: //p' |
+          tr ',' '\n' | grep -Eq "^[[:space:]]*$dependency([[:space:](]|$)"; then
+          openvpn_runtime_deps="$openvpn_runtime_deps $dependency"
+        fi
+      done
+      opkg install openvpn-easy-rsa openssl-util liblzo $openvpn_runtime_deps &&
         opkg install --nodeps --force-depends openvpn-openssl
     else
       opkg install openvpn-openssl openvpn-easy-rsa
@@ -2891,6 +3272,10 @@ app_dumaos() {
       return 1
       ;;
     esac
+    dumaos_platform_supported || {
+      echo "DumaOS requires a supported ARMv7 gateway with kernel 4.1.52; this kernel is unsupported"
+      return 1
+    }
     if [ "$(dumaos_installed_version)" != "$dumaos_version" ]; then
       require_free_space 40960 /usr || return 1
       require_free_space 10240 /tmp || return 1
@@ -2998,7 +3383,7 @@ app_smartphone() (
   adb_owned=/etc/.modgui-smartphone-adb-owned
   archive_hash=/etc/.modgui-smartphone-archive-sha256
   stage=/tmp/modgui-smartphone.$$
-  files="usr/bin/phone_stats.sh usr/share/modgui-smartphone/radio.awk usr/share/transformer/mappings/rpc/smartphone.map www/docroot/modals/smartphone-modal.lp www/docroot/modals/smartphone-screen.lp www/cards/017_smartphone.lp"
+  files="usr/bin/phone_stats.sh usr/share/modgui-smartphone/radio.awk usr/share/modgui-smartphone/drivers.sh usr/share/transformer/mappings/rpc/smartphone.map www/docroot/modals/smartphone-modal.lp www/docroot/modals/smartphone-screen.lp www/cards/017_smartphone.lp"
 
   set_state() {
       uci set "modgui.app.smartphone_app=$1" && uci commit modgui
@@ -3127,6 +3512,11 @@ app_smartphone() (
           mv "$backup.new" "$backup" || exit 1
           trap - EXIT HUP INT TERM
           rm -rf "$stage"
+          # USB networking is optional for ADB telemetry. Keep the app usable
+          # when the firmware feed lacks compatible modules, and expose status.
+          if ! sh /usr/share/modgui-smartphone/drivers.sh; then
+              echo "Smartphone USB installed; some tethering drivers are unavailable. See Smartphone details."
+          fi
           ;;
       remove)
           [ -f "$owned" ] || { set_state 0; exit $?; }
@@ -3225,6 +3615,14 @@ call_app_type() {
 }
 
 case "$1" in
+check)
+  case "$2" in
+    dumaos) dumaos_platform_supported ;;
+    tun) modgui_has_tun || modgui_reviewed_tun_build || [ -n "$(modgui_kernel_package '^kmod-tun(-|$)')" ] ;;
+    wireguard) [ -d /sys/module/wireguard ] || [ -n "$(modgui_kernel_package '^kmod-wireguard(-|$)')" ] ;;
+    *) return 1 ;;
+  esac
+  ;;
 install | remove | stop | start | refresh)
   call_app_type "$1" "$2" "$3"
   ;;
