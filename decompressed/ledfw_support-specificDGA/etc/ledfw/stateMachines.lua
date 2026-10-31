@@ -31,7 +31,11 @@ end
 
 local wifi_led_nsc = is_WiFi_LED_on_if_NSC()
 
-
+-- Color of the Power LED when the modem is operational (UCI option ledfw.status_led.power_color).
+-- Allowed values: green (default), blue, orange, red, cyan, magenta, white. Any other value or
+-- an absent option defaults to green; therefore, nothing changes if no configuration is provided.
+-- The color is re-read from UCI each time the device enters the "operational" state
+-- (following the same runFunc + staticLed function pattern used for the Internet LED).
 local power_ok_led = "power:green"
 
 local function get_power_ok_color()
@@ -99,7 +103,15 @@ patterns = {
                 staticLed("dect:red", false),
                 staticLed("dect:green", false),
                 staticLed("dect:orange", false),
-                staticLed("voip:green", false)
+                staticLed("voip:green", false),
+                -- eco: also turns off the Info/Power LED (all sub-LEDs)
+                staticLed("power:orange", false),
+                staticLed("power:red", false),
+                staticLed("power:blue", false),
+                staticLed("power:cyan", false),
+                staticLed("power:magenta", false),
+                staticLed("power:white", false),
+                staticLed("power:green", false)
             },
 			status_upgrade = {
                 staticLed("broadband:red", false),
@@ -204,8 +216,8 @@ stateMachines = {
         },
         patterns_depend_on = {
             power_started = { "remote_mgmt" , "fw_upgrade" },
-            service_ok_fullpower = { "remote_mgmt", "fw_upgrade" },
-            service_ok_eco = { "remote_mgmt", "fw_upgrade" },
+            service_ok_fullpower = { "status", "remote_mgmt", "fw_upgrade" },
+            service_ok_eco = { "status", "remote_mgmt", "fw_upgrade" },
             service_notok = { "remote_mgmt", "fw_upgrade" }
         }
     },
