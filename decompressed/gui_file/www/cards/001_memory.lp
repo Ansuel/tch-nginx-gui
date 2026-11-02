@@ -18,7 +18,7 @@ ngx.print('\
 \
 <div class="span3" id="memory-card">\
   <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
-    ');  ngx.print( ui_helper.createCardHeader("Memoria", modalPath, nil, nil, nil) ); ngx.print('\
+    ');  ngx.print( ui_helper.createCardHeader(T"Memory", modalPath, nil, nil, nil) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf538;">\
       <div class="divtable">\
         <div style="line-height: 1.45; white-space: nowrap;">\
@@ -27,9 +27,9 @@ ngx.print('\
           <div style="padding-left: 26px;">\
             <div><strong data-bind="text: mem_bar"></strong>    (<strong data-bind="text: mem_pct"></strong>)</div>\
             <div style="display: grid; grid-template-columns: 1fr 1fr; column-gap: 8px;">\
-              <span>Libera: <strong data-bind="text: mem_free"></strong></span><br>\
-              <span>Disponibile: <strong data-bind="text: mem_available"></strong></span><br>\
-              <span>Cache: <strong data-bind="text: mem_cache"></strong></span>\
+              <span>');  ngx.print( T"Free" ); ngx.print(': <strong data-bind="text: mem_free"></strong></span><br>\
+              <span>');  ngx.print( T"Available" ); ngx.print(': <strong data-bind="text: mem_available"></strong></span><br>\
+              <span>');  ngx.print( T"Cache" ); ngx.print(': <strong data-bind="text: mem_cache"></strong></span>\
             </div>\
           </div>\
         </div>\
