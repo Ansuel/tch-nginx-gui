@@ -15,9 +15,16 @@ ROOT = Path(__file__).resolve().parents[1] / 'decompressed/gui_file'
 INSTALLER = ROOT / 'usr/share/transformer/scripts/appInstallRemoveUtility.sh'
 
 
+def tun_helpers():
+    source = INSTALLER.read_text()
+    # Use a function boundary, not a comment whose wording can change. index()
+    # must fail if the boundary disappears rather than running the dispatcher.
+    return source[:source.index('\ninstall_from_github()')]
+
+
 class LegacyTun(unittest.TestCase):
     def test_gui_owned_unpinned_tun_migrates_only_when_unused(self):
-        source = INSTALLER.read_text().split('\n# 1st arg directory')[0]
+        source = tun_helpers()
         for busy, failed in ((False, False), (True, False), (False, True)):
             with self.subTest(busy=busy, failed=failed), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
@@ -69,7 +76,7 @@ modgui_install_tun openvpn
                 self.assertIn('install --nodeps --force-depends openvpn-openssl', result.stdout)
 
     def test_existing_device_node_does_not_bypass_abi_validation(self):
-        source = INSTALLER.read_text().split('\n# 1st arg directory')[0]
+        source = tun_helpers()
         script = source + '''
 modgui_tun_profile() { return 1; }
 modgui_tun_migrate_owners() { :; }
@@ -501,7 +508,7 @@ modgui_has_tun() { attempts=$((attempts + 1)); [ "$attempts" -ge "$1" ]; }
                 self.assertEqual(result.returncode == 0, expected, result.stderr)
 
     def test_arm_tun_download_retains_legacy_tls_and_verifies_module(self):
-        prefix = INSTALLER.read_text().split('\n#  1st arg : directory')[0]
+        prefix = tun_helpers()
         for corrupt in (False, True):
             with self.subTest(corrupt=corrupt), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
@@ -536,7 +543,7 @@ modgui_release_tun openvpn
                 self.assertFalse(list((root / 'tmp').iterdir()))
 
     def test_install_rejects_corruption_and_preserves_other_consumers(self):
-        prefix = INSTALLER.read_text().split('\n#  1st arg : directory')[0]
+        prefix = tun_helpers()
         for scenario in ['shared', 'corrupt', 'module-corrupt', 'download-failure', 'decompress-failure', 'preexisting', 'load-failure', 'in-use']:
             with self.subTest(scenario=scenario), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
