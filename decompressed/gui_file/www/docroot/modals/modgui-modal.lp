@@ -449,6 +449,7 @@ local gui_skin_option = {
         { "dark-white_Fritz", T'Dark/White (Fritz!Box Based)'},
         { "dark-midnight_Fritz", T'Dark/Midnight (Fritz!Box Based)'},
         { "dark-red", T'Red Dark'},
+		{ "esposito", T'Esposito Theme'},
 }
 
 local spoof_mode_enum = {
@@ -696,7 +697,7 @@ local card_titles = {
         system = T"System Extras", natalghelper = T"NAT Helpers", xdsl = T"xDSL Configuration",
         wifiExtender = T"EasyMesh", datausage = T"Data Usage", certificates = T"Paired devices",
         wireguard = T"WireGuard", openvpnserver = T"OpenVPN", tailscale = T"Tailscale",
-        l2tpipsec = T"L2TP/IPsec VPN", speedservice = T"Speed Test", nfc = T"NFC",
+        l2tpipsec = T"L2TP/IPsec VPN", speedservice = T"Speed Test", nfc = T"NFC", memory = T"Memory",
 }
 html[#html + 1] = '<form class="form-horizontal" method="post" action="modals/modgui-modal.lp">'
 html[#html + 1] = '<legend>' .. T"Card Settings" .. '</legend>'
