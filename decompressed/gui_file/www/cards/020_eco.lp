@@ -12,6 +12,7 @@ local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
 local content = {
 	cpuspeed = "uci.power.cpu.cpuspeed",
 	eee = "uci.power.ethernet.eee",
+	power_led_color = "uci.ledfw.status_led.power_color",
 }
 if prod_friendly_name[1].value:match("DGA4131") then
 	content.eco_led = "uci.ledfw.ambient.active"
@@ -47,6 +48,25 @@ else
 	content.eee_text = T"Energy Efficent Ethernet disabled"
 end
 
+-- LED color text formatting
+local power_colors = {
+	green = T"Green",
+	blue = T"Blue",
+	orange = T"Orange",
+	red = T"Red",
+	cyan = T"Cyan",
+	magenta = T"Magenta",
+	white = T"White"
+}
+
+local current_color = content.power_led_color
+if current_color == nil or current_color == "" then
+	current_color = "green" -- Default color if is empty
+end
+
+-- Recover Translate
+content.power_led_text = "Power LED color" .. tostring(power_colors[current_color] or current_color)
+
 local modalPath = nil
 local switchName = nil
 local session = ngx.ctx.session
@@ -81,6 +101,7 @@ ngx.print('\
 local html = {}
 
 	html[#html + 1] = ui_helper.createSimpleLight(content.eco_led, content.eco_led_text, nil, "fas fa-leaf"  )
+	html[#html + 1] = ui_helper.createSimpleLight("1", content.power_led_text, nil, "fas fa-lightbulb"  )
 	html[#html + 1] = ui_helper.createSimpleLight(content.cpuspeed_status, content.cpuspeed, nil, "fas fa-microchip"  )
 	html[#html + 1] = ui_helper.createSimpleLight(content.eee, content.eee_text, nil, "fas fa-exchange-alt"  )
 

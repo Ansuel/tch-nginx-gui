@@ -4712,3 +4712,6 @@ msgstr "Colore del LED di alimentazione quando il gateway è attivo e funzionant
 msgid "Disable CWMP Update. Any firmware update from CWMP will be rejected and not flashed. Consider that CWMP that request a firmware update will keep requesting it until the update is actually installed. Autoconfiguration won't work. Manually set the version in the System Extra tab to spoof a version or upgrade the firmware."
 
 msgstr "Disattiva l'aggiornamento CWMP. Qualsiasi aggiornamento del firmware proveniente da CWMP verrà rifiutato e non verrà installato. Tieni presente che il CWMP che richiede un aggiornamento del firmware continuerà a richiederlo finché l'aggiornamento non sarà effettivamente installato. La configurazione automatica non funzionerà. Imposta manualmente la versione nella scheda System Extra per simulare una versione o aggiornare il firmware."
+
+msgid "Power LED color"
+msgstr "Colore led info/power"
