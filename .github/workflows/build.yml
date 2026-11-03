@@ -1,5 +1,6 @@
 name: Build and release GUI
 
+
 on:
   push:
     branches: [master, preview, stable, personal_edit]
