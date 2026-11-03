@@ -63,8 +63,16 @@ host_diagnostics() {
         tr '\r\n|' '   ' < /etc/modgui-smartphone-drivers.status
         printf '\n'
     fi
+    if [ -f /usr/share/modgui-smartphone/uplink.lua ] && command -v lua >/dev/null 2>&1; then
+        lua /usr/share/modgui-smartphone/uplink.lua status 2>/dev/null
+    fi
 }
 host_info=$(host_diagnostics)
+case "$CMD" in
+    get_usb_info) printf '%s\n%s\n' "$usb_info" "$host_info"; exit 0 ;;
+    uplink_link|uplink_fallback|uplink_primary|uplink_stop)
+        exec lua /usr/share/modgui-smartphone/uplink.lua "${CMD#uplink_}" ;;
+esac
 ADB_BIN=$(command -v adb) || error "ADB is not installed on this router." adb_missing
 command -v timeout >/dev/null 2>&1 || error "The timeout utility is required."
 # Old Technicolor BusyBox uses timeout -t SECS; newer versions use SECS.

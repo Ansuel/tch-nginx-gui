@@ -32,6 +32,7 @@ exec "$APP_REAL_TAR" "$@"
 ''')
         self.write_mock('uci', 'printf "%s\\n" "$*" >> "$APP_FIXTURE/uci.log"\n')
         self.write_mock('restart', 'echo restart >> "$APP_FIXTURE/restarts"\n[ "${FAIL_RESTART:-0}" = 0 ]\n')
+        self.write_mock('lua', 'echo "$*" >> "$APP_FIXTURE/lua.log"\n')
         self.write_mock('opkg', '''
 echo "$*" >> "$APP_FIXTURE/opkg.log"
 case "$1" in
@@ -70,6 +71,12 @@ esac
                         continue
                     if relative.endswith('/drivers.sh'):
                         body = b'#!/bin/sh\necho install >> "$APP_FIXTURE/driver-installs"\nexit "${FAIL_DRIVERS:-0}"\n'
+                        entry = tarfile.TarInfo(relative)
+                        entry.size = len(body)
+                        archive.addfile(entry, io.BytesIO(body))
+                        continue
+                    if relative == 'etc/init.d/modgui-smartphone-uplink':
+                        body = b'#!/bin/sh\nexit 0\n'
                         entry = tarfile.TarInfo(relative)
                         entry.size = len(body)
                         archive.addfile(entry, io.BytesIO(body))

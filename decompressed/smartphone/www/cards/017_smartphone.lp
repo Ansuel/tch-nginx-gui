@@ -13,7 +13,7 @@ ngx.print('<div class="content card_bg" style="height:auto;min-height:110px" dat
     ' data-tether-off="', escape(T"USB tethering disabled"), '"',
     ' data-data-off="', escape(T"Mobile data disabled"), '"',
     ' data-unavailable="', escape(T"Phone unavailable"), '"',
-    ' data-unauthorized="', escape(T"ADB authorization required"), '"',
+    ' data-unauthorized="', escape(T"ADB unauthorized"), '"',
     ' data-offline="', escape(T"ADB device offline"), '"',
     ' data-no-device="', escape(T"Phone not detected by ADB"), '"',
     ' data-multiple-devices="', escape(T"Multiple ADB devices"), '"',
@@ -22,6 +22,9 @@ ngx.print('<div class="content card_bg" style="height:auto;min-height:110px" dat
     ' data-link-up="', escape(T"Link up"), '"',
     ' data-link-down="', escape(T"Link down"), '"',
     ' data-no-interface="', escape(T"Interface not detected"), '"',
+    ' data-phone-active="', escape(T"Phone"), '"',
+    ' data-wan-active="', escape(T"WAN"), '"',
+    ' data-uplink-checking="', escape(T"Checking uplinks"), '"',
     ' data-checking="', escape(T"Checking connection"), '"><div class="divtable">')
 ngx.print('<div class="pull-right smartphone-signal-bars" style="display:none;margin-right:15px;height:22px;font-size:0" aria-hidden="true">')
 for index = 1, 5 do
@@ -36,7 +39,9 @@ ngx.print('<div class="smartphone-network-row" style="display:none;height:25px">
 ngx.print('<div class="smartphone-signal-row" style="display:none;height:25px" title="', escape(T"Estimated from LTE RSRP"), '"><label class="card-label">',
     T"Signal", ':</label> <strong data-bind="text: phoneSignal"></strong></div>')
 ngx.print('<div class="smartphone-tether-row" style="display:none;height:25px"><label class="card-label">', T"Tethering", ':</label> ',
-    '<strong data-bind="text: phoneTether"></strong></div></div></div></div></div>')
+    '<strong data-bind="text: phoneTether"></strong></div>')
+ngx.print('<div class="smartphone-uplink-row" style="display:none;min-height:25px"><label class="card-label">', T"Internet", ':</label> ',
+    '<strong data-bind="text: phoneUplink"></strong></div></div></div></div></div>')
 if target then
 ngx.print([===[
 <script>
@@ -78,6 +83,10 @@ $(function () {
         binding.phoneTether(hostState);
         root.find(".smartphone-tether-row").toggle(!!hostState).attr("title",
             host && data.HOST_IPV4 || data && data.HOST_DRIVER_STATUS || "");
+        var managed = data && /^(primary|fallback)$/.test(data.UPLINK_MODE || "");
+        binding.phoneUplink(managed ? content.attr(data.UPLINK_ACTIVE === "phone" ? "data-phone-active" :
+            data.UPLINK_ACTIVE === "wan" ? "data-wan-active" : "data-uplink-checking") : "");
+        root.find(".smartphone-uplink-row").toggle(!!managed);
         // The percentage is an indicative LTE RSRP level, not a throughput estimate.
         var rsrp = available && /^-\d+(?:\.\d+)?$/.test(String(data.SIGNAL_RAW)) ? Number(data.SIGNAL_RAW) : NaN;
         var valid = isFinite(rsrp) && rsrp >= -140 && rsrp <= -43;
@@ -94,6 +103,7 @@ $(function () {
             binding.phoneDevice("");
             binding.phoneNetwork(""); binding.phoneSignal(""); binding.phoneBattery("");
             binding.phoneTether("");
+            binding.phoneUplink("");
         }
         return $.ajax({url: "/modals/smartphone-modal.lp", type: "POST", dataType: "json", timeout: 25000,
             data: [tch.elementCSRFtoken(), {name: "action", value: "get_stats"}]
