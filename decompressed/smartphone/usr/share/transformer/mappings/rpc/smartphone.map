@@ -5,9 +5,11 @@ local function run(action)
         capture_screen = true, reboot = true,
         reconnect_data = true, data_on = true, data_off = true,
         start_vpn = true, stop_vpn = true,
+        uplink_link = true, uplink_fallback = true, uplink_primary = true, uplink_stop = true,
     }
     if not allowed[action] then return nil, "Unsupported smartphone action" end
     local deadline = action == "capture_screen" and "22" or "18"
+    if action:match("^uplink_") then deadline = "40" end
     local command = " /usr/bin/phone_stats.sh " .. action .. " 2>/dev/null"
     local pipe = io.popen("if timeout --help 2>&1 | grep -q -- '-t SECS'; then timeout -t " .. deadline .. command ..
         "; else timeout " .. deadline .. command .. "; fi; printf '\\nEXIT_STATUS|%s\\n' \"$?\"")

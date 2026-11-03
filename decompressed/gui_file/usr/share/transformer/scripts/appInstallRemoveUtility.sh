@@ -3383,7 +3383,7 @@ app_smartphone() (
   adb_owned=/etc/.modgui-smartphone-adb-owned
   archive_hash=/etc/.modgui-smartphone-archive-sha256
   stage=/tmp/modgui-smartphone.$$
-  files="usr/bin/phone_stats.sh usr/share/modgui-smartphone/radio.awk usr/share/modgui-smartphone/drivers.sh usr/share/transformer/mappings/rpc/smartphone.map www/docroot/modals/smartphone-modal.lp www/docroot/modals/smartphone-screen.lp www/cards/017_smartphone.lp"
+  files="usr/bin/phone_stats.sh usr/share/modgui-smartphone/radio.awk usr/share/modgui-smartphone/drivers.sh usr/share/modgui-smartphone/uplink.lua etc/init.d/modgui-smartphone-uplink usr/share/transformer/mappings/rpc/smartphone.map www/docroot/modals/smartphone-modal.lp www/docroot/modals/smartphone-screen.lp www/cards/017_smartphone.lp"
 
   set_state() {
       uci set "modgui.app.smartphone_app=$1" && uci commit modgui
@@ -3504,6 +3504,7 @@ app_smartphone() (
               mkdir -p "$(dirname "/$file")" && cp -p "$stage/$file" "/$file" || exit 1
           done
           chmod 755 /usr/bin/phone_stats.sh || exit 1
+          chmod 755 /etc/init.d/modgui-smartphone-uplink || exit 1
           register_gui || exit 1
           touch "$owned" || exit 1
           if [ -f "$archive" ]; then sha256sum "$archive" | awk '{print $1}' > "$archive_hash"; fi
@@ -3517,9 +3518,18 @@ app_smartphone() (
           if ! sh /usr/share/modgui-smartphone/drivers.sh; then
               echo "Smartphone USB installed; some tethering drivers are unavailable. See Smartphone details."
           fi
+          if [ "$(uci -q get smartphone.uplink.enabled)" = 1 ]; then
+              /etc/init.d/modgui-smartphone-uplink restart || exit 1
+          fi
           ;;
       remove)
           [ -f "$owned" ] || { set_state 0; exit $?; }
+          # Restore router routing/DNS before removing its management helper;
+          # this is independent of Android's ADB authorization.
+          if [ -f /usr/share/modgui-smartphone/uplink.lua ]; then
+              lua /usr/share/modgui-smartphone/uplink.lua stop || exit 1
+              /etc/init.d/modgui-smartphone-uplink disable || exit 1
+          fi
           # Do not silently strand a reachable VPN-sharing policy on the phone.
           if [ -x /usr/bin/phone_stats.sh ]; then
               stats=$(/usr/bin/phone_stats.sh get_stats 2>/dev/null)

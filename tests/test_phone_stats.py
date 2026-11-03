@@ -149,6 +149,7 @@ elif args[:2] == ['route', 'flush']:
         source = source.replace('/sys/bus/usb/devices', str(self.directory / 'usb'))
         source = source.replace('/sys/module/', str(self.directory / 'modules') + '/')
         source = source.replace('/etc/modgui-smartphone-drivers.status', str(self.directory / 'drivers.status'))
+        source = source.replace('/usr/share/modgui-smartphone/uplink.lua', str(self.directory / 'uplink.lua'))
         script.write_text(source.replace('/var/run/modgui-smartphone-screen', str(self.directory / 'screen')))
         script.chmod(0o755)
         return subprocess.run([str(script), action], env={**self.env, **env},
@@ -237,6 +238,15 @@ elif args[:2] == ['route', 'flush']:
         result = self.run_phone(TIMEOUT_LEGACY='1')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn('BATT|75%', result.stdout)
+
+    def test_router_uplink_controls_do_not_require_adb_authorization(self):
+        (self.directory / 'uplink.lua').write_text('fixture')
+        self.write('lua', '#!/bin/sh\necho "$2" >> "$PHONE_TEST_DIR/lua.log"\necho "SUCCESS|Router operation"\n')
+        (self.directory / 'adb').unlink()
+        result = self.run_phone('uplink_fallback')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('fallback', (self.directory / 'lua.log').read_text().splitlines())
+        self.assertFalse((self.directory / 'adb.log').exists())
 
     def test_usb_identity_is_available_without_an_adb_transport(self):
         usb = self.directory / 'usb' / '2-1'

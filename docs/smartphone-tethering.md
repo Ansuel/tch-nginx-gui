@@ -42,6 +42,74 @@ removal. Missing ADB, absent devices and missing USB debugging authorization
 are reported in the page. ADB is run by the privileged Transformer backend, not
 by the nginx worker; do not make USB device nodes world-writable.
 
+Installation and refresh also run the bundled `drivers.sh` dependency manager.
+It updates the configured feeds and installs available USB networking packages
+through opkg, preserving normal kernel ABI and architecture checks. It uses
+`kmod-usb-net`, `kmod-usb-net-cdc-ether`, `kmod-usb-net-rndis` and
+`kmod-usb-net-cdc-ncm`, plus EEM/subset when the feed supplies them.
+There are no board names, fixed kernel versions, ABI hashes or manual package
+profiles in the installer. `opkg` resolves each package for the running firmware;
+kernel dependency failures are reported without forcing compatibility.
+
+Existing modules are reused whether supplied by firmware, built into the kernel
+or installed independently. Discovery uses the running kernel's module directory
+and supports both flat and nested layouts. The installer does not overwrite
+vendor/manual drivers or unload active modules. Manual compatibility packages
+are not automatically selected, since their names alone do not establish
+compatibility. Shared drivers and their autoload entries remain installed when
+Smartphone USB is removed. Recovery archives from earlier manual replacements
+are retained but are no longer part of the automatic installer.
+
+Unavailable packages or feed errors do not prevent installing the telemetry
+app. Their result is saved in `/etc/modgui-smartphone-drivers.status` and shown
+in the modal. The card shows the router-side tether interface and link. The
+modal also shows its actual IPv4 address and configured gateway, USB bus speed,
+loaded modules and driver installation status, even when ADB is unauthorized or
+not exposed. Missing card telemetry rows are hidden and reappear when valid.
+These checks do not start DHCP or change WAN, DNS, routes or firewall rules.
+
+### Optional IPv4 uplink controls
+
+The modal has explicit controls for **Solo collegamento DHCP**, **Fallback
+della WAN attuale**, and **Linea principale; WAN attuale come fallback**.
+**Disattiva e ripristina** removes the app's uplink configuration. These actions
+run on the router and do not require ADB authorization or Android root. USB
+tethering and mobile data still need to be enabled on the phone.
+
+The manager discovers the USB network device and the current IPv4 WAN in a
+masquerading firewall zone. netifd owns DHCP on its dedicated `modgui_phone`
+interface, which joins that existing WAN zone and inherits its firewall/NAT
+policy. Existing WAN interface settings and metrics are retained. A DHCP-only
+connection does not install an Internet default route. In routing modes, the
+phone receives a secondary main-table metric while owned policy tables select
+the verified preferred line for ordinary IPv4 traffic.
+
+The supervised `modgui-smartphone-uplink` service probes `1.1.1.1` and
+`9.9.9.9` using each line's own source address and routing table, so a working
+fallback cannot mask a failed primary. Three failed checks withdraw a line;
+two successes restore the preferred line. Removing a link selects the remaining
+ready line. Local management routes remain in the main table. Existing marked
+routing policies (for example provider voice rules) and IPv6 retain their
+original behavior. Existing connections may need to reconnect after switching.
+
+The app reserves IPv4 routing tables `29996`–`29998` and rule priorities `90`,
+`91`, `100`, `101`; occupied reservations are rejected before activation.
+Support for prefix-suppression rules is checked by capability, without a fixed
+kernel-version profile. Firmware lacking that capability can still use the
+DHCP-only mode. All arguments reaching subprocesses come from enum actions,
+validated interface names or numeric network state. The existing authenticated
+modal, CSRF validation and Transformer RPC allowlist cover these controls.
+
+Configuration is stored in `/etc/config/smartphone`; runtime status and control
+locks live in root-only `/var/run/modgui-smartphone-uplink`. DNS selection uses
+`/var/run/modgui-smartphone-dns/resolv.conf`, readable by dnsmasq. The previous
+resolver setting is retained; explicit DNS server entries and no-resolv settings
+are preserved. Stop and failed apply restore only owned sections, WAN-zone
+membership and resolver fields, preserving unrelated configuration changes.
+App removal stops the uplink before deleting its files. Refresh restarts an
+enabled monitor while retaining its mode; boot and USB reconnection reuse the
+stored configuration.
+
 Battery and radio telemetry do not require Android root. Mobile data commands,
 VPN sharing and the optional Tailscale CLI status require root authorization on
 the phone. Their controls are omitted when the phone does not grant root;
@@ -96,3 +164,74 @@ LTE band zero means unknown; when needed the band is derived from EARFCN.
 LTE identity includes ECI, eNB ID, sector, ECGI and TAC when Android exposes them.
 RSSNR accepts negative values and uses the Android SDK version to select dB units.
 Unavailable fields remain N/A. Radio tests use synthetic snapshots only.
+
+### ADB connection diagnostics and USB network drivers
+
+The helper inspects `adb devices` before issuing phone commands. It reports
+separate `ERROR_CODE` values for `adb_missing`, `no_device`, `unauthorized`,
+`offline`, `multiple_devices` and `adb_error`. The RPC and modal preserve these
+codes; the card displays the specific state and the modal explains the recovery
+action. `no_device` means no ADB transport, which can also mean USB debugging is
+disabled; it does not prove that the USB cable is disconnected. Accept the RSA
+authorization prompt for the router, whose key differs from the computer's key.
+When sysfs exposes an ADB or USB networking function but ADB has no transport,
+`usb_only` reports the USB product name and asks to enable USB debugging.
+USB discovery does not require an authorized ADB connection. This distinguishes
+a USB-connected phone without ADB from an actual `unauthorized` ADB transport.
+
+ADB and USB tethering are independent. ADB does not require RNDIS or CDC network
+drivers. To create a router-side network interface, tethering requires `usbnet`
+and the driver matching the function exposed by the phone: commonly
+`rndis_host` (`kmod-usb-net-rndis`, with CDC Ethernet dependencies), or `cdc_ncm`
+(`kmod-usb-net-cdc-ncm`). CDC ECM uses `cdc_ether`
+(`kmod-usb-net-cdc-ether`). Use packages matching the Technicolor firmware's
+kernel and ABI from its configured feeds. Loading a driver does not enable
+tethering on the phone or configure a DHCP/WAN connection on the router.
+
+Read-only checks on 2026-10-27 found:
+
+| Router | USB network drivers | Phone state |
+| --- | --- | --- |
+| Router A | RNDIS, CDC Ethernet and CDC NCM installed and loaded | Motorola moto g32 exposes RNDIS `ef/04/01`, but the old driver does not match it; no ADB interface exposed |
+| Router B | CDC Ethernet and CDC NCM installed and loaded; RNDIS package absent | No USB phone enumerated |
+
+Neither router had ADB or the Smartphone helper installed during these checks.
+On router A, the phone's interface modalias is
+`usb:v22B8p2E24d0419dc00dsc00dp00icEFisc04ip01in00`. The installed
+`rndis_host.ko` has generic aliases for `e0/01/03`, `ef/01/01` and `02/02/ff`,
+but none for `ef/04/01`. Its sysfs driver directory has no bound USB interface,
+and no USB network interface exists. This points to a driver matching gap,
+not a missing CDC package or a need for `adb-enablemodem`. Supporting this phone
+requires a compatible driver update/backport or a separately verified device
+binding workaround. No binding or network configuration was changed by the audit.
+A subsequent driver installation and live test on 2026-10-28
+resolved this matching gap with the CDC/RNDIS pair from the configured VBNT-S
+feed: `usb0` appeared, carrier became active, and the phone supplied a DHCP lease.
+For an RNDIS phone, router B needs its compatible `kmod-usb-net-rndis` package;
+missing RNDIS cannot explain the absence of the phone from the USB device tree.
+
+`adb-enablemodem` is not a generic Android tethering enabler. Its upstream init
+script handles a specific TP-Link LTE module (`2357:000d`), starts its web server
+and registers its USB serial ID. It neither bypasses Android's ADB authorization
+nor enables tethering on the Motorola.
+
+References: [OpenWrt USB tethering guide](https://openwrt.org/docs/guide-user/network/wan/smartphone.usb.tethering)
+and [adb-enablemodem source](https://raw.githubusercontent.com/openwrt/openwrt/master/package/network/utils/adb-enablemodem/files/adb-enablemodem).
+
+### Live validation on router A, 2026-10-28
+
+After app installation, the router's BusyBox 1.23.2 rejected `timeout SECS`;
+it requires `timeout -t SECS`. This broke both the RPC outer deadline and every
+ADB command inside the helper. The helper returned `adb_error` while the RPC
+reported only a generic request failure. Both layers now detect the supported
+timeout syntax. Regression tests exercise both command-line dialects.
+
+Installed the four changed runtime/UI files after shell/Lua syntax checks and
+`nginx -t`, keeping a backup of the original files. Transformer was
+restarted and nginx reloaded. All four installed MD5 hashes match the source.
+The real helper and datamodel both returned `ERROR_CODE|usb_only`,
+`USB_DEV|moto g32` and `USB_ADB|0`. Browser validation confirmed the USB product
+name and ADB-unavailable message in the card and modal. No phone command or
+router WAN configuration was changed. The actual phone did not expose an ADB
+interface, so accepting an RSA authorization prompt cannot be tested until USB
+debugging is enabled on the phone.

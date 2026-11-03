@@ -37,7 +37,8 @@ if ngx.req.get_method() == "POST" then
         response = { status = err and "error" or "ok", message = text or err }
     else
         local allowed = { screen_wake = true, screen_sleep = true, capture_screen = true, reboot = true, reconnect_data = true,
-            data_on = true, data_off = true, start_vpn = true, stop_vpn = true }
+            data_on = true, data_off = true, start_vpn = true, stop_vpn = true,
+            uplink_link = true, uplink_fallback = true, uplink_primary = true, uplink_stop = true }
         if type(action) ~= "string" or not allowed[action] then
             ngx.status = ngx.HTTP_BAD_REQUEST
             response = {status = "error", message = "Unsupported smartphone action"}
@@ -49,6 +50,10 @@ if ngx.req.get_method() == "POST" then
                 screen_sleep = "Comando di spegnimento del display inviato.",
                 capture_screen = "Immagine acquisita.",
                 reboot = "Riavvio del telefono richiesto.",
+                uplink_link = "Collegamento DHCP avviato. La linea Internet principale resta invariata.",
+                uplink_fallback = "Telefono impostato come fallback della WAN. Attendere DHCP e verifica connettività.",
+                uplink_primary = "Telefono impostato come linea principale; la WAN sarà usata come fallback.",
+                uplink_stop = "Tethering disattivato e configurazione precedente ripristinata.",
             }
             response.message = ok and (messages[action] or "Comando completato.") or "Comando non riuscito: verificare telefono e collegamento USB."
             if not ok and type(errors) == "table" and errors[1] and errors[1].errmsg then
@@ -89,11 +94,31 @@ end
     ngx.print(ui_helper.createLabel("Interfaccia:", '<span id="host_if">' .. (d.HOST_IF or "N/A") .. '</span>', lbl))
     ngx.print(ui_helper.createLabel("Link USB:", '<span id="host_link">' .. host_link(d) .. '</span>', lbl))
     ngx.print(ui_helper.createLabel("IPv4:", '<span id="host_ipv4">' .. (d.HOST_IPV4 or "Non assegnato") .. '</span>', lbl))
-    ngx.print(ui_helper.createLabel("Gateway:", '<span id="host_gateway">' .. (d.HOST_GATEWAY or "Non configurato") .. '</span>', lbl))
+    ngx.print(ui_helper.createLabel("Gateway DHCP:", '<span id="host_gateway">' .. (d.HOST_GATEWAY or d.UPLINK_GATEWAY or "Non configurato") .. '</span>', lbl))
     ngx.print(ui_helper.createLabel("Velocità USB:", '<span id="host_speed">' .. (d.USB_SPEED and (d.USB_SPEED .. " Mbit/s") or "N/A") .. '</span>', lbl))
     ngx.print(ui_helper.createLabel("Moduli caricati:", '<span id="host_modules">' .. (d.HOST_MODULES or "Nessuno rilevato") .. '</span>', lbl))
     ngx.print(ui_helper.createLabel("Installazione driver:", '<span id="host_drivers">' .. (d.HOST_DRIVER_STATUS or "N/A") .. '</span>', lbl))
-    ngx.print('<p>Il link USB non indica che il router stia usando il telefono come accesso Internet. La WAN va configurata separatamente.</p></fieldset>')
+    ngx.print('</fieldset>')
+    ngx.print('<fieldset><legend>Priorità Internet (IPv4)</legend>')
+    ngx.print('<p>Abilita il tethering USB sul telefono. DHCP e fallback sul router funzionano anche senza autorizzazione ADB.</p>')
+    local selected_mode = (d.UPLINK_MODE == "link" or d.UPLINK_MODE == "primary") and d.UPLINK_MODE or "fallback"
+    local function uplink_option(value, label)
+        return '<option value="' .. value .. '"' .. (selected_mode == value and ' selected' or '') .. '>' .. label .. '</option>'
+    end
+    ngx.print('<label for="phone-uplink-mode">Uso del telefono:</label><select id="phone-uplink-mode">' ..
+        uplink_option("link", "Solo collegamento DHCP") ..
+        uplink_option("fallback", "Fallback della WAN attuale") ..
+        uplink_option("primary", "Linea principale; WAN attuale come fallback") .. '</select> ' ..
+        '<button type="button" class="btn btn-primary phone-uplink-action" onclick="applyPhoneUplink()">Attiva / Applica</button> ' ..
+        '<button type="button" class="btn phone-uplink-action" onclick="stopPhoneUplink()">Disattiva e ripristina</button>')
+    ngx.print('<p id="phone-uplink-result" role="status"></p>')
+    ngx.print(ui_helper.createLabel("Modalità applicata:", '<span id="uplink-mode">' .. (d.UPLINK_MODE or "off") .. '</span>', lbl))
+    ngx.print(ui_helper.createLabel("Altra WAN:", '<span id="uplink-wan">' .. (d.UPLINK_WAN or "Rilevamento automatico") .. '</span>', lbl))
+    ngx.print(ui_helper.createLabel("Linea in uso:", '<span id="uplink-active">' .. (d.UPLINK_ACTIVE or "none") .. '</span>', lbl))
+    ngx.print(ui_helper.createLabel("Disponibilità WAN:", '<span id="uplink-wan-health">' .. (d.UPLINK_WAN_HEALTH or "checking") .. '</span>', lbl))
+    ngx.print(ui_helper.createLabel("Disponibilità telefono:", '<span id="uplink-phone-health">' .. (d.UPLINK_PHONE_HEALTH or "checking") .. '</span>', lbl))
+    ngx.print(ui_helper.createLabel("Monitor:", '<span id="uplink-message">' .. (d.UPLINK_MESSAGE or "") .. '</span>', lbl))
+    ngx.print('<p>Il monitor controlla 1.1.1.1 e 9.9.9.9 tramite ciascuna linea. Tre controlli falliti attivano il fallback; due successi ripristinano la linea preferita. Le connessioni esistenti possono richiedere una riconnessione. IPv6 e le policy di routing già marcate mantengono la configurazione del router.</p></fieldset>')
 
     ngx.print('<fieldset><legend>Batteria e Salute</legend>')
     ngx.print(ui_helper.createLabel("Livello:", '<span id="live_batt">'..(d.BATT or "N/A")..'</span>', lbl))
@@ -197,7 +222,7 @@ end
     currentAjax = $.ajax({
       url: "/modals/smartphone-modal.lp",
       type: "POST", dataType: "json",
-      timeout: 25000,
+      timeout: /^uplink_/.test(action) ? 45000 : 25000,
       contentType: "application/x-www-form-urlencoded; charset=UTF-8",
       data: { action: action, CSRFtoken: tok },
       success: function(j){ if(cb && isModalActive) cb(j); },
@@ -233,6 +258,21 @@ end
     });
   }
 
+  function changePhoneUplink(action){
+    $(".phone-uplink-action").prop("disabled",true);
+    $("#phone-uplink-result").text("Applicazione configurazione in corso...");
+    postSmartphone(action,function(res){
+      $(".phone-uplink-action").prop("disabled",false);
+      $("#phone-uplink-result").text(res && res.message || "Nessuna risposta dal router.");
+    });
+  }
+  function applyPhoneUplink(){
+    var mode=$("#phone-uplink-mode").val();
+    if (!/^(link|fallback|primary)$/.test(mode)) return;
+    changePhoneUplink("uplink_"+mode);
+  }
+  function stopPhoneUplink(){ changePhoneUplink("uplink_stop"); }
+
   $(document).ready(function(){
     $(".loading").hide();
     $("#lte-body").removeClass("loading-hidden").css("visibility","visible");
@@ -266,10 +306,18 @@ end
         $("#host_link").text(j.HOST_IF ? (j.HOST_ADMIN === "up" && j.HOST_CARRIER === "1" ? "Attivo" : "Inattivo") :
             (j.USB_NETWORK === "1" ? "Interfaccia non rilevata" : "N/A"));
         $("#host_ipv4").text(j.HOST_IPV4 || "Non assegnato");
-        $("#host_gateway").text(j.HOST_GATEWAY || "Non configurato");
+        $("#host_gateway").text(j.HOST_GATEWAY || j.UPLINK_GATEWAY || "Non configurato");
         $("#host_speed").text(j.USB_SPEED ? j.USB_SPEED + " Mbit/s" : "N/A");
         $("#host_modules").text(j.HOST_MODULES || "Nessuno rilevato");
         $("#host_drivers").text(j.HOST_DRIVER_STATUS || "N/A");
+        var modes={off:"Disattivato",link:"Solo DHCP",fallback:"Telefono di riserva",primary:"Telefono principale"};
+        $("#uplink-mode").text(modes[j.UPLINK_MODE] || "Disattivato");
+        $("#uplink-wan").text(j.UPLINK_WAN || "Rilevamento automatico");
+        $("#uplink-active").text(j.UPLINK_ACTIVE === "phone" ? "Telefono" : j.UPLINK_ACTIVE === "wan" ? "WAN" : "In verifica / nessuna linea selezionata");
+        $("#uplink-message").text(j.UPLINK_MESSAGE || "");
+        var healthLabels={online:"Raggiungibile",offline:"Non pronta / non raggiungibile",checking:"In verifica"};
+        $("#uplink-wan-health").text(healthLabels[j.UPLINK_WAN_HEALTH] || "In verifica");
+        $("#uplink-phone-health").text(healthLabels[j.UPLINK_PHONE_HEALTH] || "In verifica");
         $("#live_data").text(j.DATA_ST === "1" ? "Attivi" : "Inattivi");
         $(".phone-root-control").toggle(j.ROOT_ACCESS === "1");
         $(".phone-tailscale-control").toggle(j.ROOT_ACCESS === "1" && j.TAILSCALE_CLI === "1");

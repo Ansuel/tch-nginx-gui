@@ -69,6 +69,9 @@ end
 dofile(arg[1] .. "/../smartphone/usr/share/transformer/mappings/rpc/smartphone.map")
 assert(mapping.set.action(nil, nil, "start_vpn"))
 assert(commands[1]:find("phone_stats.sh start_vpn", 1, true))
+assert(mapping.set.action(nil, nil, "uplink_fallback"))
+assert(commands[2]:find("phone_stats.sh uplink_fallback", 1, true))
+assert(commands[2]:find("timeout 40", 1, true))
 local before = #commands
 assert(not mapping.set.action(nil, nil, "start_vpn; reboot"))
 assert(not mapping.set.action(nil, nil, "get_stats"))
