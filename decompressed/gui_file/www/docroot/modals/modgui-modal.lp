@@ -773,9 +773,7 @@ local info_box = {
                 class = "alert alert-info",
         }
 }
-html[#html + 1] = ui_helper.createAlertBlock(T"Disable CWMP Update. Any firmware update from CWMP will be rejected and not flashed. "..
-                        "Consider that CWMP that request a firmware update will keep requesting it until the update is actually installed. "..
-                        "Autoconfiguration won't work. Manually set the version in the System Extra tab to spoof a version or upgrade the firmware.")
+html[#html + 1] = ui_helper.createAlertBlock(T"Disable CWMP Update. Any firmware update from CWMP will be rejected and not flashed. Consider that CWMP that request a firmware update will keep requesting it until the update is actually installed. Autoconfiguration won't work. Manually set the version in the System Extra tab to spoof a version or upgrade the firmware.")
 html[#html + 1] = ui_helper.createSwitch(T"Disable CWMP Update", "disable_cwmp_update", modgui_settings["disable_cwmp_update"])
 html[#html + 1] = ui_helper.createAlertBlock(T"Change the Modem Serial. Consider that the modem serial is the Factory ID + Serial.", info_box)
 html[#html + 1] = ui_helper.createInputText(T"Modem Serial", "modem_serial", modgui_settings["modem_serial"])
