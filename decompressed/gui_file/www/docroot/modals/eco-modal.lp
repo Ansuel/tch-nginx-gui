@@ -118,7 +118,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		if prod_friendly_name[1].value:match("DGA4131") then
 			html[#html + 1] = ui_helper.createSwitch(T"Ambient LED", "ledfw_ambient", content["ledfw_ambient"])
 		else
-			html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status.", info_box)
+			html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all LEDs if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status.", info_box)
 			html[#html + 1] = ui_helper.createSwitch(T"Eco Led", "eco_led", content["eco_led"])
 		end
 		

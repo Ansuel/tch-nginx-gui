@@ -4706,6 +4706,9 @@ msgstr "* L'utilizzo dati è solo indicativo. Per i consumi effettivi fai riferi
 msgid "No WAN interface is available for data usage monitoring."
 msgstr "Nessuna interfaccia WAN disponibile per il monitoraggio dell'utilizzo dati."
 
+msgid "Turn off all LEDs if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status."
+msgstr "Spegne tutti i LED se tutti i servizi sono attivi e funzionanti. Premere il pulsante “Info” / “WiFi” per visualizzare lo stato attuale dei LED."
+
 msgid "Color of the Power LED when the gateway is up and running."
 msgstr "Colore del LED di alimentazione quando il gateway è attivo e funzionante."
 
