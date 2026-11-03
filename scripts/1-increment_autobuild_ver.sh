@@ -10,7 +10,7 @@ else
     # Reuse a draft/published release from this exact commit and channel on reruns.
     channel="$(tr '[:upper:]' '[:lower:]' < ./type)"
     case "$channel" in
-        dev|preview) gui_asset="GUI_$channel.tar.bz2" ;;
+        dev|preview|personal_edit) gui_asset="GUI_$channel.tar.bz2" ;;
         stable) gui_asset=GUI.tar.bz2 ;;
         *) echo "Invalid release channel: $channel" >&2; exit 1 ;;
     esac
@@ -34,8 +34,8 @@ else
             echo "Using non-publishing PR version 0.0.0"
             exit 0
         fi
-        echo "No numeric release found. Set the initial version with [x.y.z] in the commit message." >&2
-        exit 1
+        echo "No release found on GitHub. Setting baseline. 0.0.0"
+        cur_ver="9.8.76"
     fi
     if [[ ! "$cur_ver" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)[[:space:]]*$ ]]; then
         echo "Invalid release version: $cur_ver" >&2
