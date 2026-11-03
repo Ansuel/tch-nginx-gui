@@ -98,7 +98,7 @@ jobs:
 
   publish:
     needs: build
-    if: github.repository == 'Ansuel/tch-nginx-gui' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish))
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
