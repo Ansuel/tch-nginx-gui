@@ -34,8 +34,8 @@ else
             echo "Using non-publishing PR version 0.0.0"
             exit 0
         fi
-        echo "No release found on GitHub. Setting baseline. 0.0.0"
-        cur_ver="9.8.76"
+        echo "No numeric release found. Set the initial version with [x.y.z] in the commit message." >&2
+        exit 1
     fi
     if [[ ! "$cur_ver" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)[[:space:]]*$ ]]; then
         echo "Invalid release version: $cur_ver" >&2
