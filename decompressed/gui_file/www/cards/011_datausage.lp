@@ -83,7 +83,7 @@ function updatelink(){\
 \
 if (data_usage){\
   updatelink();\
-  var stopUpdateLink = setInterval(updatelink, 3000);\
+  var stopUpdateLink = setInterval(updatelink, 300);\
 }\
 </script>\
 ');
