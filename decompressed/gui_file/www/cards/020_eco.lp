@@ -50,8 +50,8 @@ end
 
 -- LED color text formatting
 local power_colors = {
-	green = T"Green",
-	blue = T"Blue",
+	green = T"Verde",
+	blue = T"Blu",
 	orange = T"Orange",
 	red = T"Red",
 	cyan = T"Cyan",
@@ -59,13 +59,18 @@ local power_colors = {
 	white = T"White"
 }
 
-local current_color = content.power_led_color
-if current_color == nil or current_color == "" then
-	current_color = "green" -- Default color if is empty
+local raw_color = content.power_led_color
+local safe_color = "green"
+
+for key in pairs(power_colors) do
+	if raw_color == key then
+		safe_color = key
+		break
+	end
 end
 
 -- Recover Translate
-content.power_led_text = "Power LED color" .. tostring(power_colors[current_color] or current_color)
+content.power_led_text = string.format("%s: %s", T"Power LED color", power_colors[safe_color])
 
 local modalPath = nil
 local switchName = nil
@@ -90,11 +95,11 @@ end
 
 ngx.print('\
 <div class="span3">\
-  <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
+  <div class="smallcard" style="height: auto; padding-bottom: 10px;" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
 \
     ');  ngx.print( ui_helper.createCardHeader(T"Eco Settings", modalPath, switchName, nil) ); ngx.print('\
 \
-    <div class="content card_bg" data-bg-text="&#xf06c;">\
+    <div class="content card_bg" data-bg-text="&#xf06c;" style="height: auto; padding-bottom: 10px;">\
 	  <div class="divtable">\
 \
       ');
