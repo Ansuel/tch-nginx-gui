@@ -9,7 +9,10 @@ let element = {}, requests = [], timers = new Map(), nextTimer = 0;
 const classes = {}, attributes = {}, visibility = {}, labels = {
   'data-connected': 'Connected', 'data-tether-off': 'USB tethering disabled',
   'data-data-off': 'Mobile data disabled', 'data-unavailable': 'Phone unavailable', 'data-checking': 'Checking connection',
-  'data-unauthorized': 'ADB unauthorized', 'data-offline': 'ADB device offline',
+  'data-adb-error': 'ADB connection failed', 'data-adb-server-error': 'ADB server failed to start',
+  'data-telemetry-error': 'ADB connected; telemetry unavailable', 'data-telemetry-timeout': 'Phone telemetry timed out',
+  'data-helper-error': 'Smartphone backend unavailable', 'data-request-timeout': 'Smartphone request timed out',
+  'data-usb-diagnostics-error': 'USB detected; diagnostics unavailable', 'data-unauthorized': 'ADB unauthorized', 'data-offline': 'ADB device offline',
   'data-no-device': 'Phone not detected on USB', 'data-multiple-devices': 'Multiple ADB devices',
   'data-adb-missing': 'ADB not installed', 'data-usb-only': 'USB detected; ADB unavailable',
   'data-link-up': 'Link up', 'data-link-down': 'Link down', 'data-no-interface': 'Interface not detected',
@@ -99,12 +102,17 @@ assert.strictEqual(binding.phoneNetwork(), '');
 assert(!visibility['.smartphone-network-row'] && !visibility['.smartphone-signal-row']);
 assert.strictEqual(attributes['.smartphone-status:title'], 'USB authorization required');
 for (const [code, label] of Object.entries({unauthorized: 'ADB unauthorized', offline: 'ADB device offline',
-  no_device: 'Phone not detected on USB', multiple_devices: 'Multiple ADB devices', adb_missing: 'ADB not installed'})) {
+  adb_error: 'ADB connection failed', adb_server_error: 'ADB server failed to start',
+  telemetry_error: 'ADB connected; telemetry unavailable', telemetry_timeout: 'Phone telemetry timed out',
+  request_timeout: 'Smartphone request timed out', helper_error: 'Smartphone backend unavailable', no_device: 'Phone not detected on USB', multiple_devices: 'Multiple ADB devices', adb_missing: 'ADB not installed'})) {
   // Reuse the last response handler without advancing lifecycle request counts.
   requests[3].success({ERROR: 'Specific connection error', ERROR_CODE: code});
   assert.strictEqual(binding.phoneStatus(), label);
   assert(!classes['.light:green']);
 }
+requests[3].success({ERROR: 'Unknown error', USB_DEV: 'Example phone'});
+assert.strictEqual(binding.phoneStatus(), 'USB detected; diagnostics unavailable');
+assert.strictEqual(binding.phoneDevice(), '(Example phone)');
 requests[3].success({ERROR: 'Unknown error', ERROR_CODE: 'toString'});
 assert.strictEqual(binding.phoneStatus(), 'Phone unavailable');
 requests[3].success({ERROR: 'Enable USB debugging', ERROR_CODE: 'usb_only', USB_DEV: 'moto g32',
@@ -124,7 +132,10 @@ context.document.hidden = true;
 tick(); assert.strictEqual(requests.length, 4);
 context.document.hidden = false;
 tick(); assert.strictEqual(requests.length, 5);
+requests[4].failure({}, 'timeout');
+assert.strictEqual(binding.phoneStatus(), 'Smartphone request timed out');
 requests[4].reject();
+assert.strictEqual(binding.phoneStatus(), 'Smartphone backend unavailable');
 tick();
 const pending = requests[5];
 element = {};
@@ -132,7 +143,7 @@ vm.runInContext(client, context);
 assert(pending.aborted, 'Replacing the card must abort the previous request');
 assert.strictEqual(timers.size, 1);
 pending.success(sample);
-assert.strictEqual(binding.phoneStatus(), 'Phone unavailable', 'Stale responses must not update old bindings');
+assert.strictEqual(binding.phoneStatus(), 'Smartphone backend unavailable', 'Stale responses must not update old bindings');
 const active = requests[6];
 element = null;
 tick();

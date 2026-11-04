@@ -263,3 +263,25 @@ resolved `example.com` through `127.0.0.1`. No second full router reboot
 was performed. Local validation passed 52 existing Smartphone tests, the
 boot preparation and init-link lifecycle tests and 20 phone-helper tests,
 plus shell syntax and diff whitespace checks.
+
+## USB identity, ADB startup and telemetry errors
+
+The model reported as `USB_DEV` comes from USB descriptors and does not require
+a running or authorized ADB connection. Seeing a model therefore does not prove
+that Android telemetry is reachable.
+
+The helper explicitly starts the ADB server with a five-second deadline before
+querying transports. This allows a cold start more time than a normal ADB
+command, while distinguishing server startup failure from unauthorized, offline
+or unavailable transports. A separate boot service for ADB is not needed.
+
+The card distinguishes ADB server/connection failures, Android telemetry
+failures, helper timeouts and browser/backend communication failures. If the
+outer telemetry deadline expires, the RPC wrapper performs a separate bounded
+USB-only query, preserving USB identity and tethering diagnostics without
+repeating ADB commands. Unknown errors with a USB identity are shown as
+USB detected with diagnostics unavailable.
+
+These diagnostics were validated with simulated ADB startup/telemetry failures,
+RPC timeouts and card responses. The reported issue on the additional router
+could not be reproduced directly because that device was not reachable.

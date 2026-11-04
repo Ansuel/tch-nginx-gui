@@ -19,6 +19,13 @@ ngx.print('<div class="content card_bg" style="height:auto;min-height:110px" dat
     ' data-multiple-devices="', escape(T"Multiple ADB devices"), '"',
     ' data-adb-missing="', escape(T"ADB not installed"), '"',
     ' data-usb-only="', escape(T"USB detected; ADB unavailable"), '"',
+    ' data-adb-error="', escape(T"ADB connection failed"), '"',
+    ' data-adb-server-error="', escape(T"ADB server failed to start"), '"',
+    ' data-telemetry-error="', escape(T"ADB connected; telemetry unavailable"), '"',
+    ' data-telemetry-timeout="', escape(T"Phone telemetry timed out"), '"',
+    ' data-helper-error="', escape(T"Smartphone backend unavailable"), '"',
+    ' data-request-timeout="', escape(T"Smartphone request timed out"), '"',
+    ' data-usb-diagnostics-error="', escape(T"USB detected; diagnostics unavailable"), '"',
     ' data-link-up="', escape(T"Link up"), '"',
     ' data-link-down="', escape(T"Link down"), '"',
     ' data-no-interface="', escape(T"Interface not detected"), '"',
@@ -57,8 +64,12 @@ $(function () {
         var connected = tether && data.DATA_ST === "1";
         var state = available ? content.attr(!tether ? "data-tether-off" :
             (connected ? "data-connected" : "data-data-off")) : content.attr("data-unavailable");
+        if (!available && data && data.USB_DEV) state = content.attr("data-usb-diagnostics-error");
         var errors = {unauthorized: "data-unauthorized", offline: "data-offline", no_device: "data-no-device",
-            multiple_devices: "data-multiple-devices", adb_missing: "data-adb-missing", usb_only: "data-usb-only"};
+            multiple_devices: "data-multiple-devices", adb_missing: "data-adb-missing", usb_only: "data-usb-only",
+            adb_error: "data-adb-error", adb_server_error: "data-adb-server-error",
+            telemetry_error: "data-telemetry-error", telemetry_timeout: "data-telemetry-timeout", helper_error: "data-helper-error",
+            request_timeout: "data-request-timeout"};
         if (!available && data && Object.prototype.hasOwnProperty.call(errors, data.ERROR_CODE)) {
             state = content.attr(errors[data.ERROR_CODE]);
         }
@@ -108,7 +119,13 @@ $(function () {
         return $.ajax({url: "/modals/smartphone-modal.lp", type: "POST", dataType: "json", timeout: 25000,
             data: [tch.elementCSRFtoken(), {name: "action", value: "get_stats"}]
         }).done(function (data) { if (current()) render(binding, data); })
-            .fail(function (_, status) { if (current() && status !== "abort") render(binding, null); });
+            .fail(function (_, status) {
+                if (current() && status !== "abort") render(binding, {
+                    ERROR_CODE: status === "timeout" ? "request_timeout" : "helper_error",
+                    ERROR: status === "timeout" ? "The Smartphone backend did not respond in time." :
+                        "Unable to communicate with the Smartphone backend."
+                });
+            });
     }
     new modgui.createAjaxUpdateCard("smartphone-card", null, "SmartphoneCardInterval", 30000, refresh);
 });

@@ -34,6 +34,8 @@ root = pathlib.Path(os.environ['PHONE_TEST_DIR'])
 args = sys.argv[1:]
 with (root / 'adb.log').open('a') as log:
     log.write(json.dumps(args) + '\\n')
+if args == ['start-server']:
+    sys.exit(1 if os.environ.get('ADB_START_FAIL') else 0)
 if args == ['devices']:
     print('List of devices attached')
     state = os.environ.get('ADB_STATE', 'unauthorized' if os.environ.get('UNAUTHORIZED') else 'device')
@@ -45,6 +47,7 @@ if args == ['devices']:
 if args == ['get-state']:
     sys.exit(1 if os.environ.get('UNAUTHORIZED') else 0)
 if args == ['shell', 'dumpsys', 'battery']:
+    if os.environ.get('BATTERY_FAIL'): sys.exit(1)
     print('  level: 75\\n  temperature: 300\\n  voltage: 4200\\n  status: 2\\n  health: 2')
 elif args == ['shell', 'dumpsys', 'telephony.registry']:
     print('mSignalStrength=CellSignalStrengthLte: rsrp=-95 rsrq=-10 rssnr=120 CellSignalStrengthNr: ssRsrp=2147483647')
@@ -232,12 +235,25 @@ elif args[:2] == ['route', 'flush']:
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn('ERROR_CODE|' + code, result.stdout)
                 calls = [json.loads(line) for line in (self.directory / 'adb.log').read_text().splitlines()]
-                self.assertEqual(calls, [['devices']])
+                self.assertEqual(calls, [['start-server'], ['devices']])
 
     def test_legacy_busybox_timeout_is_supported(self):
         result = self.run_phone(TIMEOUT_LEGACY='1')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn('BATT|75%', result.stdout)
+
+    def test_adb_server_failure_is_distinct_and_does_not_query_phone(self):
+        result = self.run_phone(ADB_START_FAIL='1')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('ERROR_CODE|adb_server_error', result.stdout)
+        calls = [json.loads(line) for line in (self.directory / 'adb.log').read_text().splitlines()]
+        self.assertEqual(calls, [['start-server']])
+
+    def test_android_telemetry_failure_does_not_claim_adb_is_absent(self):
+        result = self.run_phone(BATTERY_FAIL='1')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('ERROR_CODE|telemetry_error', result.stdout)
+        self.assertIn('ADB connected', result.stdout)
 
     def test_router_uplink_controls_do_not_require_adb_authorization(self):
         (self.directory / 'uplink.lua').write_text('fixture')
@@ -330,7 +346,7 @@ elif args[:2] == ['route', 'flush']:
         result = self.run_phone('start_vpn; reboot')
         self.assertNotEqual(result.returncode, 0)
         calls = [json.loads(line) for line in (self.directory / 'adb.log').read_text().splitlines()]
-        self.assertEqual(calls, [['devices'], ['get-state']])
+        self.assertEqual(calls, [['start-server'], ['devices'], ['get-state']])
 
 
 if __name__ == '__main__':

@@ -12,6 +12,30 @@ LUA = shutil.which('lua')
 
 @unittest.skipUnless(LUA, 'Lua required')
 class SmartphoneTimeoutTest(unittest.TestCase):
+    def test_deadline_keeps_usb_identity_and_reports_telemetry_failure(self):
+        for status, code in [('124', 'telemetry_timeout'), ('137', 'telemetry_timeout'), ('1', 'helper_error')]:
+            with self.subTest(status=status):
+                result = subprocess.run([LUA, '-', str(ROOT), status, code], input=r'''
+local calls = 0
+io.popen = function(command)
+    calls = calls + 1
+    if calls == 1 then
+        return {read = function() return "\nEXIT_STATUS|" .. arg[2] .. "\n" end, close = function() end}
+    end
+    assert(command:find('get_usb_info', 1, true), command)
+    return {read = function() return "USB_DEV|Example phone\nUSB_ADB|1\nHOST_IF|usb0\n" end, close = function() end}
+end
+local mapping
+register = function(value) mapping = value end
+assert(loadfile(arg[1] .. '/decompressed/smartphone/usr/share/transformer/mappings/rpc/smartphone.map'))()
+local stats = mapping.get.stats()
+assert(stats:find('ERROR_CODE|' .. arg[3], 1, true), stats)
+assert(stats:find('USB_DEV|Example phone', 1, true), stats)
+assert(stats:find('HOST_IF|usb0', 1, true), stats)
+assert(calls == 2)
+''', text=True, capture_output=True, timeout=5)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_rpc_preserves_usb_diagnostics_with_old_and_new_timeout(self):
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)
