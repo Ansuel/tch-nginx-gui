@@ -88,7 +88,7 @@ states=$(printf '%s\n' "$devices" | awk 'NF >= 2 && $1 != "List" && $1 !~ /^\*/ 
 count=$(printf '%s\n' "$states" | awk 'NF {n++} END {print n+0}')
 if [ "$count" -eq 0 ]; then
     [ -z "$usb_info" ] || error "USB device detected, but ADB is unavailable. Enable USB debugging on the phone and reconnect it." usb_only
-    error "No Android device detected by ADB. Connect the phone and enable USB debugging." no_device
+    error "No phone detected on USB. Unlock the phone, reconnect the USB cable and enable USB tethering or debugging." no_device
 fi
 [ "$count" -eq 1 ] || error "Multiple ADB devices detected. Connect only one Android device." multiple_devices
 case "$states" in

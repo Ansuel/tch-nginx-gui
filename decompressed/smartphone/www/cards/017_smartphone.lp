@@ -15,7 +15,7 @@ ngx.print('<div class="content card_bg" style="height:auto;min-height:110px" dat
     ' data-unavailable="', escape(T"Phone unavailable"), '"',
     ' data-unauthorized="', escape(T"ADB unauthorized"), '"',
     ' data-offline="', escape(T"ADB device offline"), '"',
-    ' data-no-device="', escape(T"Phone not detected by ADB"), '"',
+    ' data-no-device="', escape(T"Phone not detected on USB"), '"',
     ' data-multiple-devices="', escape(T"Multiple ADB devices"), '"',
     ' data-adb-missing="', escape(T"ADB not installed"), '"',
     ' data-usb-only="', escape(T"USB detected; ADB unavailable"), '"',

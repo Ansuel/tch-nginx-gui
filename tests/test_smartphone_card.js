@@ -10,7 +10,7 @@ const classes = {}, attributes = {}, visibility = {}, labels = {
   'data-connected': 'Connected', 'data-tether-off': 'USB tethering disabled',
   'data-data-off': 'Mobile data disabled', 'data-unavailable': 'Phone unavailable', 'data-checking': 'Checking connection',
   'data-unauthorized': 'ADB unauthorized', 'data-offline': 'ADB device offline',
-  'data-no-device': 'Phone not detected by ADB', 'data-multiple-devices': 'Multiple ADB devices',
+  'data-no-device': 'Phone not detected on USB', 'data-multiple-devices': 'Multiple ADB devices',
   'data-adb-missing': 'ADB not installed', 'data-usb-only': 'USB detected; ADB unavailable',
   'data-link-up': 'Link up', 'data-link-down': 'Link down', 'data-no-interface': 'Interface not detected',
   'data-phone-active': 'Phone', 'data-wan-active': 'WAN', 'data-uplink-checking': 'Checking uplinks'
@@ -99,7 +99,7 @@ assert.strictEqual(binding.phoneNetwork(), '');
 assert(!visibility['.smartphone-network-row'] && !visibility['.smartphone-signal-row']);
 assert.strictEqual(attributes['.smartphone-status:title'], 'USB authorization required');
 for (const [code, label] of Object.entries({unauthorized: 'ADB unauthorized', offline: 'ADB device offline',
-  no_device: 'Phone not detected by ADB', multiple_devices: 'Multiple ADB devices', adb_missing: 'ADB not installed'})) {
+  no_device: 'Phone not detected on USB', multiple_devices: 'Multiple ADB devices', adb_missing: 'ADB not installed'})) {
   // Reuse the last response handler without advancing lifecycle request counts.
   requests[3].success({ERROR: 'Specific connection error', ERROR_CODE: code});
   assert.strictEqual(binding.phoneStatus(), label);
