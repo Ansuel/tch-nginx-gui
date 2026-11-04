@@ -235,3 +235,53 @@ name and ADB-unavailable message in the card and modal. No phone command or
 router WAN configuration was changed. The actual phone did not expose an ADB
 interface, so accepting an RSA authorization prompt cannot be tested until USB
 debugging is enabled on the phone.
+
+# Boot validation on 2026-11-04
+
+On the DGA4132/VBNT-S, the fallback monitor and CDC/RNDIS modules started
+after reboot, and the selected uplink remained the existing WAN. No phone
+was enumerated on either USB controller: only the root hubs were present,
+and ADB listed no transports. Rebinding the empty host controllers did not
+recover the device. Physical reconnection/unlocking of the phone is still
+needed to validate recovery; this is not an ADB authorization failure.
+
+The reboot also exposed a DNS startup ordering bug: dnsmasq (S19) exhausted
+its respawns before the uplink monitor (S95) created the volatile resolver
+directory. The existing `modgui-smartphone-uplink` init script now runs
+in two boot phases: its S18 link prepares the directory and readable
+resolver file only when managed uplink DNS is enabled; its S95 link starts
+the monitor after the other networking services. Enable/disable manages both
+links. App refresh removes the former separate `modgui-smartphone-dns` script.
+The card's absent-device label now explicitly says that no phone was detected
+on USB.
+
+The update was deployed with backup at
+`/root/smartphone-reboot-backup-20261104/app.tgz`. Live validation recreated
+the resolver from an absent runtime directory using the new hook, observed
+the monitor repopulate the WAN DNS, restarted dnsmasq and successfully
+resolved `example.com` through `127.0.0.1`. No second full router reboot
+was performed. Local validation passed 52 existing Smartphone tests, the
+boot preparation and init-link lifecycle tests and 20 phone-helper tests,
+plus shell syntax and diff whitespace checks.
+
+## USB identity, ADB startup and telemetry errors
+
+The model reported as `USB_DEV` comes from USB descriptors and does not require
+a running or authorized ADB connection. Seeing a model therefore does not prove
+that Android telemetry is reachable.
+
+The helper explicitly starts the ADB server with a five-second deadline before
+querying transports. This allows a cold start more time than a normal ADB
+command, while distinguishing server startup failure from unauthorized, offline
+or unavailable transports. A separate boot service for ADB is not needed.
+
+The card distinguishes ADB server/connection failures, Android telemetry
+failures, helper timeouts and browser/backend communication failures. If the
+outer telemetry deadline expires, the RPC wrapper performs a separate bounded
+USB-only query, preserving USB identity and tethering diagnostics without
+repeating ADB commands. Unknown errors with a USB identity are shown as
+USB detected with diagnostics unavailable.
+
+These diagnostics were validated with simulated ADB startup/telemetry failures,
+RPC timeouts and card responses. The reported issue on the additional router
+could not be reproduced directly because that device was not reachable.

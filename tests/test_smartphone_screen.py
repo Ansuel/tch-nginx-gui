@@ -13,7 +13,7 @@ class SmartphoneScreenTest(unittest.TestCase):
     def test_connection_error_code_survives_rpc_and_modal_response(self):
         self.run_lua(r'''
 local root = arg[1]
-for _, code in ipairs({"unauthorized", "offline", "no_device", "multiple_devices", "adb_missing", "adb_error", "usb_only"}) do
+for _, code in ipairs({"unauthorized", "offline", "no_device", "multiple_devices", "adb_missing", "adb_error", "usb_only", "adb_server_error", "telemetry_error", "telemetry_timeout", "helper_error"}) do
     local registration
     register = function(mapping) registration = mapping end
     io.popen = function()

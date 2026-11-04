@@ -1,6 +1,6 @@
 # LuCI wireless on Technicolor DGA4130
 
-Implemented and tested on 2026-10-17 against the modem at 192.168.1.1,
+Implemented and tested on 2026-10-17 against the DGA4130 modem,
 Damson 19.4, ARMv7, with LuCI openwrt-18.06 branch
 `git-20.155.55668-a972bdb`. Other models and firmware remain unverified.
 

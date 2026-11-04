@@ -3505,6 +3505,11 @@ app_smartphone() (
           done
           chmod 755 /usr/bin/phone_stats.sh || exit 1
           chmod 755 /etc/init.d/modgui-smartphone-uplink || exit 1
+          # Migrate the former separate DNS hook to this single init script.
+          if [ -f /etc/init.d/modgui-smartphone-dns ]; then
+              /etc/init.d/modgui-smartphone-dns disable || exit 1
+              rm -f /etc/init.d/modgui-smartphone-dns || exit 1
+          fi
           register_gui || exit 1
           touch "$owned" || exit 1
           if [ -f "$archive" ]; then sha256sum "$archive" | awk '{print $1}' > "$archive_hash"; fi
@@ -3519,6 +3524,7 @@ app_smartphone() (
               echo "Smartphone USB installed; some tethering drivers are unavailable. See Smartphone details."
           fi
           if [ "$(uci -q get smartphone.uplink.enabled)" = 1 ]; then
+              /etc/init.d/modgui-smartphone-uplink enable || exit 1
               /etc/init.d/modgui-smartphone-uplink restart || exit 1
           fi
           ;;

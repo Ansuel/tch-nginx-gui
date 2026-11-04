@@ -20,6 +20,16 @@ local function run(action)
     if status ~= "0" then
         -- Keep USB identity and the specific ADB state in error stats, too.
         if action == "get_stats" and body and body:match("^ERROR|") then return body end
+        if action == "get_stats" then
+            -- The outer deadline can expire before the helper prints its final
+            -- payload. Preserve USB identity without making another ADB call.
+            local diagnostics = io.popen("if timeout --help 2>&1 | grep -q -- '-t SECS'; then timeout -t 3 /usr/bin/phone_stats.sh get_usb_info; else timeout 3 /usr/bin/phone_stats.sh get_usb_info; fi 2>/dev/null")
+            local usb = diagnostics and diagnostics:read("*a") or ""
+            if diagnostics then diagnostics:close() end
+            local timed_out = status == "124" or status == "137" or status == "143"
+            return "ERROR|" .. (timed_out and "Phone telemetry timed out. USB detection is independent of ADB." or "Unable to read phone telemetry. Check the Smartphone backend.") ..
+                "\nERROR_CODE|" .. (timed_out and "telemetry_timeout" or "helper_error") .. "\n" .. usb
+        end
         return nil, (body and body:match("ERROR|([^\r\n]+)")) or "Smartphone request failed or timed out"
     end
     return body

@@ -74,13 +74,16 @@ case "$CMD" in
         exec lua /usr/share/modgui-smartphone/uplink.lua "${CMD#uplink_}" ;;
 esac
 ADB_BIN=$(command -v adb) || error "ADB is not installed on this router." adb_missing
-command -v timeout >/dev/null 2>&1 || error "The timeout utility is required."
+command -v timeout >/dev/null 2>&1 || error "The timeout utility is required." helper_error
 # Old Technicolor BusyBox uses timeout -t SECS; newer versions use SECS.
 case "$(timeout --help 2>&1)" in
     *"-t SECS"*) timed() { timeout -t "$@"; } ;;
     *) timed() { timeout "$@"; } ;;
 esac
 adb() { timed 2 "$ADB_BIN" "$@"; }
+# A cold server may need longer than a normal transport query. Do not depend
+# on the two-second devices timeout to both spawn the daemon and enumerate USB.
+timed 5 "$ADB_BIN" start-server >/dev/null 2>&1 || error "Unable to start the ADB server on this router." adb_server_error
 # Inspect transports before get-state: its failure alone cannot distinguish
 # missing devices, an unaccepted RSA key, offline transports or multiple phones.
 devices=$(adb devices 2>/dev/null) || error "Unable to query ADB devices." adb_error
@@ -88,7 +91,7 @@ states=$(printf '%s\n' "$devices" | awk 'NF >= 2 && $1 != "List" && $1 !~ /^\*/ 
 count=$(printf '%s\n' "$states" | awk 'NF {n++} END {print n+0}')
 if [ "$count" -eq 0 ]; then
     [ -z "$usb_info" ] || error "USB device detected, but ADB is unavailable. Enable USB debugging on the phone and reconnect it." usb_only
-    error "No Android device detected by ADB. Connect the phone and enable USB debugging." no_device
+    error "No phone detected on USB. Unlock the phone, reconnect the USB cable and enable USB tethering or debugging." no_device
 fi
 [ "$count" -eq 1 ] || error "Multiple ADB devices detected. Connect only one Android device." multiple_devices
 case "$states" in
@@ -213,7 +216,7 @@ trap - EXIT
     *) error "Unsupported action." ;;
 esac
 
-BATTERY=$(adb shell dumpsys battery 2>/dev/null) || error "Android battery service is unavailable."
+BATTERY=$(adb shell dumpsys battery 2>/dev/null) || error "ADB connected, but Android battery telemetry is unavailable." telemetry_error
 
 # Parse Battery Data
 LEVEL=$(echo "$BATTERY" | grep -E "^ *level:" | awk '{print $2}' | tr -d '\r')
