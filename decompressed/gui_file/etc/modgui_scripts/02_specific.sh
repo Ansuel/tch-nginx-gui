@@ -79,6 +79,7 @@ append_gui_vpn_feeds() {
   case "$running_kernel" in ''|*[!A-Za-z0-9._+-]*) return 1 ;; esac
   append_missing_opkg_feeds <<EOF
 src/gz modgui_base https://francyesco.github.io/GUI_ipk/base
+src/gz modgui_target_userspace https://francyesco.github.io/GUI_ipk/target/packages
 EOF
   platform="$(uci -q get 'version.@version[0].product' 2>/dev/null || true)"
   platform="$(printf '%s' "${platform%%_*}" | tr -cd 'A-Za-z0-9' | tr 'A-Z' 'a-z')"
