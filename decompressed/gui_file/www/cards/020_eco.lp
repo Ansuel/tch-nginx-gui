@@ -95,12 +95,12 @@ end
 
 ngx.print('\
 <div class="span3">\
-  <div class="smallcard" style="height: auto; padding-bottom: 10px;" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
+  <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
 \
     ');  ngx.print( ui_helper.createCardHeader(T"Eco Settings", modalPath, switchName, nil) ); ngx.print('\
 \
-    <div class="content card_bg" data-bg-text="&#xf06c;" style="height: auto; padding-bottom: 10px;">\
-	  <div class="divtable">\
+    <div class="content card_bg" data-bg-text="&#xf06c;">\
+	  <div class="divtable" style="position: relative; top: -10px;">\
 \
       ');
 local html = {}
