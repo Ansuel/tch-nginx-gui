@@ -29,9 +29,6 @@ ngx.print('<div class="content card_bg" style="height:auto;min-height:110px" dat
     ' data-link-up="', escape(T"Link up"), '"',
     ' data-link-down="', escape(T"Link down"), '"',
     ' data-no-interface="', escape(T"Interface not detected"), '"',
-    ' data-phone-active="', escape(T"Phone"), '"',
-    ' data-wan-active="', escape(T"WAN"), '"',
-    ' data-uplink-checking="', escape(T"Checking uplinks"), '"',
     ' data-checking="', escape(T"Checking connection"), '"><div class="divtable">')
 ngx.print('<div class="pull-right smartphone-signal-bars" style="display:none;margin-right:15px;height:22px;font-size:0" aria-hidden="true">')
 for index = 1, 5 do
@@ -39,16 +36,13 @@ for index = 1, 5 do
 end
 ngx.print('</div>')
 ngx.print(ui_helper.createSimpleLight("0", T"Smartphone" .. ' <span data-bind="text: phoneDevice"></span><span data-bind="text: phoneBattery"></span>'))
-ngx.print('<div style="min-height:25px"><label class="card-label">', T"Status", ':</label> ',
-    '<strong class="smartphone-status" data-bind="text: phoneStatus"></strong></div>')
-ngx.print('<div class="smartphone-network-row" style="display:none;height:25px"><label class="card-label">', T"Network", ':</label> ',
-    '<strong data-bind="text: phoneNetwork"></strong></div>')
+ngx.print('<div style="height:25px;display:flex;align-items:center;gap:5px"><label class="card-label">', T"Status", ':</label> ',
+    '<strong class="smartphone-status" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" data-bind="text: phoneStatus"></strong></div>')
 ngx.print('<div class="smartphone-signal-row" style="display:none;height:25px" title="', escape(T"Estimated from LTE RSRP"), '"><label class="card-label">',
     T"Signal", ':</label> <strong data-bind="text: phoneSignal"></strong></div>')
 ngx.print('<div class="smartphone-tether-row" style="display:none;height:25px"><label class="card-label">', T"Tethering", ':</label> ',
     '<strong data-bind="text: phoneTether"></strong></div>')
-ngx.print('<div class="smartphone-uplink-row" style="display:none;min-height:25px"><label class="card-label">', T"Internet", ':</label> ',
-    '<strong data-bind="text: phoneUplink"></strong></div></div></div></div></div>')
+ngx.print('</div></div></div></div>')
 if target then
 ngx.print([===[
 <script>
@@ -74,19 +68,19 @@ $(function () {
             state = content.attr(errors[data.ERROR_CODE]);
         }
         var operator = available && data.OPER && data.OPER !== "No SIM" && data.OPER !== "N/A" ? data.OPER : "";
-        binding.phoneStatus(state + (operator ? " (" + operator + ")" : ""));
+        var network = available && data.NET && data.NET !== "N/A" && data.NET !== "—" ? data.NET : "";
+        var statusText = state + (network ? " · " + network : "") + (operator ? " (" + operator + ")" : "");
+        binding.phoneStatus(statusText);
         var usbDevice = !available && data && data.USB_DEV;
         binding.phoneDevice(usbDevice ? "(" + usbDevice + ")" : "");
-        root.find(".smartphone-status").attr("title", (data && (data.ERROR || data.message)) || data && data.TETHER || state);
+        root.find(".smartphone-status").attr("title", (data && (data.ERROR || data.message)) ||
+            statusText + (data && data.TETHER ? " · " + data.TETHER : ""));
         root.find(".light").toggleClass("green", !!connected).toggleClass("orange", !!(available || usbDevice) && !connected)
             .toggleClass("off", !available && !usbDevice);
         root.find(".simple-desc").attr("title", available ? data.DEV : data && data.USB_DEV || "");
         var battery = available && /^(\d{1,3})%$/.exec(data.BATT || "");
         binding.phoneBattery(battery && Number(battery[1]) <= 100 ?
             "(" + (data.BATT_STAT === "In Carica" ? "⚡ " : "") + data.BATT + ")" : "");
-        var network = available && data.NET && data.NET !== "N/A" && data.NET !== "—" ? data.NET : "";
-        binding.phoneNetwork(network);
-        root.find(".smartphone-network-row").toggle(!!network);
         var host = data && data.HOST_IF;
         var linkUp = host && data.HOST_ADMIN === "up" && data.HOST_CARRIER === "1";
         var hostState = host ? host + " · " + content.attr(linkUp ? "data-link-up" : "data-link-down") :
@@ -94,10 +88,6 @@ $(function () {
         binding.phoneTether(hostState);
         root.find(".smartphone-tether-row").toggle(!!hostState).attr("title",
             host && data.HOST_IPV4 || data && data.HOST_DRIVER_STATUS || "");
-        var managed = data && /^(primary|fallback)$/.test(data.UPLINK_MODE || "");
-        binding.phoneUplink(managed ? content.attr(data.UPLINK_ACTIVE === "phone" ? "data-phone-active" :
-            data.UPLINK_ACTIVE === "wan" ? "data-wan-active" : "data-uplink-checking") : "");
-        root.find(".smartphone-uplink-row").toggle(!!managed);
         // The percentage is an indicative LTE RSRP level, not a throughput estimate.
         var rsrp = available && /^-\d+(?:\.\d+)?$/.test(String(data.SIGNAL_RAW)) ? Number(data.SIGNAL_RAW) : NaN;
         var valid = isFinite(rsrp) && rsrp >= -140 && rsrp <= -43;
@@ -112,9 +102,8 @@ $(function () {
         if (binding.phoneStatus() === undefined) {
             binding.phoneStatus(content.attr("data-checking"));
             binding.phoneDevice("");
-            binding.phoneNetwork(""); binding.phoneSignal(""); binding.phoneBattery("");
+            binding.phoneSignal(""); binding.phoneBattery("");
             binding.phoneTether("");
-            binding.phoneUplink("");
         }
         return $.ajax({url: "/modals/smartphone-modal.lp", type: "POST", dataType: "json", timeout: 25000,
             data: [tch.elementCSRFtoken(), {name: "action", value: "get_stats"}]
