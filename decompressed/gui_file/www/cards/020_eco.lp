@@ -104,9 +104,10 @@ ngx.print('\
 \
       ');
 local html = {}
-
+	
+	html[#html + 1] = '<style>.eco-bulb{margin-left:2px; padding-right:2px;}</style>'
 	html[#html + 1] = ui_helper.createSimpleLight(content.eco_led, content.eco_led_text, nil, "fas fa-leaf"  )
-	html[#html + 1] = ui_helper.createSimpleLight("1", content.power_led_text, nil, "fas fa-lightbulb"  )
+	html[#html + 1] = ui_helper.createSimpleLight("1", content.power_led_text, nil, "fas fa-lightbulb eco-bulb"  )
 	html[#html + 1] = ui_helper.createSimpleLight(content.cpuspeed_status, content.cpuspeed, nil, "fas fa-microchip"  )
 	html[#html + 1] = ui_helper.createSimpleLight(content.eee, content.eee_text, nil, "fas fa-exchange-alt"  )
 

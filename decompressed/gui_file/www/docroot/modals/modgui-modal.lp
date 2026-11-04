@@ -646,7 +646,7 @@ html[#html + 1] = ui_helper.createSwitch(T"GUI Auto Update", "update_autoupgrade
 html[#html + 1] = ui_helper.createInputText(T"Update Hours", "update_autoupgrade_hour", modgui_settings["update_autoupgrade_hour"],autoupgrade_mon_1)
 if content["outdated_ver"] == "1" then
         html[#html + 1] = ui_helper.createLabel(T"State", T"Update Found", basic)
-        html[#html + 1] = ui_helper.createLabel(T"New Version", format("<a target=\"_blank\" href=https://github.com/Ansuel/tch-nginx-gui/releases/tag/%s>%s</a>", content["new_ver"], content["new_ver"]), basic)
+        html[#html + 1] = ui_helper.createLabel(T"New Version", format("<a target=\"_blank\" href=https://github.com/KissAnotherDay/dga4132-mod-gui/releases/tag/%s>%s</a>", content["new_ver"], content["new_ver"]), basic)
         html[#html + 1] = ui_helper.createButton(T"Update GUI", T"Update", "icon-refresh", upgrade_gui)
 else
         html[#html + 1] = ui_helper.createLabel(T"State", T"No Update found", basic)
@@ -752,7 +752,7 @@ if content.specific_app ~= "" and (not marketing_major or marketing_major < 19) 
 
                 local device = getSupportedModel()
 
-                html[#html + 1] = ui_helper.createAlertBlock(format(T"If you don't have connection, specific app can be downloaded here ( https://github.com/Ansuel/tch-nginx-gui/releases (upgrade-pack-specific%s.tar.bz2) ) and installed manually here.", device), info_box)
+                html[#html + 1] = ui_helper.createAlertBlock(format(T"If you don't have connection, specific app can be downloaded here ( https://github.com/KissAnotherDay/dga4132-mod-gui/releases (upgrade-pack-specific%s.tar.bz2) ) and installed manually here.", device), info_box)
                 html[#html + 1] = '<div class="control-group">'
                 html[#html + 1] = format('<label class="control-label">%s</label>', T"Upload Specific App")
                 html[#html + 1] = '<div class="controls">'

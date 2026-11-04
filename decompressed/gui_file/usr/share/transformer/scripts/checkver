@@ -24,7 +24,7 @@
 #
 
 CURRENT_VERSION=$(grep /etc/init.d/rootdevice -e 'version_gui' | sed 's/version_gui=//' | cut -d'-' -f1)
-BASE_DIR="https://github.com/Ansuel/tch-nginx-gui/releases/download"
+BASE_DIR="https://github.com/KissAnotherDay/dga4132-mod-gui/releases/download"
 
 release_channel_version() {
     case "$1" in stable|preview|dev) ;; *) return 1 ;; esac
