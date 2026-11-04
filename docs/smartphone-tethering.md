@@ -285,3 +285,34 @@ USB detected with diagnostics unavailable.
 These diagnostics were validated with simulated ADB startup/telemetry failures,
 RPC timeouts and card responses. The reported issue on the additional router
 could not be reproduced directly because that device was not reachable.
+
+### Automatic recovery of stale USB discovery
+
+A live check found the kernel exposing the phone's ADB interface while an
+already running ADB server listed no transports. Restarting only ADB restored
+an authorized transport and telemetry. This confirms stale discovery in that
+server instance, but does not establish the underlying hotplug failure cause.
+
+During stats polling and independent background checks, the helper retries
+this specific condition with a server restart. It first rechecks the transport list under a private lock,
+leaves any listed transport (including unauthorized/offline) alone, and limits
+recovery attempts to once per minute using boot uptime. A dead process lock
+is reclaimable. USB-only diagnostics and router uplink controls do not trigger
+recovery. Normal ADB authorization is still required. Attempts and outcomes
+are logged with the `modgui-smartphone` tag; no router reboot is needed.
+
+The existing `modgui-smartphone-uplink` init service supervises two separate
+instances: an ADB watcher and, when configured, the DHCP/failover monitor.
+The watcher performs a lightweight USB/ADB check every 30 seconds without
+collecting Android telemetry. It starts on app installation/refresh and boot,
+works with the WebUI closed, and stays active when tethering is disabled.
+Stopping tethering terminates only the uplink instance; app removal stops
+both instances and disables their boot links. The watcher stops its current
+check or sleep on termination, avoiding leftover polling processes.
+
+Live validation on DGA4132/VBNT-S confirmed the ADB watcher kept the same
+process while tethering was disabled, and that reapplying fallback restored
+the separate uplink monitor. Both lines were reachable afterward, Android
+telemetry was available through Transformer, and router DNS resolved names.
+Local suites passed 56 Smartphone and 28 phone-helper tests, including a
+watcher recovery with no GUI requests and termination during its polling loop.

@@ -1,6 +1,18 @@
 #!/bin/sh
 # Run by Transformer as root; the web worker never needs USB or shell access.
 CMD=${1:-get_stats}
+if [ "$CMD" = watch_adb ]; then
+    watch_child=""
+    trap '[ -z "$watch_child" ] || { kill "$watch_child" 2>/dev/null; wait "$watch_child" 2>/dev/null; }; exit 0' HUP INT TERM
+    while :; do
+        "$0" check_adb >/dev/null 2>&1 &
+        watch_child=$!
+        wait "$watch_child"
+        sleep 30 &
+        watch_child=$!
+        wait "$watch_child"
+    done
+fi
 error() {
     printf 'ERROR|%s\n' "$1"
     [ -z "${2:-}" ] || printf 'ERROR_CODE|%s\n' "$2"
@@ -52,6 +64,11 @@ usb_diagnostics() {
     done
 }
 usb_info=$(usb_diagnostics)
+# Background checks use only USB/ADB discovery, not Android telemetry or the
+# uplink status helper. No phone means no need to start the ADB server.
+if [ "$CMD" = check_adb ]; then
+    printf '%s\n' "$usb_info" | grep -q '^USB_ADB|1$' || exit 0
+fi
 host_diagnostics() {
     modules=""
     for module in usbnet cdc_ether rndis_host cdc_ncm; do
@@ -67,7 +84,8 @@ host_diagnostics() {
         lua /usr/share/modgui-smartphone/uplink.lua status 2>/dev/null
     fi
 }
-host_info=$(host_diagnostics)
+host_info=""
+[ "$CMD" = check_adb ] || host_info=$(host_diagnostics)
 case "$CMD" in
     get_usb_info) printf '%s\n%s\n' "$usb_info" "$host_info"; exit 0 ;;
     uplink_link|uplink_fallback|uplink_primary|uplink_stop)
@@ -81,6 +99,57 @@ case "$(timeout --help 2>&1)" in
     *) timed() { timeout "$@"; } ;;
 esac
 adb() { timed 2 "$ADB_BIN" "$@"; }
+# Recover stale USB discovery, not authorization/offline errors. Serialize
+# dashboard/modal requests and limit retries using monotonic boot time.
+recover_adb_usb() (
+    recovery_dir=/var/run/modgui-smartphone-adb
+    [ ! -L "$recovery_dir" ] || return 1
+    (umask 077; mkdir -p "$recovery_dir") || return 1
+    chmod 700 "$recovery_dir" || return 1
+    if ! mkdir "$recovery_dir/lock" 2>/dev/null; then
+        owner=$(cat "$recovery_dir/lock/pid" 2>/dev/null)
+        case "$owner" in
+            ''|*[!0-9]*)
+                created=$(stat -c %Y "$recovery_dir/lock" 2>/dev/null)
+                now=$(date +%s)
+                case "$created" in ''|*[!0-9]*) return 1 ;; esac
+                [ "$((now - created))" -gt 30 ] || return 1 ;;
+            *) kill -0 "$owner" 2>/dev/null && return 1 ;;
+        esac
+        rm -f "$recovery_dir/lock/pid"
+        rmdir "$recovery_dir/lock" 2>/dev/null && mkdir "$recovery_dir/lock" 2>/dev/null || return 1
+    fi
+    trap 'rm -f "$recovery_dir/lock/pid"; rmdir "$recovery_dir/lock" 2>/dev/null' EXIT
+    trap 'exit 1' HUP INT TERM
+    printf '%s\n' "$$" > "$recovery_dir/lock/pid" || return 1
+    read -r uptime_seconds rest < /proc/uptime
+    now=${uptime_seconds%%.*}
+    last=$(cat "$recovery_dir/last_attempt" 2>/dev/null)
+    case "$now" in ''|*[!0-9]*) return 1 ;; esac
+    case "$last" in
+        ''|*[!0-9]*) ;;
+        *) [ "$now" -lt "$last" ] || [ "$((now - last))" -ge 60 ] || return 1 ;;
+    esac
+    # A concurrent ADB client may have just registered a transport. Never
+    # restart the server while any device (including unauthorized) is listed.
+    fresh=$(adb devices 2>/dev/null) || return 1
+    if printf '%s\n' "$fresh" | awk 'NF >= 2 && $1 != "List" && $1 !~ /^\*/ {found=1} END {exit !found}'; then
+        printf '%s\n' "$fresh"
+        return 0
+    fi
+    printf '%s\n' "$now" > "$recovery_dir/last_attempt" || return 1
+    logger -t modgui-smartphone 'USB exposes ADB but no transport is listed; restarting the ADB server.'
+    timed 2 "$ADB_BIN" kill-server >/dev/null 2>&1 || return 1
+    timed 5 "$ADB_BIN" start-server >/dev/null 2>&1 || return 1
+    sleep 1
+    fresh=$(adb devices 2>/dev/null) || return 1
+    if printf '%s\n' "$fresh" | awk 'NF >= 2 && $1 != "List" && $1 !~ /^\*/ {found=1} END {exit !found}'; then
+        logger -t modgui-smartphone 'ADB transport detected after automatic server recovery.'
+    else
+        logger -t modgui-smartphone 'ADB transport still unavailable; automatic recovery is limited to once per minute.'
+    fi
+    printf '%s\n' "$fresh"
+)
 # A cold server may need longer than a normal transport query. Do not depend
 # on the two-second devices timeout to both spawn the daemon and enumerate USB.
 timed 5 "$ADB_BIN" start-server >/dev/null 2>&1 || error "Unable to start the ADB server on this router." adb_server_error
@@ -89,6 +158,13 @@ timed 5 "$ADB_BIN" start-server >/dev/null 2>&1 || error "Unable to start the AD
 devices=$(adb devices 2>/dev/null) || error "Unable to query ADB devices." adb_error
 states=$(printf '%s\n' "$devices" | awk 'NF >= 2 && $1 != "List" && $1 !~ /^\*/ {print $2}')
 count=$(printf '%s\n' "$states" | awk 'NF {n++} END {print n+0}')
+if { [ "$CMD" = get_stats ] || [ "$CMD" = check_adb ]; } && [ "$count" -eq 0 ] && printf '%s\n' "$usb_info" | grep -q '^USB_ADB|1$'; then
+    if recovered=$(recover_adb_usb); then
+        devices=$recovered
+        states=$(printf '%s\n' "$devices" | awk 'NF >= 2 && $1 != "List" && $1 !~ /^\*/ {print $2}')
+        count=$(printf '%s\n' "$states" | awk 'NF {n++} END {print n+0}')
+    fi
+fi
 if [ "$count" -eq 0 ]; then
     [ -z "$usb_info" ] || error "USB device detected, but ADB is unavailable. Enable USB debugging on the phone and reconnect it." usb_only
     error "No phone detected on USB. Unlock the phone, reconnect the USB cable and enable USB tethering or debugging." no_device
@@ -101,6 +177,7 @@ case "$states" in
     *) error "The ADB device is unavailable. Check USB permissions and USB debugging." adb_error ;;
 esac
 adb get-state >/dev/null 2>&1 || error "ADB connection failed. Reconnect the phone and check USB debugging." adb_error
+[ "$CMD" != check_adb ] || exit 0
 android_shell() {
     # ADB 1.0.32 does not propagate Android shell exit codes. Read our marker
     # instead, including when su is absent or authorization is rejected.
