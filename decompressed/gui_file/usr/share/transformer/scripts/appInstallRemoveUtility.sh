@@ -426,7 +426,16 @@ app_luci() {
       fi
       rm -f /usr/lib/lua/uci.so #remove to avoid lua-uci conflict during install
       echo "Installing LuCI packages..."
-      opkg install --force-reinstall libuci-lua luci rpcd uhttpd
+      # opkg does not upgrade already-satisfied dependencies when updating the
+      # collection alone. Keep the standard LuCI components on the offered feed
+      # version as well, without upgrading unrelated firmware packages.
+      luci_packages="libuci-lua luci rpcd uhttpd"
+      case "$marketing_version" in
+        18.*|19.*)
+          luci_packages="$luci_packages luci-base luci-mod-admin-full luci-theme-bootstrap luci-app-firewall luci-proto-ppp luci-proto-ipv6 luci-lib-ip luci-lib-jsonc luci-lib-nixio"
+          ;;
+      esac
+      opkg install --force-reinstall $luci_packages
       luci_opkg_status=$?
       # Restore the firmware binding even when opkg fails.
       cp /rom/usr/lib/lua/uci.so /usr/lib/lua/ || return 1
@@ -458,6 +467,9 @@ app_luci() {
       uci set uhttpd.main.home='/www_luci' || return 1
 
       uci commit uhttpd || return 1
+      # LuCI's bytecode cache does not check source timestamps. Without this,
+      # upgraded packages can keep executing old modules, including version.lua.
+      rm -rf /tmp/luci-indexcache /tmp/luci-modulecache || return 1
       # Legacy rc.common returns 1 after creating the boot link when STOP is
       # unset. Check the enabled state before treating that as a failure.
       /etc/init.d/uhttpd enable || /etc/init.d/uhttpd enabled || return 1
