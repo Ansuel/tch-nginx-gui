@@ -661,13 +661,13 @@ uname() { [ "$1" = "-r" ] && printf '%s\\n' "$test_kernel"; }
         card = CARD.read_text()
         config = CONFIG.read_text()
 
-        self.assertIn('tailscale_version="1.102.4"', tailscale)
+        self.assertIn('tailscale_version="1.104.5"', tailscale)
         self.assertIn(
-            'tailscale_sha256="b981a59cb85fb923ee6e1860ee6934772c83a840a6627f0dbfd7711ed690b869"',
+            'tailscale_sha256="39e2bdf0042f38bf49beec357375c11c711f9c60f8e7242f385b5616c63dcd6e"',
             tailscale,
         )
         self.assertIn(
-            'tailscale_sha256="9dd1e6a592a014bbaea0103167ffe299adeda4ba14e078ce9c2895364f6c4c3f"',
+            'tailscale_sha256="e900b0e6e25023a1e504b2c237ce2a32ea0535e006f8c1a1097a490886493b6c"',
             tailscale,
         )
         self.assertIn("https://pkgs.tailscale.com/stable/", tailscale)
