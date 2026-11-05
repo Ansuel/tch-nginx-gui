@@ -1607,12 +1607,13 @@ else
 \
 <script language ="javascript">\
 \
-var analyzerColorIndex = 0;\
 function get_random_color() {\
-  // palette ben distribuita e sempre leggibile (prima: colori casuali, spesso troppo scuri)\
-  var hue = Math.round((analyzerColorIndex * 137.508) % 360);\
-  analyzerColorIndex++;\
-  return "hsl(" + hue + ",70%,50%)";\
+  var letters = \'0123456789ABCDEF\'.split(\'\');\
+  var color = \'#\';\
+  for (var i = 0; i < 6; i++ ) {\
+    color += letters[Math.round(Math.random() * 15)];\
+  }\
+   return color;\
 }\
   function get_y_from_sig(max, min, range, sig) {\
     return ((sig-max)/((min-max)/range))+30;\
@@ -1633,7 +1634,6 @@ function get_random_color() {\
     ctx=c.getContext("2d");\
     ctx.clearRect(0,0,c.width,c.height);\
     ctx.beginPath();\
-    analyzerColorIndex = 0;\
     ctx.lineStyle="#FF0000";\
 \
     //Y Axis\
