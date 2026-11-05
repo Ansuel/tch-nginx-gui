@@ -50,8 +50,8 @@ end
 
 -- LED color text formatting
 local power_colors = {
-	green = T"Verde",
-	blue = T"Blu",
+	green = T"Green",
+	blue = T"Blue",
 	orange = T"Orange",
 	red = T"Red",
 	cyan = T"Cyan",

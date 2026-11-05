@@ -1103,9 +1103,6 @@ msgstr "Informazioni generali"
 msgid "Graph"
 msgstr "Grafico"
 
-msgid "Green"
-msgstr "Verde"
-
 msgid "Guest"
 msgstr "Ospite"
 
@@ -4715,3 +4712,21 @@ msgstr "Disattiva l'aggiornamento CWMP. Qualsiasi aggiornamento del firmware pro
 
 msgid "Power LED color"
 msgstr "Colore led info/power"
+
+msgid "Green"
+msgstr "Verde"
+
+msgid "Blue"
+msgstr "Blu"
+
+msgid "Orange"
+msgstr "Arancione"
+
+msgid "Red"
+msgstr "Rosso"
+
+msgid "Cyan"
+msgstr "Ciano"
+
+msgid "White"
+msgstr "Bianco"
