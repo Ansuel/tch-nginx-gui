@@ -64,6 +64,7 @@ local uci_helper = mapper("ucihelper")
 local nwcommon = mapper("nwcommon")
 local conn = mapper("ubus").connect()
 local network = require("transformer.shared.common.network")
+local transactions = {}
 local ssidDataCache
 
 local function nilToEmptyString(st)
@@ -158,6 +159,16 @@ end
 local namemap = {admin_state="state"}
 local set = {
     ssid = function(_, param, value, key)
+         local ok, native = pcall(require, "transformer.shared.bandsteerhelper")
+         if ok and type(native) == "table" and type(native.isMultiapEnabled) == "function" then
+             if native.isMultiapEnabled(nil, key) then
+                 if type(native.setSSID) ~= "function" then return nil, "Native MultiAP SSID setter is unavailable" end
+                 return native.setSSID(key, nil, value, commitapply, transactions)
+             end
+         elseif uci_helper.get_from_uci({config = "multiap", sectionname = "controller", option = "enabled"}) == "1"
+             and uci_helper.get_from_uci({config = "multiap", sectionname = "agent", option = "enabled"}) == "1" then
+             return nil, "Native MultiAP credential support is unavailable"
+         end
          uci_helper.set_on_uci({
             config = "wireless", sectionname = key , option = param
         }, value, commitapply)
@@ -177,9 +188,17 @@ wireless_ssid_.get = get
 wireless_ssid_.set = set
 wireless_ssid_.commit = function()
     uci_helper.commit({config = "wireless"})
+    for config in pairs(transactions) do
+        if config ~= "wireless" then uci_helper.commit({config = config}) end
+    end
+    transactions = {}
 end
 wireless_ssid_.revert = function()
     uci_helper.revert({config = "wireless"})
+    for config in pairs(transactions) do
+        if config ~= "wireless" then uci_helper.revert({config = config}) end
+    end
+    transactions = {}
 end
 
 register(wireless_ssid_)

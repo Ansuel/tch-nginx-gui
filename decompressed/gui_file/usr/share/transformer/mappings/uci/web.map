@@ -3,6 +3,15 @@ local uci = mapper("uci_1to1")
 -- uci.web
 uci.registerConfigMap("web")
 
+-- uci.web.network (native AGTHP/AGTEF/AGTHF mapping)
+local network_map = {
+  config = "web",
+  type = "network",
+  lists = { "intf", "cred" },
+  options = { "splitssid" }
+}
+uci.registerNamedMultiMap(network_map)
+
 -- uci.web.assistance
 local assistance_map = {
   config = "web",
