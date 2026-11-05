@@ -703,3 +703,11 @@ a.list-group-item:hover,
   text-align: center !important;
   vertical-align: middle !important;
 }
+
+.controls .radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px; /* Spazio tra il pallino e il SUO testo (puoi metterlo anche a 2px o 0) */
+    margin: 0 8px 0 0;
+    white-space: nowrap; /* Evita che il testo di un singolo bottone si spezzi in due righe */
+}
