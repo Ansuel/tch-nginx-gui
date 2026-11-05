@@ -35,6 +35,42 @@ class CardLayers(HTMLParser):
 
 
 class ExtensionCards(unittest.TestCase):
+    @unittest.skipUnless(shutil.which('lua'), 'Lua required')
+    def test_tailscale_light_and_header_switch(self):
+        for enabled, online, phase, light in [('0', 'false', 'stopped', '0'),
+                                              ('1', 'false', 'authorization_required', '2'),
+                                              ('1', 'false', 'stopped', '2'),
+                                              ('1', 'true', 'connected', '1')]:
+            result = subprocess.run(['lua', '-', str(CARDS / '016_tailscale.lp'),
+                                     enabled, online, phase, light], input=r'''
+T = function(value) return value end
+gettext = {textdomain = function() end}
+string.untaint = function(value) return value end
+ngx = {ctx = {session = {hasAccess = function() return true end}}, print = function() end}
+package.preload['web.content_helper'] = function() return {getExactContent = function(content)
+ for key in pairs(content) do content[key] = '' end
+ content.enabled = arg[2]
+end} end
+local checked_header, checked_light = false, false
+package.preload['web.ui_helper'] = function() return {
+ createCardHeader = function(_, path, name, value)
+  assert(path == '/modals/tailscale-modal.lp' and name == 'enabled' and value == arg[2])
+  checked_header = true; return ''
+ end,
+ createSimpleLight = function(value)
+  assert(value == arg[5], 'Unexpected light: ' .. value)
+  checked_light = true; return ''
+ end
+} end
+io.popen = function()
+ local lines = {'online=' .. arg[3], 'phase=' .. arg[4]}; local i = 0
+ return {lines = function() return function() i = i + 1; return lines[i] end end, close = function() end}
+end
+assert(loadfile(arg[1]))()
+assert(checked_header and checked_light)
+''', text=True, capture_output=True, timeout=5)
+            self.assertEqual(result.returncode, 0, result.stderr)
+
     @unittest.skipUnless(shutil.which('node'), 'Node.js required')
     def test_polling_lifecycle(self):
         result = subprocess.run(['node', 'tests/test_extension_cards.js'], cwd=ROOT,
@@ -44,7 +80,7 @@ class ExtensionCards(unittest.TestCase):
     @unittest.skipUnless(shutil.which('lua'), 'Lua required')
     def test_server_snapshots_and_access(self):
         for name, filename, connected, stopped in [
-            ('tailscale', '016_tailscale.lp', 'Tailscale connected', 'Tailscale disconnected'),
+            ('tailscale', '016_tailscale.lp', 'Tailscale connected', 'Service disabled'),
             ('wireguard', '016_wireguard.lp', 'Peers connected', 'Tunnel disabled'),
             ('openvpn', '015_openvpn-server.lp', 'OpenVPN server enabled', 'OpenVPN server disabled'),
         ]:

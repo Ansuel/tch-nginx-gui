@@ -1,5 +1,150 @@
 #!/bin/sh
 
+# Separate procd instances share this script for connection and Funnel work.
+run_funnel() {
+
+# Run outside Transformer: enabling Funnel may require approval in a browser.
+status_file=/tmp/modgui-tailscale-funnel-status
+output_file=/tmp/modgui-tailscale-funnel-output
+enabled_option=funnel_enabled
+port_option=funnel_port
+mode=https
+state_dir="$(uci -q get tailscale.service.state_dir)"
+[ -n "$state_dir" ] || state_dir=/opt/modgui-tailscale-state
+owned_port_file="$state_dir/.modgui-funnel-port"
+case "$1" in
+ssh | ssh-stop)
+	status_file=/tmp/modgui-tailscale-funnel-ssh-status
+	output_file=/tmp/modgui-tailscale-funnel-ssh-output
+	owned_port_file="$state_dir/.modgui-funnel-ssh-port"
+	enabled_option=funnel_ssh_enabled
+	port_option=funnel_ssh_port
+	mode=tls-terminated-tcp
+	;;
+esac
+public_url=""
+approval_url=""
+
+set_status() {
+	printf 'state=%s\nmessage=%s\nurl=%s\napproval_url=%s\n' \
+		"$1" "$2" "$public_url" "$approval_url" > "$status_file.$$"
+	chmod 644 "$status_file.$$"
+	mv -f "$status_file.$$" "$status_file"
+}
+
+stop_owned() {
+	[ -r "$owned_port_file" ] || return 0
+	old_port="$(cat "$owned_port_file")"
+	case "$old_port" in 443 | 8443 | 10000) ;; *) return 1 ;; esac
+	# Preserve the marker until the daemon is available for cleanup.
+	[ -S /var/run/tailscale/tailscaled.sock ] || return 0
+	# Even "off" requests tailnet approval when Funnel has never been enabled.
+	# An unsuccessful authorization attempt has no listener to remove.
+	saved_config="$(timeout 10 /usr/sbin/tailscale funnel status --json)" || return 1
+	saved_listener="$(jsonfilter -s "$saved_config" -e "@.TCP['$old_port']" 2>/dev/null)"
+	if [ -n "$saved_listener" ]; then
+		timeout 15 /usr/sbin/tailscale funnel --yes "--$mode=$old_port" off > "$output_file" 2>&1 || return 1
+	fi
+	rm -f "$owned_port_file"
+}
+
+umask 077
+if [ "$1" = stop ] || [ "$1" = ssh-stop ]; then
+	stop_owned || { set_status error "Cannot disable Funnel"; exit 1; }
+	set_status disabled "Funnel disabled"
+	exit 0
+fi
+
+if [ "$(uci -q get "tailscale.service.$enabled_option")" != 1 ] ||
+	[ "$(uci -q get tailscale.service.connect)" != 1 ]; then
+	# At boot the saved background configuration becomes live with the daemon.
+	# Wait for its socket before removing a previously managed public listener.
+	attempt=0
+	while [ -r "$owned_port_file" ] && [ ! -S /var/run/tailscale/tailscaled.sock ] &&
+		[ "$(uci -q get tailscale.service.enabled)" = 1 ] && [ "$attempt" -lt 180 ]; do
+		attempt=$((attempt + 1))
+		sleep 1
+	done
+	if [ -r "$owned_port_file" ] && [ ! -S /var/run/tailscale/tailscaled.sock ]; then
+		set_status error "Cannot disable Funnel until Tailscale is available"
+		exit 1
+	fi
+	stop_owned || { set_status error "Cannot disable Funnel"; exit 1; }
+	set_status disabled "Funnel disabled"
+	exit 0
+fi
+
+port="$(uci -q get "tailscale.service.$port_option")"
+target_port="$(uci -q get tailscale.service.funnel_target_port)"
+if [ "$mode" = tls-terminated-tcp ]; then
+	target_port=2222
+	{ [ -s /etc/dropbear/authorized_keys ] || [ -s /root/.ssh/authorized_keys ]; } || {
+		set_status error "Install an SSH public key before enabling SSH Funnel"; exit 1;
+	}
+fi
+case "$port" in 443 | 8443 | 10000) ;; *) set_status error "Invalid Funnel HTTPS port"; exit 1 ;; esac
+case "$target_port" in '' | *[!0-9]*) set_status error "Invalid Funnel target port"; exit 1 ;; esac
+[ "$target_port" -ge 1 ] && [ "$target_port" -le 65535 ] || {
+	set_status error "Invalid Funnel target port"; exit 1;
+}
+target="http://127.0.0.1:$target_port"
+[ "$mode" != tls-terminated-tcp ] || target="tcp://127.0.0.1:$target_port"
+
+set_status waiting "Waiting for Tailscale connection"
+attempt=0
+while [ "$attempt" -lt 300 ]; do
+	[ "$(uci -q get tailscale.service.enabled)" = 1 ] || exit 0
+	[ "$(uci -q get tailscale.service.connect)" = 1 ] || exit 0
+	if [ -S /var/run/tailscale/tailscaled.sock ] &&
+		ip -4 addr show dev tailscale0 2>/dev/null | grep -q 'inet '; then
+		break
+	fi
+	attempt=$((attempt + 1))
+	sleep 2
+done
+[ "$attempt" -lt 300 ] || { set_status error "Timed out waiting for Tailscale connection"; exit 1; }
+
+if [ -r "$owned_port_file" ] && [ "$(cat "$owned_port_file")" != "$port" ]; then
+	stop_owned || { set_status error "Cannot disable previous Funnel port"; exit 1; }
+fi
+mkdir -p "$state_dir" || exit 1
+# Also track partially applied commands so disabling the switch can clean up.
+printf '%s\n' "$port" > "$owned_port_file" || exit 1
+set_status configuring "Configuring Funnel"
+attempt=0
+while [ "$attempt" -lt 20 ]; do
+	timeout 20 /usr/sbin/tailscale funnel --bg --yes "--$mode=$port" "$target" > "$output_file" 2>&1
+	result=$?
+	approval_url="$(grep -Eo 'https://login\.tailscale\.com/[a-zA-Z0-9/?=&_%.-]+' "$output_file" | head -n 1)"
+	public_url="$(grep -Eo 'https://[a-zA-Z0-9.-]+\.ts\.net(:[0-9]+)?/?' "$output_file" | head -n 1)"
+	if [ "$mode" = tls-terminated-tcp ]; then
+		public_url="$(grep -Eo '[a-zA-Z0-9.-]+\.ts\.net' "$output_file" | head -n 1)"
+		[ -z "$public_url" ] || public_url="$public_url:$port"
+	fi
+	if [ -n "$approval_url" ]; then
+		set_status authorization_required "Enable Funnel in your tailnet"
+		attempt=$((attempt + 1))
+		[ "$attempt" -lt 20 ] || exit 0
+		sleep 15
+	elif [ "$result" = 0 ]; then
+		set_status active "Funnel active"
+		exit 0
+	else
+		detail="$(tail -c 600 "$output_file" | tr '\r\n' '  ')"
+		set_status error "Funnel configuration failed: $detail"
+		exit 1
+	fi
+done
+
+}
+
+case "$1" in
+	funnel) run_funnel; exit $? ;;
+	funnel-stop) run_funnel stop; exit $? ;;
+	funnel-ssh) run_funnel ssh; exit $? ;;
+	funnel-ssh-stop) run_funnel ssh-stop; exit $? ;;
+esac
+
 connect_status=/tmp/modgui-tailscale-connect-status
 auth_file=/tmp/modgui-tailscale-auth
 

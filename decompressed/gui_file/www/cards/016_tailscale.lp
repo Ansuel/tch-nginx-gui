@@ -32,8 +32,11 @@ local content = {
 content_helper.getExactContent(content)
 local status = status_snapshot()
 local online = status.online == "true" and "1" or "0"
+local light = content.enabled == "1" and (online == "1" and "1" or "2") or "0"
 local state_text = T"Tailscale disconnected"
-if status.phase == "authorization_required" then
+if content.enabled ~= "1" then
+  state_text = T"Service disabled"
+elseif status.phase == "authorization_required" then
   state_text = T"Authorization required"
 elseif status.phase == "downloading" then
   state_text = T"Downloading runtime"
@@ -49,13 +52,12 @@ local modal_path
 if ngx.ctx.session:hasAccess("/modals/tailscale-modal.lp") then modal_path = "/modals/tailscale-modal.lp" end
 
 ngx.print('<div class="span3" id="tailscale-card"><div class="smallcard">')
-ngx.print(ui_helper.createCardHeader(T"Tailscale", modal_path))
+ngx.print(ui_helper.createCardHeader(T"Tailscale", modal_path, modal_path and "enabled" or nil, content.enabled))
 ngx.print('<div class="content card_bg" data-bg-text="&#xf0c2;"><div class="divtable">')
-ngx.print('<p class="subinfos">', T"Service", ': <strong>', content.enabled == "1" and T"Enabled" or T"Disabled", '</strong></p>')
 ngx.print(
   '<div class="subinfos tailscale-card-status">',
   ui_helper.createSimpleLight(
-    online,
+    light,
     state_text,
     { span = { class = "simple-desc tailscale-status-light" } }
   ),

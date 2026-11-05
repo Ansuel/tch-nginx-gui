@@ -66,4 +66,4 @@ mkdir -p /dev/net "$state_dir" /var/run/tailscale
 [ -c /dev/net/tun ] || fail "TUN is unavailable"
 chmod 755 "$runtime_dir/tailscale" "$runtime_dir/tailscaled"
 set_status starting "Starting Tailscale daemon"
-exec "$runtime_dir/tailscaled" --port "$port" --state "$state_dir/tailscaled.state"
+exec "$runtime_dir/tailscaled" --port "$port" --statedir "$state_dir" --state "$state_dir/tailscaled.state"
