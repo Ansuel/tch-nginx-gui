@@ -1,2 +1,2 @@
-^datausage /etc/init.d/datausaged reload
+^datausage /etc/init.d/datausaged reload ; [ ! -x /usr/share/transformer/scripts/datausage_intercept.lua ] || /usr/share/transformer/scripts/datausage_intercept.lua
 ^rpc%.datausage%.enabled /etc/init.d/datausaged restart
