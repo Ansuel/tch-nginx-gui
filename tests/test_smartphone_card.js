@@ -15,8 +15,7 @@ const classes = {}, attributes = {}, visibility = {}, labels = {
   'data-usb-diagnostics-error': 'USB detected; diagnostics unavailable', 'data-unauthorized': 'ADB unauthorized', 'data-offline': 'ADB device offline',
   'data-no-device': 'Phone not detected on USB', 'data-multiple-devices': 'Multiple ADB devices',
   'data-adb-missing': 'ADB not installed', 'data-usb-only': 'USB detected; ADB unavailable',
-  'data-link-up': 'Link up', 'data-link-down': 'Link down', 'data-no-interface': 'Interface not detected',
-  'data-phone-active': 'Phone', 'data-wan-active': 'WAN', 'data-uplink-checking': 'Checking uplinks'
+  'data-link-up': 'Link up', 'data-link-down': 'Link down', 'data-no-interface': 'Interface not detected'
 };
 function selection(name) {
   return {
@@ -28,7 +27,7 @@ function selection(name) {
     toggle(value) { visibility[name] = !!value; return this; },
     each(callback) {
       if (name === '[data-bind]') {
-        for (const field of ['phoneDevice', 'phoneBattery', 'phoneStatus', 'phoneNetwork', 'phoneSignal', 'phoneTether', 'phoneUplink']) callback.call({bind: 'text: ' + field});
+        for (const field of ['phoneDevice', 'phoneBattery', 'phoneStatus', 'phoneSignal', 'phoneTether']) callback.call({bind: 'text: ' + field});
       } else { for (let i = 0; i < 5; i++) callback.call('bar' + i, i); }
       return this;
     }
@@ -80,26 +79,26 @@ const sample = {DEV: 'Example phone', BATT: '72%', BATT_STAT: 'In Carica', OPER:
 const tick = () => timers.get(context.KoRequest.SmartphoneCardInterval.interval)();
 tick(); assert.strictEqual(requests.length, 1, 'Shared polling must prevent overlap');
 requests[0].deliver(sample);
-assert.strictEqual(binding.phoneStatus(), 'Connected (VERY)');
+assert.strictEqual(binding.phoneStatus(), 'Connected · 5G (NSA) (VERY)');
 assert.strictEqual(binding.phoneBattery(), '(⚡ 72%)');
-assert.strictEqual(binding.phoneNetwork(), '5G (NSA)');
+assert(attributes['.smartphone-status:title'].includes('5G (NSA)'));
+assert(!card.includes('smartphone-network-row'));
 assert.strictEqual(binding.phoneSignal(), '75% (-90 dBm)');
-assert(visibility['.smartphone-network-row'] && visibility['.smartphone-signal-row'] && visibility['.smartphone-signal-bars']);
+assert(visibility['.smartphone-signal-row'] && visibility['.smartphone-signal-bars']);
 assert(classes['.light:green']);
 assert.strictEqual([0,1,2,3,4].filter(i => classes['bar' + i + ':bar-small-active']).length, 4);
 tick(); requests[1].deliver({...sample, TETHER: 'Inattivo', SIGNAL_RAW: '2147483647', BATT: '999%'});
-assert.strictEqual(binding.phoneStatus(), 'USB tethering disabled (VERY)');
+assert.strictEqual(binding.phoneStatus(), 'USB tethering disabled · 5G (NSA) (VERY)');
 assert(!classes['.light:green'] && classes['.light:orange']);
 assert.strictEqual(binding.phoneSignal(), '');
 assert.strictEqual(binding.phoneBattery(), '');
 assert(!visibility['.smartphone-signal-row'] && !visibility['.smartphone-signal-bars']);
 assert(![0,1,2,3,4].some(i => classes['bar' + i + ':bar-small-active']));
 tick(); requests[2].deliver({...sample, DATA_ST: '0', OPER: '<img src=x onerror=evil()>'});
-assert.strictEqual(binding.phoneStatus(), 'Mobile data disabled (<img src=x onerror=evil()>)');
+assert.strictEqual(binding.phoneStatus(), 'Mobile data disabled · 5G (NSA) (<img src=x onerror=evil()>)');
 tick(); requests[3].deliver({ERROR: 'USB authorization required'});
 assert.strictEqual(binding.phoneStatus(), 'Phone unavailable');
-assert.strictEqual(binding.phoneNetwork(), '');
-assert(!visibility['.smartphone-network-row'] && !visibility['.smartphone-signal-row']);
+assert(!visibility['.smartphone-signal-row']);
 assert.strictEqual(attributes['.smartphone-status:title'], 'USB authorization required');
 for (const [code, label] of Object.entries({unauthorized: 'ADB unauthorized', offline: 'ADB device offline',
   adb_error: 'ADB connection failed', adb_server_error: 'ADB server failed to start',
@@ -122,7 +121,6 @@ assert.strictEqual(binding.phoneDevice(), '(moto g32)');
 assert(classes['.light:orange'] && !classes['.light:off']);
 assert.strictEqual(attributes['.simple-desc:title'], 'moto g32');
 assert.strictEqual(binding.phoneTether(), 'usb0 · Link up');
-assert.strictEqual(binding.phoneUplink(), 'WAN');
 assert(visibility['.smartphone-tether-row']);
 assert.strictEqual(attributes['.smartphone-tether-row:title'], '10.1.2.3/24');
 requests[3].success({ERROR: 'Accept the RSA prompt', ERROR_CODE: 'unauthorized', USB_DEV: 'moto g32'});

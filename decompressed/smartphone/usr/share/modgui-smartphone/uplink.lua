@@ -219,8 +219,7 @@ function M.new(env)
         assert(c.owner==nil or c.owner==OWNER, 'Configurazione Smartphone non gestita da questa app.')
         if c.owner~=OWNER then return true end
         uci:set('smartphone','uplink','enabled','0'); commit('smartphone')
-        self.cleanup(); run({'/etc/init.d/modgui-smartphone-uplink','stop'})
-        run({'/etc/init.d/modgui-smartphone-uplink','disable'})
+        self.cleanup(); run({'/etc/init.d/modgui-smartphone-uplink','stop_uplink'})
         run({'ifdown',IFACE})
         if uci:get('network',IFACE,'modgui_owner')==OWNER then uci:delete('network',IFACE); commit('network') end
         if safe(c.zone) then
@@ -297,7 +296,7 @@ function M.new(env)
         end)
         if not ok then
             self.cleanup()
-            run({'/etc/init.d/modgui-smartphone-uplink','stop'})
+            run({'/etc/init.d/modgui-smartphone-uplink','stop_uplink'})
             -- Restore only the app's sections/fields, not whole configurations
             -- that another page or service may have changed in the meantime.
             for _,name in ipairs({'network','firewall','dhcp','smartphone'}) do uci:unload(name) end

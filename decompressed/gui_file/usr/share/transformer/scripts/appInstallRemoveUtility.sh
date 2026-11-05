@@ -3523,10 +3523,9 @@ app_smartphone() (
           if ! sh /usr/share/modgui-smartphone/drivers.sh; then
               echo "Smartphone USB installed; some tethering drivers are unavailable. See Smartphone details."
           fi
-          if [ "$(uci -q get smartphone.uplink.enabled)" = 1 ]; then
-              /etc/init.d/modgui-smartphone-uplink enable || exit 1
-              /etc/init.d/modgui-smartphone-uplink restart || exit 1
-          fi
+          # ADB recovery also runs when DHCP/failover is disabled.
+          /etc/init.d/modgui-smartphone-uplink enable || exit 1
+          /etc/init.d/modgui-smartphone-uplink restart || exit 1
           ;;
       remove)
           [ -f "$owned" ] || { set_state 0; exit $?; }
@@ -3534,6 +3533,7 @@ app_smartphone() (
           # this is independent of Android's ADB authorization.
           if [ -f /usr/share/modgui-smartphone/uplink.lua ]; then
               lua /usr/share/modgui-smartphone/uplink.lua stop || exit 1
+              /etc/init.d/modgui-smartphone-uplink stop || exit 1
               /etc/init.d/modgui-smartphone-uplink disable || exit 1
           fi
           # Do not silently strand a reachable VPN-sharing policy on the phone.

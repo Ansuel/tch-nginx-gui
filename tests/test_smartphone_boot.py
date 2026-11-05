@@ -10,6 +10,31 @@ INIT = ROOT / 'decompressed/smartphone/etc/init.d/modgui-smartphone-uplink'
 
 
 class SmartphoneBootTest(unittest.TestCase):
+    def test_adb_instance_stays_registered_with_uplink_disabled(self):
+        with tempfile.TemporaryDirectory() as folder:
+            helper = Path(folder) / 'phone_stats.sh'
+            helper.write_text('#!/bin/sh\nexit 0\n')
+            helper.chmod(0o755)
+            script = Path(folder) / 'init.sh'
+            script.write_text(INIT.read_text().replace('/usr/bin/phone_stats.sh', str(helper))
+                              .replace('/var/run/', folder + '/'))
+            for enabled in ('0', '1'):
+                result = subprocess.run(['sh', '-c', '''
+uci() { case "$*" in *enabled) echo "$ENABLED";; *dns_managed) echo 0;; esac; }
+procd_open_instance() { echo "instance:$1"; }
+procd_set_param() { echo "$*"; }
+procd_close_instance() { :; }
+procd_kill() { echo "kill:$*"; }
+. "$1"
+start_service
+stop_uplink
+''', 'sh', str(script)], check=True, text=True, capture_output=True,
+                    env={**os.environ, 'ENABLED': enabled})
+                self.assertIn('instance:adb', result.stdout)
+                self.assertIn('watch_adb', result.stdout)
+                self.assertEqual('instance:uplink' in result.stdout, enabled == '1')
+                self.assertIn('kill:modgui-smartphone-uplink uplink', result.stdout)
+
     def test_both_boot_links_use_one_script_and_late_phase_starts_monitor(self):
         with tempfile.TemporaryDirectory() as folder:
             links = Path(folder) / 'etc/rc.d'
