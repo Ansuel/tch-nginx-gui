@@ -1620,13 +1620,11 @@ app_speedtest() {
     cp "$speedtest_tmp/speedtest" "$speedtest_bin"
     chmod 755 "$speedtest_bin"
     rm -rf "$speedtest_tmp"
-    sysctl -w net.ipv6.conf.lo.disable_ipv6=0 >/dev/null 2>&1
-    grep -qs '^net.ipv6.conf.lo.disable_ipv6=0' /etc/sysctl.conf || echo 'net.ipv6.conf.lo.disable_ipv6=0' >> /etc/sysctl.conf
     set_extension_state speedtest_app 1
     ;;
   remove)
     app_speedtest stop
-    sed -i '/^net.ipv6.conf.lo.disable_ipv6=0$/d' /etc/sysctl.conf 2>/dev/null
+    sysctl -w net.ipv6.conf.lo.disable_ipv6=1 >/dev/null 2>&1
     rm -rf "$speedtest_dir"
     rm -f /tmp/speedtest-result.txt /tmp/speedtest.pid
     set_extension_state speedtest_app 0
@@ -1648,6 +1646,7 @@ app_speedtest() {
     }
     tee /tmp/speedtest-result.txt < "$speedtest_run/output" &
     speedtest_tee_pid=$!
+    sysctl -w net.ipv6.conf.lo.disable_ipv6=0 >/dev/null 2>&1
     "$speedtest_bin" --accept-license --accept-gdpr --format=human-readable \
       --progress=yes --progress-update-interval=1000 > "$speedtest_run/output" 2>&1 &
     speedtest_pid=$!
