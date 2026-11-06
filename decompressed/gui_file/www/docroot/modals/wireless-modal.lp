@@ -958,7 +958,6 @@ end
   }
   local step = 2
   for i=0, 60, step do
-     ngx.sleep(step)
      local content_val = proxy.get(unpack(content_ssid))
      if (content_val and #content_val > 0) then
         content["macaddress"] = content_val[1].value
@@ -968,6 +967,7 @@ end
         content["wps_ap_setup_locked"] = content_val[5].value
         break
      end
+     ngx.sleep(step)
   end
 
 param = {
@@ -1630,6 +1630,7 @@ function get_random_color() {\
     var bittarget80 = 16;\
     var ctx;\
   function initializeAnalyzer() {\
+    window.vistiAnalyzer = {};\
     var c=document.getElementById("wrapper");\
     ctx=c.getContext("2d");\
     ctx.clearRect(0,0,c.width,c.height);\
@@ -1796,11 +1797,22 @@ function get_random_color() {\
     return 360+((ch-100)*7.5);\
   }\
 \
+  if (typeof window.vistiAnalyzer === "undefined") { window.vistiAnalyzer = {}; }\
+  \
   function generateGraph(ssid,channel,rssi,cap,chanDescr){\
     var info = getChannelInfo(channel, chanDescr, cap);\
     var rowColor = get_random_color();\
     var sig = parseFloat(rssi);\
     if (isNaN(sig)) { sig = minimum; }\
+    \
+    var chiaveRete = info.center + "_" + info.width + "_" + rssi;\
+    if (window.vistiAnalyzer[chiaveRete]) {\
+        sig = sig - window.vistiAnalyzer[chiaveRete];\
+        window.vistiAnalyzer[chiaveRete] += 1.5;\
+    } else {\
+        window.vistiAnalyzer[chiaveRete] = 1.5;\
+    }\
+    \
     if (sig > maximum) { sig = maximum; } else if (sig < minimum) { sig = minimum; }\
     var xcoord = get_x_from_channel(info.center);\
     var half = (info.width / 20) * (is2GAnalyzer ? 80 : 15);\
