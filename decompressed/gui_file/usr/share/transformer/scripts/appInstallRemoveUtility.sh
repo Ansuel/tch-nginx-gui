@@ -1582,6 +1582,24 @@ app_speedtest() {
   speedtest_tmp="/tmp/speedtest-install.$$"
 
   speedtest_process_is_running() {
+
+    speedtest_loopback_ipv6() {
+      # Ookla also queries the "nameserver ::1" entry. With IPv6 disabled on lo,
+      # connect()/sendto() fail with EACCES and the latency test aborts.
+      case "$1" in
+      enable)
+        sysctl -w net.ipv6.conf.lo.disable_ipv6=0 >/dev/null 2>&1
+        touch /etc/sysctl.conf
+        sed -i '/^net\.ipv6\.conf\.lo\.disable_ipv6/d' /etc/sysctl.conf
+        echo 'net.ipv6.conf.lo.disable_ipv6=0' >> /etc/sysctl.conf
+        ;;
+      remove)
+        sed -i '/^net\.ipv6\.conf\.lo\.disable_ipv6=0$/d' /etc/sysctl.conf 2>/dev/null
+        ;;
+      esac
+      return 0
+    }
+
     [ -s /tmp/speedtest.pid ] || return 1
     speedtest_pid="$(cat /tmp/speedtest.pid)"
     case "$speedtest_pid" in
@@ -1620,10 +1638,12 @@ app_speedtest() {
     cp "$speedtest_tmp/speedtest" "$speedtest_bin"
     chmod 755 "$speedtest_bin"
     rm -rf "$speedtest_tmp"
+    speedtest_loopback_ipv6 enable
     set_extension_state speedtest_app 1
     ;;
   remove)
     app_speedtest stop
+    speedtest_loopback_ipv6 remove
     rm -rf "$speedtest_dir"
     rm -f /tmp/speedtest-result.txt /tmp/speedtest.pid
     set_extension_state speedtest_app 0
