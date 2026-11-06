@@ -503,7 +503,7 @@ modgui_has_tun() { attempts=$((attempts + 1)); [ "$attempts" -ge "$1" ]; }
                     'set -- check tun',
                 ))
                 script = setup + '\n' + definitions + '\n' + mocks + '\n' + dispatch
-                result = subprocess.run(['sh', '-c', script, 'check', cpu, kernel, version, str(int(available))],
+                result = subprocess.run(['sh', '-s', 'check', cpu, kernel, version, str(int(available))], input=script,
                                         capture_output=True, text=True)
                 self.assertEqual(result.returncode == 0, expected, result.stderr)
 
