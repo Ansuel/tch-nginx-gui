@@ -1767,7 +1767,7 @@ function get_random_color() {\
       width = parseInt(descr.substring(slash + 1), 10) || 20;\
     } else if (lastChar == "l" || lastChar == "u") {\
       width = 40;\
-    } else if (descr == "" && is2GAnalyzer) {\
+    } else if (is2GAnalyzer) {\
       var bits = parseInt(cap, 16).toString(2);\
       while (bits.length <= 16) { bits = "0" + bits; }\
       if (bits.charAt(bits.length - bittarget40) == "1") { width = 40; }\
