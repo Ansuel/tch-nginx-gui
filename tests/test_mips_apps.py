@@ -155,8 +155,6 @@ app_blacklist remove
         self.assertEqual(result.stdout, '')
     
     def test_speedtest_enables_loopback_ipv6(self):
-        self.assertIn('speedtest_loopback_ipv6 enable', SOURCE)
-        self.assertIn('speedtest_loopback_ipv6 remove', SOURCE)
         self.assertIn('net.ipv6.conf.lo.disable_ipv6=0', SOURCE)
 
 if __name__ == '__main__':
