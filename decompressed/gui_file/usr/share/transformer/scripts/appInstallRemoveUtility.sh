@@ -426,7 +426,16 @@ app_luci() {
       fi
       rm -f /usr/lib/lua/uci.so #remove to avoid lua-uci conflict during install
       echo "Installing LuCI packages..."
-      opkg install --force-reinstall libuci-lua luci rpcd uhttpd
+      # opkg does not upgrade already-satisfied dependencies when updating the
+      # collection alone. Keep the standard LuCI components on the offered feed
+      # version as well, without upgrading unrelated firmware packages.
+      luci_packages="libuci-lua luci rpcd uhttpd"
+      case "$marketing_version" in
+        18.*|19.*)
+          luci_packages="$luci_packages luci-base luci-mod-admin-full luci-theme-bootstrap luci-app-firewall luci-proto-ppp luci-proto-ipv6 luci-lib-ip luci-lib-jsonc luci-lib-nixio"
+          ;;
+      esac
+      opkg install --force-reinstall $luci_packages
       luci_opkg_status=$?
       # Restore the firmware binding even when opkg fails.
       cp /rom/usr/lib/lua/uci.so /usr/lib/lua/ || return 1
@@ -458,6 +467,9 @@ app_luci() {
       uci set uhttpd.main.home='/www_luci' || return 1
 
       uci commit uhttpd || return 1
+      # LuCI's bytecode cache does not check source timestamps. Without this,
+      # upgraded packages can keep executing old modules, including version.lua.
+      rm -rf /tmp/luci-indexcache /tmp/luci-modulecache || return 1
       # Legacy rc.common returns 1 after creating the boot link when STOP is
       # unset. Check the enabled state before treating that as a failure.
       /etc/init.d/uhttpd enable || /etc/init.d/uhttpd enabled || return 1
@@ -2821,7 +2833,7 @@ app_openvpn() {
 }
 
 app_tailscale() {
-  tailscale_version="1.102.4"
+  tailscale_version="1.104.5"
   tailscale_owned="/etc/.modgui-tailscale-installed"
   tailscale_packages="/etc/.modgui-tailscale-packages"
   tailscale_before="/tmp/modgui-tailscale-packages-before.$$"
@@ -2932,11 +2944,11 @@ app_tailscale() {
     case "$cpu_type" in
     armv7*)
       tailscale_arch="arm"
-      tailscale_sha256="b981a59cb85fb923ee6e1860ee6934772c83a840a6627f0dbfd7711ed690b869"
+      tailscale_sha256="39e2bdf0042f38bf49beec357375c11c711f9c60f8e7242f385b5616c63dcd6e"
       ;;
     aarch64 | arm64)
       tailscale_arch="arm64"
-      tailscale_sha256="9dd1e6a592a014bbaea0103167ffe299adeda4ba14e078ce9c2895364f6c4c3f"
+      tailscale_sha256="e900b0e6e25023a1e504b2c237ce2a32ea0535e006f8c1a1097a490886493b6c"
       ;;
     *)
       echo "Tailscale is only supported on ARM Technicolor gateways"

@@ -111,3 +111,63 @@ msgstr "Tailscale SSH consente l'accesso alla shell secondo le ACL della tailnet
 
 msgid "Tailscale SSH"
 msgstr "Tailscale SSH"
+
+msgid "Service disabled"
+msgstr "Servizio disabilitato"
+
+msgid "Funnel"
+msgstr "Funnel"
+
+msgid "Funnel supports HTTPS ports 443, 8443 or 10000"
+msgstr "Funnel supporta le porte HTTPS 443, 8443 o 10000"
+
+msgid "Funnel makes the selected local HTTP service public on the Internet. Enable it only for a service you intend to publish. Tailscale HTTPS and Funnel permissions must be enabled for this device."
+msgstr "Funnel rende il servizio HTTP locale selezionato pubblico su Internet. Attivalo solo per un servizio che vuoi pubblicare. HTTPS e i permessi Funnel di Tailscale devono essere abilitati per questo dispositivo."
+
+msgid "Enable Funnel"
+msgstr "Abilita Funnel"
+
+msgid "Public HTTPS port"
+msgstr "Porta HTTPS pubblica"
+
+msgid "Local HTTP port"
+msgstr "Porta HTTP locale"
+
+msgid "Traffic is forwarded to HTTP on 127.0.0.1 at this port. The Tailscale service and tailnet connection must be enabled. After approving Funnel, reopen this window to check the result. If approval expires, switch Funnel off and on to retry."
+msgstr "Il traffico viene inoltrato al servizio HTTP su 127.0.0.1 alla porta indicata. Il servizio Tailscale e la connessione alla tailnet devono essere attivi. Dopo aver autorizzato Funnel, riapri questa finestra per verificare il risultato. Se l’autorizzazione scade, disattiva e riattiva Funnel per riprovare."
+
+msgid "Funnel disabled"
+msgstr "Funnel disabilitato"
+
+msgid "Funnel active"
+msgstr "Funnel attivo"
+
+msgid "Funnel error"
+msgstr "Errore Funnel"
+
+msgid "Preparing Funnel"
+msgstr "Preparazione di Funnel"
+
+msgid "Public URL"
+msgstr "URL pubblico"
+
+msgid "Authorize Funnel"
+msgstr "Autorizza Funnel"
+
+msgid "HTTP and SSH Funnel must use different public ports"
+msgstr "I Funnel HTTP e SSH devono usare porte pubbliche diverse"
+
+msgid "SSH through Funnel"
+msgstr "SSH tramite Funnel"
+
+msgid "Public SSH uses TLS and accepts SSH keys only. Install your public key in the router's SSH authorized keys. Password login is disabled on this dedicated listener. Your SSH client needs OpenSSL 3 as a ProxyCommand."
+msgstr "L’accesso SSH pubblico usa TLS e accetta solo chiavi SSH. Installa la tua chiave pubblica tra le chiavi SSH autorizzate del router. La password è disabilitata su questo listener dedicato. Il client SSH richiede OpenSSL 3 come ProxyCommand."
+
+msgid "Enable SSH Funnel"
+msgstr "Abilita Funnel SSH"
+
+msgid "SSH public TLS port"
+msgstr "Porta TLS pubblica SSH"
+
+msgid "SSH command"
+msgstr "Comando SSH"

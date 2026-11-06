@@ -11,6 +11,26 @@ check_webui_config() {
       rm /tmp/web_unlock
     fi
   fi
+  # MultiAP uses these lists to route wireless changes to controller credentials.
+  # Also repairs older GUI installs from their original configuration backup.
+  if [ -f /etc/config/web_back ]; then
+    lua - <<'LUA' || return 1
+local cursor = require("uci").cursor()
+local changed = false
+cursor:foreach("web_back", "network", function(section)
+  local name = section[".name"]
+  if not cursor:get("web", name) then
+    assert(cursor:set("web", name, "network"))
+    for key, value in pairs(section) do
+      if key:sub(1, 1) ~= "." then assert(cursor:set("web", name, key, value)) end
+    end
+    changed = true
+  end
+end)
+if changed then assert(cursor:commit("web")) end
+cursor:close()
+LUA
+  fi
   # Existing GUI installs retain their web config instead of importing web_unlock.
   uci set web.mmpbxadvancedmodal=rule
   uci set web.mmpbxadvancedmodal.target=/modals/mmpbx-advanced-modal.lp

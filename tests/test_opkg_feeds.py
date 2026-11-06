@@ -81,6 +81,7 @@ apply_right_opkg_repo
                 # The removed legacy feed also contained LuCI's iwinfo Lua
                 # dependency. Keep its published userspace replacement active.
                 self.assertEqual(result.count('src/gz modgui_target_userspace https://francyesco.github.io/GUI_ipk/target/packages'), 1)
+                self.assertEqual(result.count('src/gz modgui_luci https://francyesco.github.io/GUI_ipk/luci'), 1)
 
     def test_vpn_feeds_follow_running_kernel_and_skip_missing_indexes(self):
         source = SOURCE.read_text()
@@ -101,6 +102,7 @@ append_gui_vpn_feeds
                 subprocess.run(['sh', '-c', script], check=True)
                 lines = conf.read_text().splitlines()
                 self.assertEqual(lines.count('src/gz modgui_base https://francyesco.github.io/GUI_ipk/base'), 1)
+                self.assertEqual(lines.count('src/gz modgui_luci https://francyesco.github.io/GUI_ipk/luci'), 1)
                 self.assertEqual(lines.count('src/gz modgui_target_userspace https://francyesco.github.io/GUI_ipk/target/packages'), 1)
                 kernel_feed = 'src/gz modgui_kernel_6.6.99-custom https://francyesco.github.io/GUI_ipk/kernel/6.6.99-custom'
                 self.assertEqual(lines.count(kernel_feed), int(available))

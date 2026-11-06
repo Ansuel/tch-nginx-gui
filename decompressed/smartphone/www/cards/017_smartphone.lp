@@ -35,7 +35,7 @@ for index = 1, 5 do
     ngx.print('<div class="bar-small bar-small', index, '"></div>')
 end
 ngx.print('</div>')
-ngx.print(ui_helper.createSimpleLight("0", T"Smartphone" .. ' <span data-bind="text: phoneDevice"></span><span data-bind="text: phoneBattery"></span>'))
+ngx.print(ui_helper.createSimpleLight("0", '<span data-bind="text: phoneOperator"></span> <span data-bind="text: phoneDevice"></span><span data-bind="text: phoneBattery"></span>'))
 ngx.print('<div style="height:25px;display:flex;align-items:center;gap:5px"><label class="card-label">', T"Status", ':</label> ',
     '<strong class="smartphone-status" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" data-bind="text: phoneStatus"></strong></div>')
 ngx.print('<div class="smartphone-signal-row" style="display:none;height:25px" title="', escape(T"Estimated from LTE RSRP"), '"><label class="card-label">',
@@ -69,7 +69,8 @@ $(function () {
         }
         var operator = available && data.OPER && data.OPER !== "No SIM" && data.OPER !== "N/A" ? data.OPER : "";
         var network = available && data.NET && data.NET !== "N/A" && data.NET !== "—" ? data.NET : "";
-        var statusText = state + (network ? " · " + network : "") + (operator ? " (" + operator + ")" : "");
+        var statusText = state + (network ? " · " + network : "");
+        binding.phoneOperator(operator);
         binding.phoneStatus(statusText);
         var usbDevice = !available && data && data.USB_DEV;
         binding.phoneDevice(usbDevice ? "(" + usbDevice + ")" : "");
@@ -101,7 +102,7 @@ $(function () {
     function refresh(binding) {
         if (binding.phoneStatus() === undefined) {
             binding.phoneStatus(content.attr("data-checking"));
-            binding.phoneDevice("");
+            binding.phoneOperator(""); binding.phoneDevice("");
             binding.phoneSignal(""); binding.phoneBattery("");
             binding.phoneTether("");
         }

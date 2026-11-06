@@ -6,13 +6,19 @@ local proxy = require("datamodel")
 local content_helper = require("web.content_helper")
 
 local post_data = ngx.req.get_post_args()
+-- HTTP arguments are tainted userdata on the firmware's Lua VM.
+local action = string.untaint(post_data.action)
+local interface = string.untaint(post_data.interface)
+local valid_interface = type(interface) == "string" and interface:match("^[%w_.%-]+$")
+ngx.header.content_type = action == "overview" and "text/plain" or "application/json"
+ngx.header["Cache-Control"] = "no-store"
 local function value(path)
   local ok, result = pcall(proxy.get, path)
-  return ok and type(result) == "table" and result[1] and result[1].value or nil
+  return ok and type(result) == "table" and result[1] and string.untaint(result[1].value) or nil
 end
 
-if post_data.action == "get" and type(post_data.interface) == "string" and post_data.interface:match("^[%w_.%-]+$") then
-  local path = string.format("rpc.datausage.interface.@%s.", post_data.interface)
+if action == "get" and valid_interface then
+  local path = string.format("rpc.datausage.interface.@%s.", interface)
   local ok, datausage_info = pcall(proxy.get, path)
   if ok and type(datausage_info) == "table" and #datausage_info > 0 then
     local dataUsage = content_helper.convertResultToObject("rpc.datausage.interface.@.", datausage_info)
@@ -23,9 +29,9 @@ if post_data.action == "get" and type(post_data.interface) == "string" and post_
       ngx.exit(ngx.HTTP_OK)
     end
   end
-elseif post_data.action == "reset" and type(post_data.interface) == "string" and post_data.interface:match("^[%w_.%-]+$") then
-  proxy.set(string.format("rpc.datausage.interface.@%s.reset", post_data.interface), "1")
-elseif post_data.action == "overview" then
+elseif action == "reset" and valid_interface then
+  proxy.set(string.format("rpc.datausage.interface.@%s.reset", interface), "1")
+elseif action == "overview" then
   local selected_interface = value("rpc.datausage_notifier.web_selected_interface")
   local rx, tx = "0", "0"
   if selected_interface and selected_interface:match("^[%w_.%-]+$") then

@@ -32,6 +32,7 @@ local wireless_ap_security_ = {
 
 local uci_helper = mapper("ucihelper")
 local conn = mapper("ubus").connect()
+local transactions = {}
 
 local function nilToEmptyString(st)
     if st == nil then
@@ -84,6 +85,18 @@ local set = function(mapping, param, value, key)
       return nil, "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"#%&()*+,-./:;=?@[\\]^_{|}~'$` are allowed and the characters <> are not allowed to prevent XSS script execution."
     end
   end
+  if param == "mode" or param == "wpa_psk_passphrase" then
+    local ok, native = pcall(require, "transformer.shared.bandsteerhelper")
+    if ok and type(native) == "table" and type(native.isMultiapEnabled) == "function" then
+      if native.isMultiapEnabled(key) then
+        if type(native.setSecurityOption) ~= "function" then return nil, "Native MultiAP security setter is unavailable" end
+        return native.setSecurityOption(key, namemap[param], value, commitapply, transactions)
+      end
+    elseif uci_helper.get_from_uci({config = "multiap", sectionname = "controller", option = "enabled"}) == "1"
+        and uci_helper.get_from_uci({config = "multiap", sectionname = "agent", option = "enabled"}) == "1" then
+      return nil, "Native MultiAP credential support is unavailable"
+    end
+  end
   if param == "mode" then
     if value == "wpa3-psk" then
       local wpsVal = uci_helper.get_from_uci({config = "wireless", sectionname = key, option = "wps_state"}) or "0"
@@ -104,9 +117,17 @@ wireless_ap_security_.get = get
 wireless_ap_security_.set = set
 wireless_ap_security_.commit = function()
     uci_helper.commit({config = "wireless"})
+    for config in pairs(transactions) do
+        if config ~= "wireless" then uci_helper.commit({config = config}) end
+    end
+    transactions = {}
 end
 wireless_ap_security_.revert = function()
     uci_helper.revert({config = "wireless"})
+    for config in pairs(transactions) do
+        if config ~= "wireless" then uci_helper.revert({config = config}) end
+    end
+    transactions = {}
 end
 
 register(wireless_ap_security_)

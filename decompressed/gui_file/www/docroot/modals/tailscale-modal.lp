@@ -37,6 +37,27 @@ local function valid_optional_subnet(value)
   return validate_subnet(value)
 end
 
+local function valid_funnel_port(value, data, key)
+  local enabled = data.funnel_enabled
+  if key == "funnel_ssh_port" then enabled = data.funnel_ssh_enabled end
+  if (value == nil or value == "") and enabled ~= "1" then return true end
+  if key == "funnel_ssh_port" and enabled == "1" and data.funnel_enabled == "1" and value == data.funnel_port then
+    return nil, T"HTTP and SSH Funnel must use different public ports"
+  end
+  if value == "443" or value == "8443" or value == "10000" then return true end
+  return nil, T"Funnel supports HTTPS ports 443, 8443 or 10000"
+end
+
+local function valid_optional_port(value, data, key)
+  if (value == nil or value == "") and data.funnel_enabled ~= "1" then return true end
+  return post_helper.validateStringIsPort(value, data, key)
+end
+
+local function valid_optional_boolean(value)
+  if value == nil or value == "" then return true end
+  return post_helper.validateBoolean(value)
+end
+
 local map_params = {
   enabled = "uci.tailscale.service.enabled",
   connect = "uci.tailscale.service.connect",
@@ -46,6 +67,11 @@ local map_params = {
   advertise_exit_node = "uci.tailscale.service.advertise_exit_node",
   accept_routes = "uci.tailscale.service.accept_routes",
   ssh = "uci.tailscale.service.ssh",
+  funnel_enabled = "uci.tailscale.service.funnel_enabled",
+  funnel_port = "uci.tailscale.service.funnel_port",
+  funnel_target_port = "uci.tailscale.service.funnel_target_port",
+  funnel_ssh_enabled = "uci.tailscale.service.funnel_ssh_enabled",
+  funnel_ssh_port = "uci.tailscale.service.funnel_ssh_port",
 }
 local validation = {
   enabled = post_helper.validateBoolean,
@@ -56,6 +82,11 @@ local validation = {
   advertise_exit_node = post_helper.validateBoolean,
   accept_routes = post_helper.validateBoolean,
   ssh = post_helper.validateBoolean,
+  funnel_enabled = valid_optional_boolean,
+  funnel_port = valid_funnel_port,
+  funnel_target_port = valid_optional_port,
+  funnel_ssh_enabled = valid_optional_boolean,
+  funnel_ssh_port = valid_funnel_port,
 }
 local content, helpmsg = post_helper.handleQuery(map_params, validation)
 local status = status_snapshot()
@@ -109,5 +140,52 @@ ngx.print('</fieldset>')
 ngx.print('<fieldset><legend>', T"Remote access", '</legend>')
 ngx.print('<p>', T"Tailscale SSH permits shell access according to your tailnet ACLs. Enable it only when those policies are configured.", '</p>')
 ngx.print(ui_helper.createSwitch(T"Tailscale SSH", "ssh", content.ssh))
+ngx.print('</fieldset>')
+
+ngx.print('<fieldset><legend>', T"Funnel", '</legend>')
+ngx.print('<p class="alert alert-info">', T"Funnel makes the selected local HTTP service public on the Internet. Enable it only for a service you intend to publish. Tailscale HTTPS and Funnel permissions must be enabled for this device.", '</p>')
+ngx.print(ui_helper.createSwitch(T"Enable Funnel", "funnel_enabled", content.funnel_enabled))
+ngx.print(ui_helper.createInputSelect(T"Public HTTPS port", "funnel_port", { { "443", "443" }, { "8443", "8443" }, { "10000", "10000" } }, content.funnel_port ~= "" and content.funnel_port or "443", nil, helpmsg.funnel_port))
+ngx.print(ui_helper.createInputText(T"Local HTTP port", "funnel_target_port", content.funnel_target_port ~= "" and content.funnel_target_port or "8080", nil, helpmsg.funnel_target_port))
+ngx.print('<p>', T"Traffic is forwarded to HTTP on 127.0.0.1 at this port. The Tailscale service and tailnet connection must be enabled. After approving Funnel, reopen this window to check the result. If approval expires, switch Funnel off and on to retry.", '</p>')
+local funnel_text = T"Funnel disabled"
+if status.funnel_state == "active" then funnel_text = T"Funnel active"
+elseif status.funnel_state == "authorization_required" then funnel_text = T"Authorization required"
+elseif status.funnel_state == "error" then funnel_text = T"Funnel error"
+elseif status.funnel_state == "waiting" or status.funnel_state == "configuring" then funnel_text = T"Preparing Funnel" end
+ngx.print('<p><strong>', T"Status", ':</strong> ', funnel_text, '</p>')
+if status.funnel_state == "error" and status.funnel_message then
+  ngx.print('<p class="alert alert-error">', escape(status.funnel_message), '</p>')
+end
+if status.funnel_state == "active" and status.funnel_url and status.funnel_url:match('^https://[%w.-]+%.ts%.net[:%d]*/?$') then
+  ngx.print('<p><strong>', T"Public URL", ':</strong> <a target="_blank" rel="noopener noreferrer" href="', escape(status.funnel_url), '">', escape(status.funnel_url), '</a></p>')
+end
+if status.funnel_approval_url and status.funnel_approval_url:match('^https://login%.tailscale%.com/[%w%p]+$') then
+  ngx.print('<p><a class="btn" target="_blank" rel="noopener noreferrer" href="', escape(status.funnel_approval_url), '">', T"Authorize Funnel", '</a></p>')
+end
+ngx.print('</fieldset>')
+
+ngx.print('<fieldset><legend>', T"SSH through Funnel", '</legend>')
+ngx.print('<p>', T"Public SSH uses TLS and accepts SSH keys only. Install your public key in the router's SSH authorized keys. Password login is disabled on this dedicated listener. Your SSH client needs OpenSSL 3 as a ProxyCommand.", '</p>')
+ngx.print(ui_helper.createSwitch(T"Enable SSH Funnel", "funnel_ssh_enabled", content.funnel_ssh_enabled))
+ngx.print(ui_helper.createInputSelect(T"SSH public TLS port", "funnel_ssh_port", { { "8443", "8443" }, { "10000", "10000" }, { "443", "443" } }, content.funnel_ssh_port ~= "" and content.funnel_ssh_port or "8443", nil, helpmsg.funnel_ssh_port))
+local ssh_text = T"Funnel disabled"
+if status.funnel_ssh_state == "active" then ssh_text = T"Funnel active"
+elseif status.funnel_ssh_state == "authorization_required" then ssh_text = T"Authorization required"
+elseif status.funnel_ssh_state == "error" then ssh_text = T"Funnel error"
+elseif status.funnel_ssh_state == "waiting" or status.funnel_ssh_state == "configuring" then ssh_text = T"Preparing Funnel" end
+ngx.print('<p><strong>', T"Status", ':</strong> ', ssh_text, '</p>')
+if status.funnel_ssh_state == "error" and status.funnel_ssh_message then
+  ngx.print('<p class="alert alert-error">', escape(status.funnel_ssh_message), '</p>')
+end
+if status.funnel_ssh_state == "active" and status.funnel_ssh_url then
+  local host, port = status.funnel_ssh_url:match('^([%w.-]+%.ts%.net):(%d+)$')
+  if host and port then
+    ngx.print('<p><strong>', T"SSH command", ':</strong></p><pre>', escape("ssh -o PubkeyAcceptedAlgorithms=+ssh-rsa -o 'ProxyCommand=openssl s_client -quiet -verify_return_error -verify_hostname %h -connect %h:" .. port .. " -servername %h' root@" .. host), '</pre>')
+  end
+end
+if status.funnel_ssh_approval_url and status.funnel_ssh_approval_url:match('^https://login%.tailscale%.com/[%w%p]+$') then
+  ngx.print('<p><a class="btn" target="_blank" rel="noopener noreferrer" href="', escape(status.funnel_ssh_approval_url), '">', T"Authorize Funnel", '</a></p>')
+end
 ngx.print('</fieldset></form></div>')
 ngx.print(ui_helper.createFooter())

@@ -3917,10 +3917,6 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	padding: 10px;
 	position: relative
 }
-.smallcard.extensions-card .content {
-	height: 110px;
-	padding-top: 4px
-}
 .smallcard.extensions-card .divtable.extensions-status-grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));

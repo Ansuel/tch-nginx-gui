@@ -27,7 +27,7 @@ function selection(name) {
     toggle(value) { visibility[name] = !!value; return this; },
     each(callback) {
       if (name === '[data-bind]') {
-        for (const field of ['phoneDevice', 'phoneBattery', 'phoneStatus', 'phoneSignal', 'phoneTether']) callback.call({bind: 'text: ' + field});
+        for (const field of ['phoneOperator', 'phoneDevice', 'phoneBattery', 'phoneStatus', 'phoneSignal', 'phoneTether']) callback.call({bind: 'text: ' + field});
       } else { for (let i = 0; i < 5; i++) callback.call('bar' + i, i); }
       return this;
     }
@@ -79,7 +79,8 @@ const sample = {DEV: 'Example phone', BATT: '72%', BATT_STAT: 'In Carica', OPER:
 const tick = () => timers.get(context.KoRequest.SmartphoneCardInterval.interval)();
 tick(); assert.strictEqual(requests.length, 1, 'Shared polling must prevent overlap');
 requests[0].deliver(sample);
-assert.strictEqual(binding.phoneStatus(), 'Connected · 5G (NSA) (VERY)');
+assert.strictEqual(binding.phoneStatus(), 'Connected · 5G (NSA)');
+assert.strictEqual(binding.phoneOperator(), 'VERY');
 assert.strictEqual(binding.phoneBattery(), '(⚡ 72%)');
 assert(attributes['.smartphone-status:title'].includes('5G (NSA)'));
 assert(!card.includes('smartphone-network-row'));
@@ -88,16 +89,18 @@ assert(visibility['.smartphone-signal-row'] && visibility['.smartphone-signal-ba
 assert(classes['.light:green']);
 assert.strictEqual([0,1,2,3,4].filter(i => classes['bar' + i + ':bar-small-active']).length, 4);
 tick(); requests[1].deliver({...sample, TETHER: 'Inattivo', SIGNAL_RAW: '2147483647', BATT: '999%'});
-assert.strictEqual(binding.phoneStatus(), 'USB tethering disabled · 5G (NSA) (VERY)');
+assert.strictEqual(binding.phoneStatus(), 'USB tethering disabled · 5G (NSA)');
 assert(!classes['.light:green'] && classes['.light:orange']);
 assert.strictEqual(binding.phoneSignal(), '');
 assert.strictEqual(binding.phoneBattery(), '');
 assert(!visibility['.smartphone-signal-row'] && !visibility['.smartphone-signal-bars']);
 assert(![0,1,2,3,4].some(i => classes['bar' + i + ':bar-small-active']));
 tick(); requests[2].deliver({...sample, DATA_ST: '0', OPER: '<img src=x onerror=evil()>'});
-assert.strictEqual(binding.phoneStatus(), 'Mobile data disabled · 5G (NSA) (<img src=x onerror=evil()>)');
+assert.strictEqual(binding.phoneStatus(), 'Mobile data disabled · 5G (NSA)');
+assert.strictEqual(binding.phoneOperator(), '<img src=x onerror=evil()>');
 tick(); requests[3].deliver({ERROR: 'USB authorization required'});
 assert.strictEqual(binding.phoneStatus(), 'Phone unavailable');
+assert.strictEqual(binding.phoneOperator(), '');
 assert(!visibility['.smartphone-signal-row']);
 assert.strictEqual(attributes['.smartphone-status:title'], 'USB authorization required');
 for (const [code, label] of Object.entries({unauthorized: 'ADB unauthorized', offline: 'ADB device offline',
@@ -114,6 +117,7 @@ assert.strictEqual(binding.phoneStatus(), 'USB detected; diagnostics unavailable
 assert.strictEqual(binding.phoneDevice(), '(Example phone)');
 requests[3].success({ERROR: 'Unknown error', ERROR_CODE: 'toString'});
 assert.strictEqual(binding.phoneStatus(), 'Phone unavailable');
+assert.strictEqual(binding.phoneOperator(), '');
 requests[3].success({ERROR: 'Enable USB debugging', ERROR_CODE: 'usb_only', USB_DEV: 'moto g32',
   HOST_IF: 'usb0', HOST_ADMIN: 'up', HOST_CARRIER: '1', HOST_IPV4: '10.1.2.3/24', UPLINK_MODE: 'fallback', UPLINK_ACTIVE: 'wan'});
 assert.strictEqual(binding.phoneStatus(), 'USB detected; ADB unavailable');

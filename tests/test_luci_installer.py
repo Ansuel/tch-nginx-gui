@@ -13,6 +13,66 @@ WIRELESS_SETUP = INSTALLER.parents[5] / "luci_wireless/setup.sh"
 
 
 class LuciActivation(unittest.TestCase):
+    def test_upgrade_invalidates_bytecode_cache_before_service_restart(self):
+        source = INSTALLER.read_text()
+        start = source.index("      rm -rf /tmp/luci-indexcache")
+        activation = source[start:source.index("    }", start)]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            index = root / "luci-indexcache"
+            modules = root / "luci-modulecache"
+            index.write_text("old index")
+            modules.mkdir()
+            (modules / "cached-version").write_text("git-20.155")
+            service = root / "uhttpd"
+            service.write_text(
+                '#!/bin/sh\nif [ "$1" = restart ]; then\n'
+                '  test ! -e "$CACHE_ROOT/luci-indexcache" && '
+                'test ! -e "$CACHE_ROOT/luci-modulecache" || exit 9\n'
+                '  touch "$CACHE_ROOT/restarted"\nfi\n'
+            )
+            service.chmod(0o755)
+            activation = activation.replace("/tmp/luci-indexcache", str(index))
+            activation = activation.replace("/tmp/luci-modulecache", str(modules))
+            activation = activation.replace("/etc/init.d/uhttpd", str(service))
+            result = subprocess.run(
+                ["sh", "-c", "activate() {\n" + activation + "}\nactivate"],
+                env={**os.environ, "CACHE_ROOT": str(root)},
+                capture_output=True, text=True, timeout=5,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue((root / "restarted").exists())
+
+    def test_arm_install_explicitly_updates_standard_luci_components(self):
+        source = INSTALLER.read_text()
+        start = source.index("app_luci() {")
+        function = source[start:source.index("\napp_amule()", start)]
+        components = {
+            "luci", "luci-base", "luci-mod-admin-full", "luci-theme-bootstrap",
+            "luci-app-firewall", "luci-proto-ppp", "luci-proto-ipv6",
+            "luci-lib-ip", "luci-lib-jsonc", "luci-lib-nixio",
+        }
+        for version in ("18.3.k", "19.4"):
+            with self.subTest(version=version), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                opkg = root / "opkg"
+                opkg.write_text('#!/bin/sh\necho "$*" >> "$TEST_ROOT/actions"\n'
+                                '[ "$1" = update ] && exit 0\nexit 7\n')
+                opkg.chmod(0o755)
+                # Stop at the package failure; keep host filesystem operations inert.
+                script = 'rm() { :; }; ln() { :; }; cp() { :; };\n' + function
+                script += f'\nmarketing_version={version}; cpu_type=armv7l; app_luci install'
+                result = subprocess.run(
+                    ["sh", "-c", script],
+                    env={**os.environ, "PATH": f"{root}:{os.environ['PATH']}", "TEST_ROOT": str(root)},
+                    capture_output=True, text=True, timeout=5,
+                )
+                self.assertNotEqual(result.returncode, 0)
+                commands = (root / "actions").read_text().splitlines()
+                self.assertEqual(commands[0], "update")
+                self.assertTrue(components.issubset(set(commands[1].split())))
+                self.assertNotIn("upgrade", commands[1].split())
+
     @unittest.skipUnless(shutil.which("lua"), "Lua required")
     def test_gui_upgrade_prepares_terminal_before_dispatch(self):
         source = (INSTALLER.parents[1] / "mappings/rpc/system.modgui.map").read_text()
