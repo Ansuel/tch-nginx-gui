@@ -505,13 +505,12 @@ app_luci() {
       return 1
       ;;
     esac
+
     #Fix Luci Error Bug
     uci set modgui.app.luci_webui="1"
     uci commit modgui
 
-    install_from_github "" luci_wireless specificapp install || \
-      echo "Warning: optional luci_wireless add-on not installed (download failed). LuCI itself is installed."
-    return 0
+    install_from_github "" luci_wireless specificapp install || return 1
   }
   remove() {
     if [ -f /usr/share/modgui-luci-wireless/setup.sh ]; then
