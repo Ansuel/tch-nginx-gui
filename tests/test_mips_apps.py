@@ -107,7 +107,7 @@ app_luci install
 ''')
                 self.assertEqual(result.returncode, status, result.stderr)
                 self.assertIn('ADAPTER:luci_wireless:install', result.stdout)
-                self.assertEqual('UCI:set modgui.app.luci_webui=1' in result.stdout, status == 0)
+                self.assertIn('UCI:set modgui.app.luci_webui=1', result.stdout)
 
     def test_luci_checksum_failure_rolls_back_without_touching_vendor_uci(self):
         helper = SOURCE[SOURCE.index('luci_mips_state='):SOURCE.index('require_usb_storage() {')]
