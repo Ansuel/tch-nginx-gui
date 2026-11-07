@@ -13,6 +13,12 @@ FIXTURE = r'''
 unpack = unpack or table.unpack
 loadstring = loadstring or load
 local b = dofile(BACKEND)
+local ownership={}
+package.loaded.uci={cursor=function() return {
+ get=function() return 'wifi-iface' end,
+ set=function(_,_,sid,key,value) assert(key=='modgui_luci'); ownership[sid]=value; return true end,
+ commit=function() return true end
+} end}
 package.loaded["modgui.luci_qtn"] = nil
 package.preload["modgui.luci_qtn"] = function() error("Remote adapter disabled in fixture") end
 local config = {
@@ -217,6 +223,54 @@ proxy.apply=function() error("Must not apply after a failed refresh") end
 ok,err=b.create(snapshot,data,cursor,proxy)
 assert(not ok and err:find("refreshing wireless interfaces",1,true))
 assert(err:find("no new sections created",1,true))
+''')
+
+    def test_new_networks_use_hidden_ownership_instead_of_display_alias(self):
+        self.run_lua('''
+config['wifi-iface']={{['.name']='wl0',device='radio_2G'}}
+config.interface={{['.name']='lan'}}
+local values
+local proxy={getPN=function() return {} end,add=function(_,id) return id end,
+ set=function(v) values=v; return true end,apply=function() return true end,del=function() return true end}
+local data={radio='radio_2G',network='lan',ssid='My network',password='Fixture-password',enabled='1'}
+assert(b.create(snapshot,data,cursor,proxy)=='wl0_1')
+assert(values['uci.wireless.wifi-iface.@wl0_1.ssid']=='My network')
+assert(values['uci.wireless.wifi-iface.@wl0_1.ap_display_name']==nil)
+assert(ownership.wl0_1=='1')
+config['wifi-ap']={{['.name']='ap4',iface='wl0',state='1'}}
+cursor.get=function(_,cfg,id,key) if id=='wl0' and key=='modgui_luci' then return '1' end end
+local s=assert(b.snapshot(cursor,bus))
+assert(s.radios[1].networks[1].owned)
+''')
+
+    def test_only_explicit_ownership_marker_identifies_luci_networks(self):
+        self.run_lua('''
+config['wifi-ap']={{['.name']='ap4',iface='wl0',state='1'}}
+local marker,alias=nil,'modgui-luci'
+cursor.get=function(_,cfg,id,key)
+ if id=='wl0' and key=='modgui_luci' then return marker end
+ if id=='wl0' and key=='ap_display_name' then return alias end
+end
+local function owned() return assert(b.snapshot(cursor,bus)).radios[1].networks[1].owned end
+assert(not owned())
+alias='Custom alias'; assert(not owned())
+marker='0'; assert(not owned())
+marker='1'; assert(owned())
+config['wifi-ap'][1]['.name']='ap0'; assert(not owned())
+''')
+
+    def test_ownership_write_failure_removes_new_network(self):
+        self.run_lua('''
+config['wifi-iface']={{['.name']='wl0',device='radio_2G'}}
+config.interface={{['.name']='lan'}}
+package.loaded.uci.cursor=function() return {get=function() return 'wifi-iface' end,
+set=function() return true end,commit=function() return false end} end
+local removed={}
+local proxy={getPN=function() return {} end,add=function(_,id) return id end,set=function() return true end,
+apply=function() return true end,del=function(path) removed[#removed+1]=path; return true end}
+local id,message=b.create(snapshot,{radio='radio_2G',network='lan',ssid='Test',password='Fixture-password',enabled='0'},cursor,proxy)
+assert(not id and #removed==2 and message:find('recording network ownership',1,true))
+assert(not message:find('Fixture-password',1,true))
 ''')
 
     def test_remove_only_owned_networks(self):

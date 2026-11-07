@@ -14,6 +14,12 @@ checksum-verified download mechanism, then runs its `setup.sh`.
 The main GUI carries only the extension installation/removal hook.
 Existing LuCI installations need the extension reinstalled to obtain the adapter.
 
+Native networks created by the adapter carry a separate `modgui_luci=1`
+ownership option. Their `ap_display_name` is left unset, so the standard GUI
+shows the actual SSID rather than a fixed alias. Only `modgui_luci=1` is
+recognized as ownership; there is no legacy display-alias fallback or automatic
+migration. Older networks can be adjusted manually when needed.
+
 The installer preserves the original network controller, patches its wireless
 route and invalidates LuCI caches, including both optional Quantenna modules.
 Other backends retain the upstream page.

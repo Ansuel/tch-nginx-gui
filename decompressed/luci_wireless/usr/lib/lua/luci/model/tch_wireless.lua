@@ -16,6 +16,17 @@ local function name(s)
   return type(s) == "string" and s:match("^[%w_%-]+$") ~= nil
 end
 
+local function extra_ap(ap)
+  return name(ap) and ap~='ap0' and ap~='ap1' and ap~='ap2' and ap~='ap3'
+end
+
+local function mark_owned(sid)
+  local c=require('uci').cursor()
+  assert(c:get('wireless',sid)=='wifi-iface')
+  assert(c:set('wireless',sid,'modgui_luci','1'))
+  assert(c:commit('wireless'))
+end
+
 function M.supported()
   local ok, uci = pcall(require, "luci.model.uci")
   if not ok then return false end
@@ -144,8 +155,7 @@ function M.snapshot(cursor, bus)
           local net = {id = sid, ap = ap[".name"], ssid = cursor:get("wireless", sid, "ssid") or s.ssid,
             up = s.oper_state == 1, enabled = tostring(ap.state or "0"),
             security = ap.security_mode, stations = {}, station_error = station_error,
-            owned = ap[".name"] ~= "ap0" and ap[".name"] ~= "ap1" and ap[".name"] ~= "ap2" and ap[".name"] ~= "ap3" and
-              cursor:get("wireless", sid, "ap_display_name") == "modgui-luci",
+            owned = extra_ap(ap['.name']) and cursor:get('wireless',sid,'modgui_luci')=='1',
             editable = not steering and (not ap.bandsteer_id or ap.bandsteer_id == "" or ap.bandsteer_id == "0" or ap.bandsteer_id == "off")}
           if (net.ap == "ap0" or net.ap == "ap1") and radio.enabled ~= "1" then net.enabled = "0" end
           if stations and type(stations[net.ap]) ~= "table" then
@@ -396,7 +406,7 @@ function M.create(snapshot, data, cursor, proxy, async)
     added[#added + 1] = ap_path
     local values = {}
     local iface = {device = data.radio, ssid = data.ssid, network = data.network,
-      state = data.enabled, mode = "ap", uapsd = "0", ap_display_name = "modgui-luci"}
+      state = data.enabled, mode = "ap", uapsd = "0"}
     local accesspoint = {iface = sid, state = data.enabled, public = "1", ap_isolation = "0",
       station_history = "1", security_mode = "wpa2-psk", wpa_psk_key = data.password,
       wps_state = "0", wsc_state = "configured", acl_mode = "disabled", bandsteer_id = "off"}
@@ -406,6 +416,8 @@ function M.create(snapshot, data, cursor, proxy, async)
     assert(proxy.set(values))
     stage = "applying wireless settings"
     assert(proxy.apply())
+    stage = "recording network ownership"
+    mark_owned(sid)
   end)
   if not ok then
     if #added == 0 then
