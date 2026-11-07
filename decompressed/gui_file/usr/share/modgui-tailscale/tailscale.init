@@ -5,9 +5,14 @@ STOP=10
 USE_PROCD=1
 
 start_service() {
-	local enabled
+	local enabled ssh_target_ip ssh_target_port ssh_password_auth
 	enabled="$(uci -q get tailscale.service.enabled)"
 	[ "$enabled" = "1" ] || return 0
+	ssh_target_ip="$(uci -q get tailscale.service.funnel_ssh_target_ip)"
+	ssh_target_port="$(uci -q get tailscale.service.funnel_ssh_target_port)"
+	[ -n "$ssh_target_ip" ] || ssh_target_ip=127.0.0.1
+	[ -n "$ssh_target_port" ] || ssh_target_port=22
+	ssh_password_auth="$(uci -q get tailscale.service.funnel_ssh_password_auth)"
 
 	# Runtime provisioning can take longer than Transformer's 30 second
 	# commit/apply limit. Keep it entirely inside procd so saving the modal
@@ -41,10 +46,14 @@ start_service() {
 
 	if [ "$(uci -q get tailscale.service.connect)" = 1 ] &&
 		[ "$(uci -q get tailscale.service.funnel_ssh_enabled)" = 1 ] &&
-		{ [ -s /etc/dropbear/authorized_keys ] || [ -s /root/.ssh/authorized_keys ]; }; then
-		# This listener is loopback-only and never accepts password logins.
+		[ "$ssh_target_ip" = 127.0.0.1 ] &&
+		{ [ "$ssh_target_port" = 22 ] || [ "$ssh_target_port" = 2222 ]; } &&
+		{ [ "$ssh_password_auth" = 1 ] || [ -s /etc/dropbear/authorized_keys ] || [ -s /root/.ssh/authorized_keys ]; }; then
+		# Password authentication uses the existing gateway accounts.
 		procd_open_instance funnel_sshd
-		procd_set_param command /usr/sbin/dropbear -F -s -p 127.0.0.1:2222 -P /var/run/modgui-funnel-sshd.pid
+		set -- /usr/sbin/dropbear -F
+		[ "$ssh_password_auth" = 1 ] || set -- "$@" -s
+		procd_set_param command "$@" -p "127.0.0.1:$ssh_target_port" -P /var/run/modgui-funnel-sshd.pid
 		procd_set_param respawn 3600 5 5
 		procd_set_param stdout 1
 		procd_set_param stderr 1
