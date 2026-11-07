@@ -505,10 +505,12 @@ app_luci() {
       return 1
       ;;
     esac
-    # The adapter uses the native wireless RPCs on both ARM and legacy MIPS.
-    install_from_github "" luci_wireless specificapp install || return 1
+
+    #Fix Luci Error Bug
     uci set modgui.app.luci_webui="1"
     uci commit modgui
+
+    install_from_github "" luci_wireless specificapp install || return 1
   }
   remove() {
     if [ -f /usr/share/modgui-luci-wireless/setup.sh ]; then
@@ -1622,6 +1624,7 @@ app_speedtest() {
     ;;
   remove)
     app_speedtest stop
+    sysctl -w net.ipv6.conf.lo.disable_ipv6=1 >/dev/null 2>&1
     rm -rf "$speedtest_dir"
     rm -f /tmp/speedtest-result.txt /tmp/speedtest.pid
     set_extension_state speedtest_app 0
@@ -1643,6 +1646,7 @@ app_speedtest() {
     }
     tee /tmp/speedtest-result.txt < "$speedtest_run/output" &
     speedtest_tee_pid=$!
+    sysctl -w net.ipv6.conf.lo.disable_ipv6=0 >/dev/null 2>&1
     "$speedtest_bin" --accept-license --accept-gdpr --format=human-readable \
       --progress=yes --progress-update-interval=1000 > "$speedtest_run/output" 2>&1 &
     speedtest_pid=$!

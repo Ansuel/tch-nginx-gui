@@ -353,7 +353,7 @@ local content = {
   hardware_version = "uci.env.var.hardware_version",
   serial_number = "uci.env.var.serial",
   mac_address = "uci.env.rip.eth_mac",
-  dsl_firmware = "sys.class.xdsl.@line0.FirmwareVersion",
+  -- dsl_firmware = "sys.class.xdsl.@line0.FirmwareVersion",
   fwversion_prefix = "uci.versioncusto.override.fwversion_prefix",
   fwversion_suffix = "uci.versioncusto.override.fwversion_suffix",
   fwversion_override = "uci.versioncusto.override.fwversion_override_real",
@@ -765,7 +765,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	html[#html + 1] = ui_helper.createLabel(T"Hostname", system_data["system_hostname"], advancedshow )
 	html[#html + 1] = ui_helper.createInputText(T"Hostname", "system_hostname", system_data["system_hostname"], advanced , system_helpmsg["system_hostname"] )
     --html[#html + 1] = ui_helper.createLabel(T"Firmware Version", content["firmware_version"], basic)
-	html[#html + 1] = ui_helper.createLabel(T"Datapump Version", content["dsl_firmware"], basic)
+	-- html[#html + 1] = ui_helper.createLabel(T"Datapump Version", content["dsl_firmware"], basic)
     html[#html + 1] = ui_helper.createLabel(T"Firmware OID", content["firmware_oid"], basic)
     html[#html + 1] = ui_helper.createLabel(T"Bootloader Version", content["bootloader_version"], long_basic)
     html[#html + 1] = ui_helper.createLabel(T"Bootloader OID", content["bootloader_oid"], basic)

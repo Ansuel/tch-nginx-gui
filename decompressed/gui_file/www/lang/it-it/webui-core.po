@@ -1103,9 +1103,6 @@ msgstr "Informazioni generali"
 msgid "Graph"
 msgstr "Grafico"
 
-msgid "Green"
-msgstr "Verde"
-
 msgid "Guest"
 msgstr "Ospite"
 
@@ -2353,9 +2350,6 @@ msgstr "Mar."
 
 msgid "Turning on Eco features can cause major latency."
 msgstr "L'attivazione delle funzionalità di risparmio energetico ethernet può causare una latenza aggiuntiva."
-
-msgid "Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status."
-msgstr "Se tutti i servizi sono attivi e funzionanti spegne tutti led eccetto 'Info'. Premi il pulsante “Info” / “Wifi” per visualizzare lo stato attuale dei led."
 
 msgid "Tx Errors"
 msgstr "Errori Tx"
@@ -4618,3 +4612,124 @@ msgstr "Voipblock per Asterisk"
 
 msgid "This will install Voipblock for asterisk"
 msgstr "Installa Voipblock per Asterisk."
+
+msgid "Memory"
+msgstr "Memoria"
+
+msgid "Free"
+msgstr "Libera"
+
+msgid "Available"
+msgstr "Disponibile"
+
+msgid "Cache"
+msgstr "Cache"
+
+msgid "Memory details"
+msgstr "Dettaglio memoria"
+
+msgid "Item"
+msgstr "Voce"
+
+msgid "/proc/meminfo is not readable"
+msgstr "/proc/meminfo non leggibile"
+
+msgid "Data Usage"
+msgstr "Utilizzo dati"
+
+msgid "You have reached your data usage limit"
+msgstr "Hai raggiunto il limite di utilizzo dati"
+
+msgid "Monitoring"
+msgstr "Monitoraggio"
+
+msgid "Network Interface"
+msgstr "Interfaccia di rete"
+
+msgid "Data Usage Monitoring"
+msgstr "Monitoraggio utilizzo dati"
+
+msgid "Uplink"
+msgstr "Upload"
+
+msgid "Downlink"
+msgstr "Download"
+
+msgid "Current"
+msgstr "Attuale"
+
+msgid "Total Volume"
+msgstr "Volume totale"
+
+msgid "Limits"
+msgstr "Limiti"
+
+msgid "Monthly Reset Day"
+msgstr "Giorno di azzeramento mensile"
+
+msgid "Enable Warning"
+msgstr "Attiva avviso"
+
+msgid "Data Usage Warning"
+msgstr "Soglia di avviso"
+
+msgid "Data usage threshold reached"
+msgstr "Soglia di avviso raggiunta"
+
+msgid "Enable Limit"
+msgstr "Attiva limite"
+
+msgid "Data Usage Limit"
+msgstr "Limite di utilizzo dati"
+
+msgid "Data usage limit reached"
+msgstr "Limite di utilizzo dati raggiunto"
+
+msgid "SMS Notification"
+msgstr "Notifica SMS"
+
+msgid "Add number"
+msgstr "Aggiungi numero"
+
+msgid "Reset Data Usage"
+msgstr "Azzera utilizzo dati"
+
+msgid "* Data usage is only an approximation. For actual usage, please refer to your network operator"
+msgstr "* L'utilizzo dati è solo indicativo. Per i consumi effettivi fai riferimento al tuo operatore di rete"
+
+msgid "No WAN interface is available for data usage monitoring."
+msgstr "Nessuna interfaccia WAN disponibile per il monitoraggio dell'utilizzo dati."
+
+msgid "Turn off all LEDs if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status."
+msgstr "Se tutti i servizi sono attivi e funzionanti spegne tutti led. Premi il pulsante “Info” / “Wifi” per visualizzare lo stato attuale dei led."
+
+msgid "Color of the Power LED when the gateway is up and running."
+msgstr "Colore del LED di alimentazione quando il gateway è attivo e funzionante."
+
+msgid "Disable CWMP Update. Any firmware update from CWMP will be rejected and not flashed. Consider that CWMP that request a firmware update will keep requesting it until the update is actually installed. Autoconfiguration won't work. Manually set the version in the System Extra tab to spoof a version or upgrade the firmware."
+
+msgstr "Disattiva l'aggiornamento CWMP. Qualsiasi aggiornamento del firmware proveniente da CWMP verrà rifiutato e non verrà installato. Tieni presente che il CWMP che richiede un aggiornamento del firmware continuerà a richiederlo finché l'aggiornamento non sarà effettivamente installato. La configurazione automatica non funzionerà. Imposta manualmente la versione nella scheda System Extra per simulare una versione o aggiornare il firmware."
+
+msgid "Power LED color"
+msgstr "Colore led info/power"
+
+msgid "Green"
+msgstr "Verde"
+
+msgid "Blue"
+msgstr "Blu"
+
+msgid "Orange"
+msgstr "Arancione"
+
+msgid "Red"
+msgstr "Rosso"
+
+msgid "Cyan"
+msgstr "Ciano"
+
+msgid "White"
+msgstr "Bianco"
+
+msgid "Hidden network"
+msgstr "Rete Nascosta"

@@ -107,7 +107,7 @@ app_luci install
 ''')
                 self.assertEqual(result.returncode, status, result.stderr)
                 self.assertIn('ADAPTER:luci_wireless:install', result.stdout)
-                self.assertEqual('UCI:set modgui.app.luci_webui=1' in result.stdout, status == 0)
+                self.assertIn('UCI:set modgui.app.luci_webui=1', result.stdout)
 
     def test_luci_checksum_failure_rolls_back_without_touching_vendor_uci(self):
         helper = SOURCE[SOURCE.index('luci_mips_state='):SOURCE.index('require_usb_storage() {')]
@@ -153,7 +153,14 @@ app_blacklist remove
 ''')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, '')
-
+    
+    def test_speedtest_enables_loopback_ipv6(self):
+        self.assertIn('net.ipv6.conf.lo.disable_ipv6=0', SOURCE)
+    
+    def test_ipdiagnosticshelper_provides_ping_and_traceroute_copy(self):
+        helper = (ROOT / 'decompressed/gui_file/usr/lib/lua/transformer/shared/ipdiagnosticshelper.lua').read_text()
+        self.assertIn('function M.copy_ping_or_traceroute_result', helper)
+        self.assertIn('function M.get_physical_interface', helper)
 
 if __name__ == '__main__':
     unittest.main()

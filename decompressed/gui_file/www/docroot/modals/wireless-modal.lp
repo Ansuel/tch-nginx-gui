@@ -958,7 +958,6 @@ end
   }
   local step = 2
   for i=0, 60, step do
-     ngx.sleep(step)
      local content_val = proxy.get(unpack(content_ssid))
      if (content_val and #content_val > 0) then
         content["macaddress"] = content_val[1].value
@@ -968,6 +967,7 @@ end
         content["wps_ap_setup_locked"] = content_val[5].value
         break
      end
+     ngx.sleep(step)
   end
 
 param = {
@@ -1630,8 +1630,11 @@ function get_random_color() {\
     var bittarget80 = 16;\
     var ctx;\
   function initializeAnalyzer() {\
+    window.vistiAnalyzer = {};\
     var c=document.getElementById("wrapper");\
     ctx=c.getContext("2d");\
+    ctx.clearRect(0,0,c.width,c.height);\
+    ctx.beginPath();\
     ctx.lineStyle="#FF0000";\
 \
     //Y Axis\
@@ -1722,13 +1725,14 @@ function get_random_color() {\
          ctx.fillText(chnl.toString(),60+(chn_diff*i)-4,370);\
     }\
 \
-    for (i = 10; i <= 27; i++) {\
-         ctx.moveTo(60+(chn_diff*i),350);\
-         ctx.lineTo(60+(chn_diff*i),355);\
+    var hiChannels = [100,104,108,112,116,120,124,128,132,136,140,144,149,153,157,161,165];\
+    for (var k = 0; k < hiChannels.length; k++) {\
+         var hx = 360+((hiChannels[k]-100)*7.5);\
+         ctx.moveTo(hx,350);\
+         ctx.lineTo(hx,355);\
          ctx.stroke();\
          ctx.font="9px Arial";\
-         chnl = 60+(i*4);\
-         ctx.fillText(chnl.toString(),60+(chn_diff*i)-6,370);\
+         ctx.fillText(hiChannels[k].toString(),hx-6,370);\
     }\
 \
     ');  end  ngx.print('\
@@ -1738,6 +1742,7 @@ function get_random_color() {\
       $("<br/>"),\
       $("<div>").addClass("col_ssid").text("');  ngx.print( T'Network Name (SSID)'); ngx.print('"),\
       $("<div>").addClass("col_channel").text("');  ngx.print( T'Channel' ); ngx.print('"),\
+        $("<div>").addClass("col_str").text("');  ngx.print( T'20MHz'); ngx.print('"),\
       $("<div>").addClass("col_str").text("');  ngx.print( T'40MHz'); ngx.print('"),\
       ');  if radio ~= "radio_2G" then   ngx.print('\
         $("<div>").addClass("col_str").text("');  ngx.print( T'80MHz'); ngx.print('"),\
@@ -1746,96 +1751,106 @@ function get_random_color() {\
       $("<br/>")\
     );\
   }\
-  function generateGraph(ssid,channel,rssi,cap){\
-    color =  get_random_color();\
-    var Mhz = 1;\
-    var Str = "";\
-    var cap = parseInt(cap,16).toString(2);\
+  var blocks80 = [[36,48,42],[52,64,58],[100,112,106],[116,128,122],[132,144,138],[149,161,155]];\
+  var blocks160 = [[36,64,50],[100,128,114]];\
+  var centers40 = [38,46,54,62,102,110,118,126,134,142,151,159];\
+  var is2GAnalyzer = ');  ngx.print( radio == "radio_2G" and "true" or "false" ); ngx.print(';\
+  var hiddenLabel = "');  ngx.print( T'Hidden network' ); ngx.print('";\
 \
-    /*if(cap.indexOf("40MHz")!=-1)\
-    {\
-      Mhz = 2;\
-      Str = "*"\
+  // channel = canale primario, chanDescr = es. "36", "36l", "6u", "36/80", "100/160"\
+  function getChannelInfo(channel, chanDescr, cap) {\
+    var primary = parseInt(channel, 10);\
+    var descr = String(chanDescr || "");\
+    var width = 20;\
+    var slash = descr.lastIndexOf("/");\
+    var lastChar = descr.charAt(descr.length - 1);\
+    if (slash >= 0) {\
+      width = parseInt(descr.substring(slash + 1), 10) || 20;\
+    } else if (lastChar == "l" || lastChar == "u") {\
+      width = 40;\
+    } else if (is2GAnalyzer) {\
+      var bits = parseInt(cap, 16).toString(2);\
+      while (bits.length <= 16) { bits = "0" + bits; }\
+      if (bits.charAt(bits.length - bittarget40) == "1") { width = 40; }\
     }\
-    */\
-    while (cap.length <= 16)\
-      {\
-       cap = "0"+cap;\
+    var center = primary;\
+    if (width == 40) {\
+      if (is2GAnalyzer) {\
+        center = (lastChar == "u") ? primary - 2 : primary + 2;\
+      } else {\
+        for (var i40 = 0; i40 < centers40.length; i40++) {\
+          if (Math.abs(primary - centers40[i40]) == 2) { center = centers40[i40]; }\
+        }\
       }\
-\
-   if (cap.charAt(cap.length-bittarget40) == "1") {\
-       Mhz = 2;\
-       Str = \'*\';\
+    } else if (width == 80 || width == 160) {\
+      var blocks = (width == 80) ? blocks80 : blocks160;\
+      for (var b = 0; b < blocks.length; b++) {\
+        if (primary >= blocks[b][0] && primary <= blocks[b][1]) { center = blocks[b][2]; }\
+      }\
     }\
-    ');  if radio == "radio_2G" then   ngx.print('\
-    //2.4GHz\
-    var xcoord = 80+(channel*40);\
-    var sig = rssi;\
-    if (sig > maximum){sig = maximum }else if (sig < minimum){sig = minimum}\
+    return { primary: primary, width: width, center: center };\
+  }\
+\
+  function get_x_from_channel(ch) {\
+    if (is2GAnalyzer) { return 80+(ch*40); }\
+    if (ch <= 64) { return 60+((ch-36)*7.5); }\
+    return 360+((ch-100)*7.5);\
+  }\
+\
+  if (typeof window.vistiAnalyzer === "undefined") { window.vistiAnalyzer = {}; }\
+  \
+  function generateGraph(ssid,channel,rssi,cap,chanDescr){\
+    var info = getChannelInfo(channel, chanDescr, cap);\
+    var rowColor = get_random_color();\
+    var sig = parseFloat(rssi);\
+    if (isNaN(sig)) { sig = minimum; }\
+    \
+    var chiaveRete = info.center + "_" + info.width + "_" + rssi;\
+    if (window.vistiAnalyzer[chiaveRete]) {\
+        sig = sig - window.vistiAnalyzer[chiaveRete];\
+        window.vistiAnalyzer[chiaveRete] += 1.5;\
+    } else {\
+        window.vistiAnalyzer[chiaveRete] = 1.5;\
+    }\
+    \
+    if (sig > maximum) { sig = maximum; } else if (sig < minimum) { sig = minimum; }\
+    var xcoord = get_x_from_channel(info.center);\
+    var half = (info.width / 20) * (is2GAnalyzer ? 80 : 15);\
     ctx.beginPath();\
-\
-    color =  get_random_color();\
-    ctx.strokeStyle = color;\
-\
-      ctx.moveTo(xcoord-(80*Mhz), 350);\
-      ctx.quadraticCurveTo(xcoord, get_curve_y_from_sig(maximum, minimum, range, sig), xcoord+(80*(Mhz)), 350);\
-\
+    ctx.strokeStyle = rowColor;\
+    ctx.moveTo(xcoord - half, 350);\
+    ctx.quadraticCurveTo(xcoord, get_curve_y_from_sig(maximum, minimum, range, sig), xcoord + half, 350);\
     ctx.stroke();\
-     ');  else   ngx.print('\
-     //5GH\
-    var chlist40 = [38,46,54,62,102,110,118,126,134,142]\
-    var chlist80 = [42,58,106,122,138]\
-    var str40 = ""\
-    var str80 = ""\
-    for (i = 0; i <= chlist40.length; i++) {\
-        if (chlist40[i] == channel){\
-          str40 = "*";\
-          Mhz = 2;\
-        }\
-    }\
-    for (i = 0; i <= chlist80.length; i++) {\
-        if (chlist80[i] == channel){\
-          str80 = "*";\
-          Mhz = 4;\
-        }\
-    }\
-    var xcoord = 0\
-    if  (channel <= 64) {\
-       xcoord = 60+((channel-36)*7.5);\
-    }else{\
-       xcoord = 360+((channel-100)*7.5);\
-    }\
 \
-    var sig = rssi;\
+    var str20 = (info.width == 20) ? "*" : "";\
+    var str40 = (info.width == 40) ? "*" : "";\
+    var str80 = "";\
+    if (info.width == 80) { str80 = "*"; } else if (info.width == 160) { str80 = "160"; }\
+    var name = (String(ssid || "").split(" ").join("") == "") ? "(" + hiddenLabel + ")" : ssid;\
 \
-    if (sig > maximum){sig = maximum }else if (sig < minimum){sig = minimum}\
-        ctx.beginPath();\
-        color =  get_random_color();\
-        ctx.strokeStyle = color;\
-        ctx.moveTo(xcoord-(15*Mhz), 350);\
-        ctx.quadraticCurveTo(xcoord, get_curve_y_from_sig(maximum, minimum, range, sig) , xcoord+(15*Mhz), 350);\
-        ctx.stroke();\
-     ');  end   ngx.print('\
-\
-     // A new row for analyzer table\
-     var row = $("<div>").css("color", color);\
-\
-     // Append the row\
-     $("#key").append(row);\
-\
-     // Add columns to the new row\
-    $(row).append(\
-      $("<div>").addClass("col_ssid").text(ssid),\
-      $("<div>").addClass("col_channel").text(channel),\
-      ');  if radio == "radio_2G" then   ngx.print('\
-        $("<div>").addClass("col_str").text(Str),\
-      ');  else  ngx.print('\
+    // A new row for analyzer table\
+    var row = $("<div>").css("color", rowColor);\
+    $("#key").append(row);\
+    if (is2GAnalyzer) {\
+      $(row).append(\
+        $("<div>").addClass("col_ssid").text(name),\
+        $("<div>").addClass("col_channel").text(channel),\
+        $("<div>").addClass("col_str").text(str20),\
+        $("<div>").addClass("col_str").text(str40),\
+        $("<div>").addClass("col_rssi").text(rssi),\
+        $("<br/>")\
+      );\
+    } else {\
+      $(row).append(\
+        $("<div>").addClass("col_ssid").text(name),\
+        $("<div>").addClass("col_channel").text(channel),\
+        $("<div>").addClass("col_str").text(str20),\
         $("<div>").addClass("col_str").text(str40),\
         $("<div>").addClass("col_str").text(str80),\
-      ');  end  ngx.print('\
-      $("<div>").addClass("col_rssi").text(rssi),\
-      $("<br/>")\
-    );\
+        $("<div>").addClass("col_rssi").text(rssi),\
+        $("<br/>")\
+      );\
+    }\
   }\
 \
   function show_rescanconfirming(freq,show){\
@@ -1887,7 +1902,7 @@ function get_random_color() {\
           initializeAnalyzer();\
           if ( acsData.length > 0 ) {\
             $.each(acsData, function(i, data){\
-              generateGraph(data.ssid,data.channel,data.rssi,data.cap);\
+              generateGraph(data.ssid,data.channel,data.rssi,data.cap,data.chan_descr);\
             });\
           }\
         });\
@@ -1898,7 +1913,7 @@ function get_random_color() {\
          $("#analyzerGraph").removeClass("hide");\
          $("#analyzerloader1").addClass("hide");\
          $.each(acsData, function(i, data) {\
-           generateGraph(data.ssid,data.channel,data.rssi,data.cap);\
+           generateGraph(data.ssid,data.channel,data.rssi,data.cap,data.chan_descr);\
          });\
        });\
     });\

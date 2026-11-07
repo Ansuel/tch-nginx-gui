@@ -90,7 +90,7 @@ end
 </div>\
 <script>\
 $(document).ready(function () {\
-	new modgui.createAjaxUpdateCard("internet-card","/ajax/internet.lua","InternetCardInterval",3000);\
+	new modgui.createAjaxUpdateCard("internet-card","/ajax/internet.lua","InternetCardInterval",300);\
 })\
 </script>\
 '); 
