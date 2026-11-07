@@ -171,3 +171,42 @@ msgstr "Porta TLS pubblica SSH"
 
 msgid "SSH command"
 msgstr "Comando SSH"
+
+msgid "Use Tailscale DNS"
+msgstr "Usa DNS di Tailscale"
+
+msgid "Disabled by default: keep the gateway DNS settings. Enable this to use the tailnet DNS configuration and MagicDNS."
+msgstr "Disattivato per impostazione predefinita: mantiene i DNS del gateway. Attivalo per usare la configurazione DNS della tailnet e MagicDNS."
+
+msgid "HTTP destination IP"
+msgstr "IP di destinazione HTTP"
+
+msgid "HTTP destination port"
+msgstr "Porta di destinazione HTTP"
+
+msgid "Choose an IPv4 or IPv6 address reachable from the gateway. Funnel terminates public TLS and forwards HTTP to this destination. The service and tailnet connection must be enabled. Reopen this window after approving Funnel."
+msgstr "Scegli un indirizzo IPv4 o IPv6 raggiungibile dal gateway. Funnel termina il TLS pubblico e inoltra HTTP a questa destinazione. Il servizio e la connessione alla tailnet devono essere attivi. Riapri questa finestra dopo aver autorizzato Funnel."
+
+msgid "Public Funnel requires TLS even on port 10000: SSH clients need a TLS wrapper such as OpenSSL 3. Choose the SSH server IP and port; that server controls authentication. The built-in destination 127.0.0.1:22 accepts SSH keys only."
+msgstr "Funnel pubblico richiede TLS anche sulla porta 10000: i client SSH necessitano di un wrapper TLS come OpenSSL 3. Scegli IP e porta del server SSH; l’autenticazione dipende dal server di destinazione. La destinazione integrata 127.0.0.1:22 accetta solo chiavi SSH."
+
+msgid "SSH destination IP"
+msgstr "IP di destinazione SSH"
+
+msgid "SSH destination port"
+msgstr "Porta di destinazione SSH"
+
+msgid "Public Funnel requires TLS even on port 10000: SSH clients need a TLS wrapper such as OpenSSL 3. Choose the SSH server IP and port; that server controls authentication."
+msgstr "Funnel pubblico richiede TLS anche sulla porta 10000: i client SSH necessitano di un wrapper TLS come OpenSSL 3. Scegli IP e porta del server SSH; l’autenticazione dipende dal server di destinazione."
+
+msgid "Allow SSH password login"
+msgstr "Consenti accesso SSH con password"
+
+msgid "For the built-in SSH listener on 127.0.0.1 ports 22 or 2222, enable this to use existing gateway usernames and passwords. Disabled means SSH keys only. Other destinations use their own server settings. Use a strong password for public access."
+msgstr "Per il listener SSH integrato su 127.0.0.1 alle porte 22 o 2222, attiva questa opzione per usare gli utenti e le password esistenti del gateway. Se disattivata, sono ammesse solo chiavi SSH. Le altre destinazioni usano le impostazioni del proprio server. Usa una password robusta per l’accesso pubblico."
+
+msgid "Funnel publishes the selected service on the Internet."
+msgstr "Funnel rende il servizio selezionato pubblico su Internet."
+
+msgid "SSH through Funnel requires a TLS client, even on port 10000."
+msgstr "SSH tramite Funnel richiede un client TLS, anche sulla porta 10000."

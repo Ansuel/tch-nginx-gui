@@ -1,6 +1,12 @@
 #!/bin/sh
 
 # Separate procd instances share this script for connection and Funnel work.
+valid_funnel_target() {
+	MODGUI_FUNNEL_IP="$1" lua -e 'local i=require("tch.inet"); local ip=os.getenv("MODGUI_FUNNEL_IP"); os.exit((i.isValidIPv4(ip) or i.isValidIPv6(ip)) and 0 or 1)' || return 1
+	case "$2" in '' | *[!0-9]*) return 1 ;; esac
+	[ "$2" -ge 1 ] && [ "$2" -le 65535 ]
+}
+
 run_funnel() {
 
 # Run outside Transformer: enabling Funnel may require approval in a browser.
@@ -9,6 +15,7 @@ output_file=/tmp/modgui-tailscale-funnel-output
 enabled_option=funnel_enabled
 port_option=funnel_port
 mode=https
+legacy_mode=https
 state_dir="$(uci -q get tailscale.service.state_dir)"
 [ -n "$state_dir" ] || state_dir=/opt/modgui-tailscale-state
 owned_port_file="$state_dir/.modgui-funnel-port"
@@ -20,6 +27,7 @@ ssh | ssh-stop)
 	enabled_option=funnel_ssh_enabled
 	port_option=funnel_ssh_port
 	mode=tls-terminated-tcp
+	legacy_mode=tls-terminated-tcp
 	;;
 esac
 public_url=""
@@ -35,6 +43,9 @@ set_status() {
 stop_owned() {
 	[ -r "$owned_port_file" ] || return 0
 	old_port="$(cat "$owned_port_file")"
+	old_mode="$legacy_mode"
+	[ ! -r "$owned_port_file.mode" ] || old_mode="$(cat "$owned_port_file.mode")"
+	case "$old_mode" in https | tls-terminated-tcp) ;; *) return 1 ;; esac
 	case "$old_port" in 443 | 8443 | 10000) ;; *) return 1 ;; esac
 	# Preserve the marker until the daemon is available for cleanup.
 	[ -S /var/run/tailscale/tailscaled.sock ] || return 0
@@ -43,9 +54,9 @@ stop_owned() {
 	saved_config="$(timeout 10 /usr/sbin/tailscale funnel status --json)" || return 1
 	saved_listener="$(jsonfilter -s "$saved_config" -e "@.TCP['$old_port']" 2>/dev/null)"
 	if [ -n "$saved_listener" ]; then
-		timeout 15 /usr/sbin/tailscale funnel --yes "--$mode=$old_port" off > "$output_file" 2>&1 || return 1
+		timeout 15 /usr/sbin/tailscale funnel --yes "--$old_mode=$old_port" off > "$output_file" 2>&1 || return 1
 	fi
-	rm -f "$owned_port_file"
+	rm -f "$owned_port_file" "$owned_port_file.mode"
 }
 
 umask 077
@@ -76,19 +87,31 @@ fi
 
 port="$(uci -q get "tailscale.service.$port_option")"
 target_port="$(uci -q get tailscale.service.funnel_target_port)"
+target_ip="$(uci -q get tailscale.service.funnel_target_ip)"
+[ -n "$target_ip" ] || target_ip=127.0.0.1
 if [ "$mode" = tls-terminated-tcp ]; then
-	target_port=2222
-	{ [ -s /etc/dropbear/authorized_keys ] || [ -s /root/.ssh/authorized_keys ]; } || {
-		set_status error "Install an SSH public key before enabling SSH Funnel"; exit 1;
-	}
+	target_ip="$(uci -q get tailscale.service.funnel_ssh_target_ip)"
+	target_port="$(uci -q get tailscale.service.funnel_ssh_target_port)"
+	[ -n "$target_ip" ] || target_ip=127.0.0.1
+	[ -n "$target_port" ] || target_port=22
+	if [ "$target_ip" = 127.0.0.1 ] && { [ "$target_port" = 22 ] || [ "$target_port" = 2222 ]; } &&
+		[ "$(uci -q get tailscale.service.funnel_ssh_password_auth)" != 1 ]; then
+		{ [ -s /etc/dropbear/authorized_keys ] || [ -s /root/.ssh/authorized_keys ]; } || {
+			set_status error "Install an SSH public key before enabling SSH Funnel"; exit 1;
+		}
+	fi
 fi
 case "$port" in 443 | 8443 | 10000) ;; *) set_status error "Invalid Funnel HTTPS port"; exit 1 ;; esac
-case "$target_port" in '' | *[!0-9]*) set_status error "Invalid Funnel target port"; exit 1 ;; esac
-[ "$target_port" -ge 1 ] && [ "$target_port" -le 65535 ] || {
-	set_status error "Invalid Funnel target port"; exit 1;
+valid_funnel_target "$target_ip" "$target_port" || {
+	set_status error "Invalid Funnel destination IP or port"; exit 1;
 }
-target="http://127.0.0.1:$target_port"
-[ "$mode" != tls-terminated-tcp ] || target="tcp://127.0.0.1:$target_port"
+# The HTTP reverse proxy accepts loopback only. TLS-terminated forwarding
+# also supports HTTP services on other destination addresses.
+[ "$target_ip" = 127.0.0.1 ] || mode=tls-terminated-tcp
+target_host="$target_ip"
+case "$target_host" in *:*) target_host="[$target_host]" ;; esac
+target="http://$target_host:$target_port"
+[ "$mode" != tls-terminated-tcp ] || target="tcp://$target_host:$target_port"
 
 set_status waiting "Waiting for Tailscale connection"
 attempt=0
@@ -104,12 +127,15 @@ while [ "$attempt" -lt 300 ]; do
 done
 [ "$attempt" -lt 300 ] || { set_status error "Timed out waiting for Tailscale connection"; exit 1; }
 
-if [ -r "$owned_port_file" ] && [ "$(cat "$owned_port_file")" != "$port" ]; then
+if [ -r "$owned_port_file" ] && { [ "$(cat "$owned_port_file")" != "$port" ] ||
+  { [ -r "$owned_port_file.mode" ] && [ "$(cat "$owned_port_file.mode")" != "$mode" ]; } ||
+  { [ ! -r "$owned_port_file.mode" ] && [ "$legacy_mode" != "$mode" ]; }; }; then
 	stop_owned || { set_status error "Cannot disable previous Funnel port"; exit 1; }
 fi
 mkdir -p "$state_dir" || exit 1
 # Also track partially applied commands so disabling the switch can clean up.
 printf '%s\n' "$port" > "$owned_port_file" || exit 1
+printf '%s\n' "$mode" > "$owned_port_file.mode" || exit 1
 set_status configuring "Configuring Funnel"
 attempt=0
 while [ "$attempt" -lt 20 ]; do
@@ -117,9 +143,15 @@ while [ "$attempt" -lt 20 ]; do
 	result=$?
 	approval_url="$(grep -Eo 'https://login\.tailscale\.com/[a-zA-Z0-9/?=&_%.-]+' "$output_file" | head -n 1)"
 	public_url="$(grep -Eo 'https://[a-zA-Z0-9.-]+\.ts\.net(:[0-9]+)?/?' "$output_file" | head -n 1)"
-	if [ "$mode" = tls-terminated-tcp ]; then
+	if [ "$enabled_option" = funnel_ssh_enabled ]; then
 		public_url="$(grep -Eo '[a-zA-Z0-9.-]+\.ts\.net' "$output_file" | head -n 1)"
 		[ -z "$public_url" ] || public_url="$public_url:$port"
+	elif [ "$mode" = tls-terminated-tcp ]; then
+		public_url="$(grep -Eo '[a-zA-Z0-9.-]+\.ts\.net' "$output_file" | head -n 1)"
+		if [ -n "$public_url" ]; then
+			[ "$port" = 443 ] || public_url="$public_url:$port"
+			public_url="https://$public_url/"
+		fi
 	fi
 	if [ -n "$approval_url" ]; then
 		set_status authorization_required "Enable Funnel in your tailnet"
@@ -139,6 +171,7 @@ done
 }
 
 case "$1" in
+	validate-target) valid_funnel_target "$2" "$3"; exit $? ;;
 	funnel) run_funnel; exit $? ;;
 	funnel-stop) run_funnel stop; exit $? ;;
 	funnel-ssh) run_funnel ssh; exit $? ;;
@@ -183,8 +216,10 @@ advertise_routes="$(uci -q get tailscale.service.advertise_routes)"
 advertise_exit_node="$(uci -q get tailscale.service.advertise_exit_node)"
 accept_routes="$(uci -q get tailscale.service.accept_routes)"
 ssh_enabled="$(uci -q get tailscale.service.ssh)"
+accept_dns="$(uci -q get tailscale.service.accept_dns)"
+[ "$accept_dns" = 1 ] || accept_dns=0
 
-set -- up --reset "--hostname=$hostname" "--accept-routes=$accept_routes" \
+set -- up --reset "--hostname=$hostname" "--accept-routes=$accept_routes" "--accept-dns=$accept_dns" \
 	"--advertise-exit-node=$advertise_exit_node" "--ssh=$ssh_enabled" \
 	--netfilter-mode=off --timeout=10s
 [ -n "$advertise_routes" ] && set -- "$@" "--advertise-routes=$advertise_routes"
