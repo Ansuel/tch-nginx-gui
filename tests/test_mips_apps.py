@@ -156,6 +156,11 @@ app_blacklist remove
     
     def test_speedtest_enables_loopback_ipv6(self):
         self.assertIn('net.ipv6.conf.lo.disable_ipv6=0', SOURCE)
+    
+    def test_ipdiagnosticshelper_provides_ping_and_traceroute_copy(self):
+        helper = (ROOT / 'decompressed/gui_file/usr/lib/lua/transformer/shared/ipdiagnosticshelper.lua').read_text()
+        self.assertIn('function M.copy_ping_or_traceroute_result', helper)
+        self.assertIn('function M.get_physical_interface', helper)
 
 if __name__ == '__main__':
     unittest.main()
