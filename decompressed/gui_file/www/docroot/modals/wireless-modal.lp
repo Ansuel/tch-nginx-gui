@@ -397,8 +397,7 @@ for i=-6,6 do
 	tinsert(wifipower,{tostring(power),format("%s dBm",power)})
 end
 
--- cw_20: standard solo 20MHz (invariata); cw_40: aggiunge 40MHz fisso (2.4GHz);
--- cw_80: aggiunge 80MHz fisso (5GHz)
+-- cw_20: standard 20MHz only (unchanged); cw_40: adds a fixed 40MHz (2.4GHz);
 local cw_20 = {
     {"20MHz", T"20MHz"},
     {"auto", T"Auto (20/40MHz)"},
@@ -411,7 +410,6 @@ local cw_40 = {
 local cw_80 = {
     {"20MHz", T"20MHz"},
     {"40MHz", T"40MHz"},
-    {"80MHz", T"80MHz"},
     {"auto", T"Auto (20/40/80MHz)"},
 }
 
@@ -434,7 +432,6 @@ if native_channelwidth then
     cw_80 = {
         {"20", T"20MHz"},
         {"40", T"40MHz"},
-        {"80", T"80MHz"},
         {channelWithNo160MHz and "20/40/80" or "auto", T"Auto (20/40/80MHz)"},
     }
 end
@@ -868,13 +865,13 @@ local bandsteerhelpmsg = {}
 local content_rssi = {}
 local mapParams, mapValid = getParamsAndValidation()
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
--- Le larghezze fisse (40MHz/80MHz) si salvano in uci ma rpc le riporta come "auto":
--- si mostra il valore salvato, altrimenti la finestra tornerebbe su Auto (e salvando di nuovo lo sovrascriverebbe)
+-- Fixed bandwidths (40MHz) are saved in UCI, but RPC reports them as "auto":
+-- the saved value is displayed; otherwise, the window would revert to "Auto" (and saving again would overwrite the setting).
 if isguest ~= "1" and content["requested_channel_width"] and not next(helpmsg or {}) then
     local cwuci = proxy.get("uci.wireless.wifi-device.@" .. curradio .. ".channelwidth")
     cwuci = cwuci and cwuci[1] and untaint(cwuci[1].value or "") or ""
     local forced = gsub(cwuci, "MHz$", "")
-    if forced == "40" or forced == "80" then
+    if forced == "40" then
         content["requested_channel_width"] = native_channelwidth and forced or (forced .. "MHz")
     end
 end
