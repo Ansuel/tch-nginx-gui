@@ -409,7 +409,7 @@ local cw_40 = {
 }
 local cw_80 = {
     {"20MHz", T"20MHz"},
-    {"40MHz", T"40MHz"},
+    {"20/40MHz", T"20/40MHz"},
     {"auto", T"Auto (20/40/80MHz)"},
 }
 
@@ -431,13 +431,13 @@ if native_channelwidth then
     cw_40 = { {"20", T"20MHz"}, {"40", T"40MHz"}, {"auto", T"Auto (20/40MHz)"} }
     cw_80 = {
         {"20", T"20MHz"},
-        {"40", T"40MHz"},
+        {"20/40", T"20/40MHz"},
         {channelWithNo160MHz and "20/40/80" or "auto", T"Auto (20/40/80MHz)"},
     }
 end
 local cw_160 = {
     {"20", T"20MHz"},
-    {"40", T"40MHz"},
+    {"20/40", T"20/40MHz"},
     {"20/40/80", T"Auto (20/40/80MHz)"},
 }
 if not channelWithNo160MHz then
