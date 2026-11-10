@@ -397,13 +397,21 @@ for i=-6,6 do
 	tinsert(wifipower,{tostring(power),format("%s dBm",power)})
 end
 
+-- cw_20: standard solo 20MHz (invariata); cw_40: aggiunge 40MHz fisso (2.4GHz);
+-- cw_80: aggiunge 80MHz fisso (5GHz)
+local cw_20 = {
+    {"20MHz", T"20MHz"},
+    {"auto", T"Auto (20/40MHz)"},
+}
 local cw_40 = {
     {"20MHz", T"20MHz"},
+    {"40MHz", T"40MHz"},
     {"auto", T"Auto (20/40MHz)"},
 }
 local cw_80 = {
     {"20MHz", T"20MHz"},
-    {"20/40MHz", T"20/40MHz"},
+    {"40MHz", T"40MHz"},
+    {"80MHz", T"80MHz"},
     {"auto", T"Auto (20/40/80MHz)"},
 }
 
@@ -421,22 +429,25 @@ if has_variant and variant.Wireless and variant.Wireless.wireless then
     end
 end
 if native_channelwidth then
-    cw_40 = { {"20", T"20MHz"}, {"auto", T"Auto (20/40MHz)"} }
+    cw_20 = { {"20", T"20MHz"}, {"auto", T"Auto (20/40MHz)"} }
+    cw_40 = { {"20", T"20MHz"}, {"40", T"40MHz"}, {"auto", T"Auto (20/40MHz)"} }
     cw_80 = {
         {"20", T"20MHz"},
-        {"20/40", T"20/40MHz"},
+        {"40", T"40MHz"},
+        {"80", T"80MHz"},
         {channelWithNo160MHz and "20/40/80" or "auto", T"Auto (20/40/80MHz)"},
     }
 end
 local cw_160 = {
     {"20", T"20MHz"},
-    {"20/40", T"20/40MHz"},
+    {"40", T"40MHz"},
     {"20/40/80", T"Auto (20/40/80MHz)"},
 }
 if not channelWithNo160MHz then
     cw_160[3][2] = T"20/40/80MHz"
     cw_160[#cw_160 + 1] = {"auto", T"Auto (20/40/80/160MHz)"}
 end
+tinsert(cw_160, 3, {"80", T"80MHz"})
 
 local cw = {
   ["bg"] = "channelwidth20",
@@ -453,7 +464,7 @@ local cw = {
 }
 
 local cwmaps = {
-    ["channelwidth20"] = cw_40,
+    ["channelwidth20"] = cw_20,
     ["channelwidth40"] = cw_40,
     ["channelwidth80"] = cw_80,
     ["channelwidth160"] = cw_160,
@@ -806,7 +817,7 @@ local function getParamsAndValidation()
     stbc = gOV(vB),
     tx_power_adjust = gVIES(wifipower),
 	tx_power_overrule_reg = vB,
-    channelwidth20 = getValidateChannelWidth(cw_40),
+    channelwidth20 = getValidateChannelWidth(cw_20),
     channelwidth40 = getValidateChannelWidth(cw_40),
     channelwidth80 = getValidateChannelWidth(cw_80),
     channelwidth160 = getValidateChannelWidth(cw_160),
@@ -857,6 +868,16 @@ local bandsteerhelpmsg = {}
 local content_rssi = {}
 local mapParams, mapValid = getParamsAndValidation()
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
+-- Le larghezze fisse (40MHz/80MHz) si salvano in uci ma rpc le riporta come "auto":
+-- si mostra il valore salvato, altrimenti la finestra tornerebbe su Auto (e salvando di nuovo lo sovrascriverebbe)
+if isguest ~= "1" and content["requested_channel_width"] and not next(helpmsg or {}) then
+    local cwuci = proxy.get("uci.wireless.wifi-device.@" .. curradio .. ".channelwidth")
+    cwuci = cwuci and cwuci[1] and untaint(cwuci[1].value or "") or ""
+    local forced = gsub(cwuci, "MHz$", "")
+    if forced == "40" or forced == "80" then
+        content["requested_channel_width"] = native_channelwidth and forced or (forced .. "MHz")
+    end
+end
 if native_channelwidth and content["requested_channel_width"] then
     content["requested_channel_width"] = gsub(content["requested_channel_width"], "MHz$", "")
     local width_control = cw[untaint(content["standard"] or "")]
@@ -1221,7 +1242,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
                 },
             }
 
-            html[#html + 1] = ui_helper.createInputSelect(T"Channel Width", "channelwidth20", cw_40, content["requested_channel_width"], cw20attributes)
+            html[#html + 1] = ui_helper.createInputSelect(T"Channel Width", "channelwidth20", cw_20, content["requested_channel_width"], cw20attributes)
 
             local cw40attributes  = {
                 group = {
