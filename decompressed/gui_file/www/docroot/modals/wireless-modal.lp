@@ -857,7 +857,6 @@ local bandsteerhelpmsg = {}
 local content_rssi = {}
 local mapParams, mapValid = getParamsAndValidation()
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
-
 if native_channelwidth and content["requested_channel_width"] then
     content["requested_channel_width"] = gsub(content["requested_channel_width"], "MHz$", "")
     local width_control = cw[untaint(content["standard"] or "")]

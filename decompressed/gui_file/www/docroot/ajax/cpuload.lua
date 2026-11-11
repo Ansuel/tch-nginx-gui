@@ -53,7 +53,45 @@ local function memory_data()
 	}
 end
 
+-- Free space
+local has_posix, posix = pcall(require, "tch.posix")
+local function free_space(path)
+	if has_posix then
+		local ok, stat = pcall(posix.statvfs, path)
+		if ok and type(stat) == "table" then
+			local blocks = tonumber(stat.f_bavail)
+			local size = tonumber(stat.f_frsize) or tonumber(stat.f_bsize)
+			if blocks and size and blocks >= 0 and size > 0 then
+				local mib = blocks * size / 1048576
+				return mib >= 1024 and string.format("%.2f GiB", mib / 1024) or string.format("%.2f MiB", mib)
+			end
+		end
+	end
+	return "-"
+end
+
+local function storage_data()
+	local usb = {}
+	local mounts = io.open("/proc/mounts", "r")
+	if mounts then
+		for line in mounts:lines() do
+			local device, mount, options = line:match("^(%S+)%s+(%S+)%s+%S+%s+(%S+)")
+			if device and device:match("^/dev/sd[a-z]%d*$") and mount:match("^/tmp/run/mountd/sd[a-z]%d*$") then
+				local readonly = not ("," .. options .. ","):find(",rw,", 1, true)
+				usb[#usb + 1] = device:match("[^/]+$") .. ": " .. free_space(mount) .. (readonly and " (RO)" or "")
+			end
+		end
+		mounts:close()
+	end
+	local usb_text = "-"
+	if #usb > 0 then
+		usb_text = usb[1] .. (#usb > 1 and (" +" .. (#usb - 1)) or "")
+	end
+	return { storage_internal = free_space("/usr"), storage_usb = usb_text }
+end
+
 local mem = memory_data()
+local storage = storage_data()
 
 local data = {
 	cpuusage = cpu_usage .. "%" or "0",
@@ -70,6 +108,8 @@ local data = {
 	mem_pct = mem.mem_pct,
 	mem_bar = mem.mem_bar,
 	mem_time = mem.mem_time,
+	storage_internal = storage.storage_internal,
+	storage_usb = storage.storage_usb,
 }
 
 local buffer = {}
