@@ -2859,6 +2859,39 @@ app_tailscale() {
     [ "$tailscale_available_kb" -ge "$1" ]
   }
 
+  tailscale_try_persistent_runtime() {
+    # Filesystem compression can make the extracted runtime fit even when its
+    # nominal size does not. Copy at most 1 MB between free-space checks, so a
+    # failed attempt leaves the 4 MB reserve available for settings and state.
+    local binary bytes block target
+    target=/opt/tailscale
+    [ ! -e "$target" ] || return 1
+    mkdir -p "$target" || return 1
+    for binary in tailscale tailscaled; do
+      bytes="$(wc -c < "$tailscale_source/$binary")"
+      block=0
+      : > "$target/$binary" || { rm -rf "$target"; return 1; }
+      while [ "$((block * 1048576))" -lt "$bytes" ]; do
+        if ! tailscale_has_space 5120 /opt ||
+          ! dd if="$tailscale_source/$binary" bs=1048576 skip="$block" count=1 >> "$target/$binary" 2>/dev/null; then
+          rm -rf "$target"
+          return 1
+        fi
+        block=$((block + 1))
+      done
+      if [ "$(sha256sum "$tailscale_source/$binary" | awk '{print $1}')" != \
+        "$(sha256sum "$target/$binary" | awk '{print $1}')" ]; then
+        rm -rf "$target"
+        return 1
+      fi
+    done
+    if ! tailscale_has_space 4096 /opt; then
+      rm -rf "$target"
+      return 1
+    fi
+    return 0
+  }
+
   tailscale_register_gui() {
     uci -q del_list web.ruleset_main.rules=tailscalemodal
     uci add_list web.ruleset_main.rules=tailscalemodal
@@ -2970,26 +3003,23 @@ app_tailscale() {
     fi
     if [ ! -f "$tailscale_owned" ] &&
       { [ -e /etc/config/tailscale ] || [ -e /etc/init.d/tailscale ] ||
-        [ -e /opt/tailscale ] || [ -e /overlay/modgui-tailscale ]; }; then
+        [ -e /opt/tailscale ] || [ -e /opt/modgui-tailscale-cache ] ||
+        [ -e /overlay/modgui-tailscale ]; }; then
       echo "Pre-existing Tailscale configuration or state was found; refusing to overwrite it"
       return 1
     fi
     modgui_install_tun tailscale || return 1
-    if tailscale_has_space 98304 /opt; then
-      tailscale_runtime_dir="/opt/tailscale"
-      tailscale_storage_dir="$tailscale_runtime_dir"
-      tailscale_archive_path=""
-      tailscale_download_url=""
-    elif tailscale_has_space 131072 /tmp; then
-      tailscale_runtime_dir="/tmp/modgui-tailscale-runtime"
-      tailscale_storage_dir="$tailscale_runtime_dir"
-      tailscale_archive_path=""
-      tailscale_download_url="https://pkgs.tailscale.com/stable/tailscale_${tailscale_version}_${tailscale_arch}.tgz"
-    else
-      echo "Tailscale needs 96 MB in /opt or 128 MB of temporary RAM for low-storage mode"
+    # Download and extraction need staging space even for a persistent runtime.
+    # Select the final storage using the verified binaries' actual size below.
+    if ! tailscale_has_space 131072 /tmp; then
+      echo "Tailscale needs 128 MB of temporary RAM during installation"
       modgui_release_tun tailscale
       return 1
     fi
+    tailscale_runtime_dir="/tmp/modgui-tailscale-runtime"
+    tailscale_storage_dir="$tailscale_runtime_dir"
+    tailscale_archive_path=""
+    tailscale_download_url="https://pkgs.tailscale.com/stable/tailscale_${tailscale_version}_${tailscale_arch}.tgz"
     opkg list-installed | awk '{print $1}' > "$tailscale_before" || {
       modgui_release_tun tailscale
       return 1
@@ -3005,7 +3035,7 @@ app_tailscale() {
       tailscale_rollback_install
       return 1
     fi
-    mkdir -p "$tailscale_extract" "$tailscale_runtime_dir" "$tailscale_storage_dir" "$tailscale_state_dir" || {
+    mkdir -p "$tailscale_extract" "$tailscale_state_dir" || {
       tailscale_rollback_install
       return 1
     }
@@ -3019,6 +3049,33 @@ app_tailscale() {
       tailscale_rollback_install
       return 1
     }
+    # Prefer extracted binaries, reserving 4 MB for configuration and state.
+    # Use the measured size instead of the former fixed 96 MB threshold.
+    # Do not assume a compression ratio for JFFS2 or other filesystems.
+    tailscale_runtime_kb="$(du -k "$tailscale_source/tailscale" "$tailscale_source/tailscaled" | awk '{sum += $1} END {print sum}')"
+    tailscale_cache_kb="$(du -k "$tailscale_archive" | awk '{print $1}')"
+    tailscale_runtime_prepared=0
+    if tailscale_has_space "$((tailscale_runtime_kb + 4096))" /opt; then
+      tailscale_runtime_dir=/opt/tailscale
+      tailscale_storage_dir="$tailscale_runtime_dir"
+      tailscale_download_url=""
+    elif tailscale_has_space "$((tailscale_cache_kb + 4096))" /opt; then
+      if tailscale_try_persistent_runtime; then
+        tailscale_runtime_dir=/opt/tailscale
+        tailscale_storage_dir="$tailscale_runtime_dir"
+        tailscale_download_url=""
+        tailscale_runtime_prepared=1
+      else
+        tailscale_storage_dir=/opt/modgui-tailscale-cache
+        tailscale_archive_path="$tailscale_storage_dir/runtime.tgz"
+      fi
+    else
+      echo "Not enough persistent space for the Tailscale archive; runtime will be downloaded after reboot"
+    fi
+    mkdir -p "$tailscale_runtime_dir" "$tailscale_storage_dir" || {
+      tailscale_rollback_install
+      return 1
+    }
     case "$tailscale_runtime_dir" in
     /tmp/*)
       rm -rf "$tailscale_runtime_dir"
@@ -3028,14 +3085,16 @@ app_tailscale() {
       }
       ;;
     *)
-      cp "$tailscale_source/tailscale" "$tailscale_runtime_dir/tailscale" || {
-        tailscale_rollback_install
-        return 1
-      }
-      cp "$tailscale_source/tailscaled" "$tailscale_runtime_dir/tailscaled" || {
-        tailscale_rollback_install
-        return 1
-      }
+      if [ "$tailscale_runtime_prepared" != 1 ]; then
+        cp "$tailscale_source/tailscale" "$tailscale_runtime_dir/tailscale" || {
+          tailscale_rollback_install
+          return 1
+        }
+        cp "$tailscale_source/tailscaled" "$tailscale_runtime_dir/tailscaled" || {
+          tailscale_rollback_install
+          return 1
+        }
+      fi
       ;;
     esac
     chmod 755 "$tailscale_runtime_dir/tailscale" "$tailscale_runtime_dir/tailscaled"
