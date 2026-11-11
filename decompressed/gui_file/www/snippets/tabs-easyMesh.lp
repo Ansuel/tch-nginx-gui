@@ -15,16 +15,21 @@
 		  file:close()
 		  return true
 		end
+		local newLayout = require("easymesh_helper").use_new_layout()
+		local configPage = newLayout and "easymesh-configuration-modal-newEM.lp" or "easy-mesh-configuration.lp"
+		local topologyPage = newLayout and "easymesh-topology-modal-newEM.lp" or "wifi-extender-status.lp"
 		local items = {
-			{"easy-mesh-configuration.lp", T"EasyMesh Configuration"},
+			{configPage, T"EasyMesh Configuration"},
 		}
                 if post_helper.getVariantValue(variantHelper, "extenderInfo") then
-                  items[#items + 1] = {"wifi-extender-status.lp", T"Extender Info"}
+                  items[#items + 1] = {topologyPage, newLayout and T"Topology" or T"Extender Info"}
                 end
                 if post_helper.getVariantValue(variantHelper, "agentAndStationInfo") and modal_available("agent-list.lp") then
                   items[#items + 1] = {"agent-list.lp", T"Agent List"}
                 end
-                if post_helper.getVariantValue(variantHelper, "wifiDevicesList") and modal_available("wifi-devices-info.lp") then
+                if newLayout then
+                  items[#items + 1] = {"easymesh-devices-info-modal-newEM.lp", T"Devices", "easyMeshDevices"}
+                elseif post_helper.getVariantValue(variantHelper, "wifiDevicesList") and modal_available("wifi-devices-info.lp") then
                   items[#items + 1] =  {"wifi-devices-info.lp", T"WiFi Devices"}
                 end
 	        local uri = ngx.var.args and string.len(ngx.var.args) > 0 and ngx.var.uri.. "?" .. ngx.var.args or  ngx.var.uri

@@ -415,7 +415,7 @@ function  M.createSimpleInputCheckbox(name, value, attributes, suffixname)
     local input = createAttributesString(defaults["input"])
     local checked = (value == "1" or value == true) and " checked" or ""
     if suffixname then
-        return format("<input %s%s>  %s</input><br\> ", input, checked, name)
+        return format("<input %s%s>  %s</input><br> ", input, checked, name)
     end
     return format("<input %s%s>", input, checked)
 end
@@ -643,7 +643,26 @@ end
 -- @param #table attributes: maps additional attributes to apply
 -- @param #string helpmsg
 -- @return #string
-function M.createLabel(desc, value, attributes, helpmsg)
+function createProgressBar(mode)
+    local progressHtml = {}
+    if mode then
+      local class = "flex-container"
+      local classAgent = "flex-container-agent"
+      local style = 'height:20px;position:absolute;left:330px'
+      if find(mode, "controller") then
+          progressHtml = {
+              format("<div class=%s style=%s><div id=%s></div><div id=%s></div><div id=%s></div><div id=%s></div><div id=%s></div><div id=%s></div><div id=%s></div>", class, style, "controller1", "controller2", "controller3", "controller4", "controller5", "controller6", "controller7"), "</div> <div style='position: relative;left: 93px;top: 18px;'><span id='status-text-box' class='status-text-box-class'></span></div>"
+          }
+      elseif find(mode, "agent") then
+          progressHtml = {
+              format("<div class=%s style=%s><div id=%s></div><div id=%s></div><div id=%s></div><div id=%s></div><div id=%s></div><div id=%s></div>", classAgent, style,  "agent1", "agent2", "agent3", "agent4", "agent5", "agent6"), "</div> <div style='position: relative;left: 92px;top: 22px;'><span id='status-text-box-agent' class='status-text-box-class'></span></div>"
+          }
+      end
+    end
+return progressHtml
+end
+
+function M.createLabel(desc, value, attributes, helpmsg, progressBar)
     local defaults = {
         group = {
             class="control-group"
@@ -673,11 +692,15 @@ function M.createLabel(desc, value, attributes, helpmsg)
     local controls = createAttributesString(defaults["controls"])
     local span = createAttributesString(defaults["span"])
     local help = createAttributesString(defaults["help"])
+    local progressHtml = {}
+    if progressBar then
+      progressHtml = createProgressBar(progressBar)
+    end
 
     local html = {
         format("<div %s><label %s>%s</label><div %s><span %s>%s</span>",group, label, desc, controls, span, value),
         M.createHelpText(helpmsg,attributes),
-        "</div></div>"
+        "</div>", progressHtml, "</div>"
     }
     return html
 end
@@ -761,7 +784,7 @@ end
 -- @param #table attributes
 -- @param #string helpmsg
 -- @return #table
-function M.createSwitch(desc, name, value, attributes, helpmsg)
+function M.createSwitch(desc, name, value, attributes, helpmsg, progressBar)
     local defaults = {
         group = {
             class = "control-group"
@@ -782,11 +805,12 @@ function M.createSwitch(desc, name, value, attributes, helpmsg)
     local group = createAttributesString(defaults["group"])
     local label = createAttributesString(defaults["label"])
     local controls = createAttributesString(defaults["controls"])
-
+    local progressHtml = {}
+    progressHtml = createProgressBar(progressBar)
     local content = {
         format("<div %s><label %s>%s</label><div %s>", group, label, desc, controls),
         M.createSimpleSwitch(name, value, attributes, helpmsg),
-        "</div></div>"
+        "</div>", progressHtml, "</div>"
     }
     return content
 end

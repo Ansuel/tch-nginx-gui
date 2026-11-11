@@ -4,6 +4,23 @@ local uci = require("uci")
 
 local M = {}
 
+-- Follow the firmware's newEM layout flag without extending the env mapper.
+function M.use_new_layout()
+  local ok, variants = pcall(require, "variant_helper")
+  if not ok or type(variants) ~= "table" or not variants.ExtenderPage
+      or not variants.ExtenderPage.extenderConfig
+      or not variants.ExtenderPage.extenderConfig.showEMConfigPage then
+    return false
+  end
+  local success, enabled = pcall(function()
+    local cursor = uci.cursor()
+    local layout = cursor:get("env", "var", "em_new_ui_layout")
+    cursor:unload("env")
+    return layout == "1"
+  end)
+  return success and enabled or false
+end
+
 -- Expose only radio identifiers and bands actually provided by the driver.
 -- This also covers single/dual/tri-band models without assuming Quantenna IDs.
 function M.get_frequency_options()
