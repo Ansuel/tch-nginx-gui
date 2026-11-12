@@ -1,4 +1,4 @@
--- Exercise GUI RPC setters against the unmodified firmware credential router.
+-- Exercise native credential transactions and the agent-facing radio RPCs.
 local root, nativePath = assert(arg[1]), assert(arg[2])
 local db, pending, commits, events, registered = {}, {}, {}, {}, {}
 local function section(config, name)
@@ -61,8 +61,34 @@ commitapply = {newset = function() end}
 register = function(m) registered[m.objectType.name] = m end
 assert(loadfile(root .. '/usr/share/transformer/mappings/rpc/wireless.ssid.map'))()
 assert(loadfile(root .. '/usr/share/transformer/mappings/rpc/wireless.ap.security.map'))()
-local ssid = registered['rpc.wireless.ssid.@.']
-local security = registered['rpc.wireless.ap.@.security.']
+local radioSSID = registered['rpc.wireless.ssid.@.']
+local radioSecurity = registered['rpc.wireless.ap.@.security.']
+-- Native Device2/GUI clients own the controller transaction; radio RPCs do not.
+local ssidTx, securityTx = {}, {}
+local function commit(tx)
+  for config in pairs(tx) do uci.commit({config=config}); tx[config]=nil end
+end
+local function revert(tx)
+  for config in pairs(tx) do uci.revert({config=config}); tx[config]=nil end
+end
+local ssid = {set={}, commit=function() commit(ssidTx) end, revert=function() revert(ssidTx) end}
+ssid.set.ssid = function(_, _, value, iface)
+  local h=require('transformer.shared.bandsteerhelper')
+  if h.isMultiapEnabled(nil,iface) then return h.setSSID(iface,nil,value,commitapply,ssidTx) end
+  local result,err=radioSSID.set.ssid(nil,'ssid',value,iface)
+  ssidTx.wireless=true
+  return result,err
+end
+local security = {commit=function() commit(securityTx) end, revert=function() revert(securityTx) end}
+security.set = function(_, field, value, ap)
+  local h=require('transformer.shared.bandsteerhelper')
+  if h.isMultiapEnabled(ap) then
+    return h.setSecurityOption(ap,field=='mode' and 'security_mode' or 'wpa_psk_key',value,commitapply,securityTx)
+  end
+  local result,err=radioSecurity.set(nil,field,value,ap)
+  securityTx.wireless=true
+  return result,err
+end
 local function reset()
   db = {
     multiap = {
@@ -96,7 +122,6 @@ assert(db.multiap.cred9.wpa_psk_key=='New test password')
 assert(security.set(nil,'mode','none','ap1'))
 security.commit()
 assert(db.multiap.cred9.security_mode=='none')
-assert(not security.set(nil,'wpa_psk_passphrase','short','ap1'))
 print('PASS split profiles: SSID, key, security, validation and persistent commit')
 reset()
 assert(ssid.set.ssid(nil,'ssid','Discarded','wl0'))
@@ -168,21 +193,18 @@ filesystem.attributes = function() return 'file' end
 print('PASS native legacy setters without a MultiAP configuration file')
 reset()
 package.loaded['transformer.shared.bandsteerhelper'] = nil
-package.preload['transformer.shared.bandsteerhelper'] = function() error('missing native module') end
-local ok,err = ssid.set.ssid(nil,'ssid','Must not diverge','wl0')
-assert(not ok and err and not pending.wireless)
-package.loaded['transformer.shared.bandsteerhelper'] = nil
 package.preload['transformer.shared.bandsteerhelper'] = function()
-  return {} -- Older GUI installs supplied a helper without MultiAP methods.
+  error('Radio RPCs must never invoke the controller credential router')
 end
-local ok,err = ssid.set.ssid(nil,'ssid','Overwritten native helper','wl0')
-assert(not ok and err == 'Native MultiAP credential support is unavailable' and not pending.wireless)
-local ok,err = security.set(nil,'wpa_psk_passphrase','Unchanged test password','ap1')
-assert(not ok and err == 'Native MultiAP credential support is unavailable' and not pending.wireless)
-package.loaded['transformer.shared.bandsteerhelper'] = {
-  isMultiapEnabled = function() return true end,
-  setSecurityOption = function() error('must not substitute for missing SSID setter') end,
-}
-local ok,err = ssid.set.ssid(nil,'ssid','Missing setter','wl0')
-assert(not ok and err and not pending.wireless)
-print('PASS active mesh fails explicitly when native support is unavailable')
+radioSSID.set.ssid(nil,'ssid','Applied by agent','wl0')
+radioSecurity.set(nil,'wpa_psk_passphrase','Applied agent password','ap0')
+radioSecurity.set(nil,'mode','wpa2-psk','ap0')
+assert(pending.wireless and not pending.multiap)
+assert(section('wireless','wl0').ssid=='Applied by agent')
+assert(section('wireless','ap0').wpa_psk_key=='Applied agent password')
+assert(db.multiap.cred7.ssid=='saved24')
+radioSSID.commit(); radioSecurity.commit()
+assert(db.wireless.wl0.ssid=='Applied by agent')
+assert(db.wireless.ap0.wpa_psk_key=='Applied agent password')
+assert(not radioSecurity.set(nil,'wpa_psk_passphrase','short','ap0'))
+print('PASS agent RPCs apply radio values without looping back into controller credentials')

@@ -10,7 +10,7 @@ RUNTIMES = list(filter(None, (shutil.which('lua'), shutil.which('luajit'))))
 
 class MultiAP(unittest.TestCase):
     @unittest.skipUnless(RUNTIMES, 'Lua required')
-    def test_rpc_setters_with_native_firmware_helper(self):
+    def test_native_credentials_and_agent_radio_rpcs(self):
         for lua in RUNTIMES:
             for helper in ('tests/fixtures/multiap-bandsteerhelper.lua',
                            'decompressed/gui_file/usr/lib/lua/transformer/shared/bandsteerhelper.lua'):
