@@ -93,4 +93,40 @@ function M.is_supported()
   return _is_supported
 end
 
+-- Card headers submit a single value through the GUI's standard SAVE handler.
+function M.handle_card_toggle()
+  if ngx.req.get_method() ~= "POST" then return false end
+  local args = ngx.req.get_post_args()
+  if args.action ~= "SAVE" or args.easyMeshCardEnable == nil or args.fromModal then return false end
+
+  local post = require("web.post_helper")
+  local proxy = require("datamodel")
+  local params = {
+    agentEnable = "uci.multiap.agent.enabled",
+    controllerEnable = "uci.multiap.controller.enabled",
+  }
+  local conductor = proxy.get("uci.wifi_conductor.global.multiap_enabled")
+  if conductor and conductor[1] then params.wificonductorEnable = "uci.wifi_conductor.global.multiap_enabled" end
+  local controller = true
+  local ok, variants = pcall(require, "variant_helper")
+  if ok then
+    local variant = post.getVariant(variants, "ExtenderPage", "extenderConfig")
+    controller = post.getVariantValue(variant, "extenderInfo") ~= false
+  end
+  local valid = {agentEnable = post.validateBoolean, controllerEnable = post.validateBoolean,
+    wificonductorEnable = post.validateBoolean}
+  valid.easyMeshCardEnable = function(value, data, key)
+    local success, err = post.validateBoolean(value, data, key)
+    if not success then return success, err end
+    for name in pairs(params) do data[name] = value end
+    if not controller then data.controllerEnable = "0" end
+    return true
+  end
+  post.handleQuery(params, valid)
+  local messages = require("web.uimessage_helper").popMessages()
+  ngx.print(require("web.ui_helper").createMessages(messages))
+  ngx.exit(ngx.HTTP_OK)
+  return true
+end
+
 return M

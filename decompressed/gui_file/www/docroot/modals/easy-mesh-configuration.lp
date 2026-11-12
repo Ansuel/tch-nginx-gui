@@ -76,6 +76,7 @@
     ngx.print(ui_helper.createAlert({ class = "alert-warning" }, T"EasyMesh is not supported on this device."))
     return
   end
+  if em_helper.handle_card_toggle() then return end
 
   local lp = require("web.lp")
   lp.setpath("/www/snippets/")
@@ -321,7 +322,7 @@
           html[#html + 1] = ui_helper.createLabel(T"Backhaul Password", params.backHaulPassword, pskclass)
           html[#html + 1] = ui_helper.createLabel(T"Security Mode", params.backHaulSecurityMode)
         elseif easyMeshButton then
-          html[#html + 1] = ui_helper.createSwitch(T"EasyMesh Services", "easyMeshEnable", ((params.agentEnable == "1" and params.controllerEnable == "1") and "1" or "0"))
+          html[#html + 1] = ui_helper.createSwitch(T"EasyMesh Services", "easyMeshEnable", ((params.agentEnable == "1" or params.controllerEnable == "1") and "1" or "0"))
           ngx.print(html)
           html = {}
           ngx.print('\
@@ -451,6 +452,7 @@
 <script>\
   var multiapAgent = "');  ngx.print(params.agentEnable); ngx.print('";\
   var multiapContr = "');  ngx.print(params.controllerEnable); ngx.print('";\
+  var easyMeshAgentOnly = '); ngx.print(not extenderInfo); ngx.print(';\
   var ap0_state =  "');  ngx.print(post_helper.isFeatureEnabled("bandsteerDisabled" , role) and content.ap0_state or ""); ngx.print('";\
   var ap1_state =  "');  ngx.print(post_helper.isFeatureEnabled("bandsteerDisabled" , role) and content.ap1_state or ""); ngx.print('";\
   var confirmPopup = "');  ngx.print(post_helper.getVariantValue(variantHelper, "easyMeshConfirmPopup")); ngx.print('";\
@@ -466,5 +468,5 @@
   var isGuest = ');  ngx.print(isGuest); ngx.print(';\
   var bandsteerDisabled = ');  ngx.print(post_helper.isFeatureEnabled("bandsteerDisabled" , role)); ngx.print(';\
 </script>\
-<script src="/js/easy-mesh-configuration.js"></script>\
+<script src="/js/easy-mesh-configuration.js?v=5e98987f1694"></script>\
 '); 
