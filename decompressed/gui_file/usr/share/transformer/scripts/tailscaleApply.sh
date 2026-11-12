@@ -20,51 +20,6 @@ funnel_ssh_target_port="$(uci -q get tailscale.service.funnel_ssh_target_port)"
 [ -n "$funnel_ssh_target_ip" ] || funnel_ssh_target_ip=127.0.0.1
 [ -n "$funnel_ssh_target_port" ] || funnel_ssh_target_port=22
 
-if [ "$funnel_enabled" = "1" ]; then
-  case "$funnel_port" in 443 | 8443 | 10000) ;; *) echo "Invalid Funnel HTTPS port" >&2; exit 1 ;; esac
-  /usr/share/modgui-tailscale/tailscale.connect validate-target "$funnel_target_ip" "$funnel_target_port" || {
-    echo "Invalid Funnel destination IP or port" >&2; exit 1;
-  }
-fi
-if [ "$funnel_ssh_enabled" = 1 ]; then
-  case "$funnel_ssh_port" in 443 | 8443 | 10000) ;; *) echo "Invalid SSH Funnel port" >&2; exit 1 ;; esac
-  [ "$funnel_enabled" != 1 ] || [ "$funnel_ssh_port" != "$funnel_port" ] || {
-    echo "HTTP and SSH Funnel must use different public ports" >&2; exit 1;
-  }
-  /usr/share/modgui-tailscale/tailscale.connect validate-target "$funnel_ssh_target_ip" "$funnel_ssh_target_port" || {
-    echo "Invalid SSH Funnel destination IP or port" >&2; exit 1;
-  }
-  if [ "$funnel_ssh_target_ip" = 127.0.0.1 ] &&
-    { [ "$funnel_ssh_target_port" = 22 ] || [ "$funnel_ssh_target_port" = 2222 ]; } &&
-    [ "$(uci -q get tailscale.service.funnel_ssh_password_auth)" != 1 ]; then
-    { [ -s /etc/dropbear/authorized_keys ] || [ -s /root/.ssh/authorized_keys ]; } || {
-      echo "Install an SSH public key before enabling SSH Funnel" >&2; exit 1;
-    }
-  fi
-fi
-
-[ "$enabled" = "1" ] || enabled=0
-[ "$connect" = "1" ] || connect=0
-[ "$advertise_exit_node" = "1" ] || advertise_exit_node=0
-[ "$accept_routes" = "1" ] || accept_routes=0
-[ "$ssh_enabled" = "1" ] || ssh_enabled=0
-[ -n "$port" ] || port=41641
-
-case "$port" in '' | *[!0-9]*) echo "Invalid Tailscale port" >&2; exit 1 ;; esac
-[ "$port" -ge 1 ] && [ "$port" -le 65535 ] || exit 1
-case "$hostname" in '' | [!a-zA-Z0-9]* | *[!a-zA-Z0-9.-]*) echo "Invalid Tailscale hostname" >&2; exit 1 ;; esac
-case "$advertise_routes" in
-  '') ;;
-  *[!0-9./]*) echo "Invalid advertised subnet" >&2; exit 1 ;;
-  *)
-    ip="${advertise_routes%/*}"
-    prefix="${advertise_routes#*/}"
-    [ "$ip" != "$advertise_routes" ] || { echo "Advertised subnet requires CIDR notation" >&2; exit 1; }
-    case "$prefix" in '' | *[!0-9]*) exit 1 ;; esac
-    [ "$prefix" -ge 1 ] && [ "$prefix" -le 32 ] || exit 1
-    ;;
-esac
-
 remove_network() {
   uci -q delete firewall.modgui_tailscale_udp
   uci -q delete firewall.modgui_tailscale_to_lan
@@ -130,18 +85,66 @@ configure_network() {
   /etc/init.d/firewall reload >/dev/null 2>&1 || return 1
 }
 
+# Disabling must work even when connection settings are invalid or the
+# daemon cannot answer Funnel requests. Preserve failed Funnel ownership
+# markers for retry, but always stop the daemon and remove its network.
 if [ "$enabled" != "1" ]; then
-  /usr/share/modgui-tailscale/tailscale.connect funnel-stop || exit 1
-  /usr/share/modgui-tailscale/tailscale.connect funnel-ssh-stop || exit 1
+  /usr/share/modgui-tailscale/tailscale.connect funnel-stop || echo "Cannot clear saved HTTP Funnel configuration; stopping daemon" >&2
+  /usr/share/modgui-tailscale/tailscale.connect funnel-ssh-stop || echo "Cannot clear saved SSH Funnel configuration; stopping daemon" >&2
   if [ -S /var/run/tailscale/tailscaled.sock ]; then
     /usr/sbin/tailscale down >/dev/null 2>&1
   fi
   /etc/init.d/tailscale disable
-  /etc/init.d/tailscale stop >/dev/null 2>&1
+  /etc/init.d/tailscale stop >/dev/null 2>&1 || exit 1
   rm -f /tmp/modgui-tailscale-auth
   remove_network
   exit 0
 fi
+
+if [ "$funnel_enabled" = "1" ]; then
+  case "$funnel_port" in 443 | 8443 | 10000) ;; *) echo "Invalid Funnel HTTPS port" >&2; exit 1 ;; esac
+  /usr/share/modgui-tailscale/tailscale.connect validate-target "$funnel_target_ip" "$funnel_target_port" || {
+    echo "Invalid Funnel destination IP or port" >&2; exit 1;
+  }
+fi
+if [ "$funnel_ssh_enabled" = 1 ]; then
+  case "$funnel_ssh_port" in 443 | 8443 | 10000) ;; *) echo "Invalid SSH Funnel port" >&2; exit 1 ;; esac
+  [ "$funnel_enabled" != 1 ] || [ "$funnel_ssh_port" != "$funnel_port" ] || {
+    echo "HTTP and SSH Funnel must use different public ports" >&2; exit 1;
+  }
+  /usr/share/modgui-tailscale/tailscale.connect validate-target "$funnel_ssh_target_ip" "$funnel_ssh_target_port" || {
+    echo "Invalid SSH Funnel destination IP or port" >&2; exit 1;
+  }
+  if [ "$funnel_ssh_target_ip" = 127.0.0.1 ] &&
+    { [ "$funnel_ssh_target_port" = 22 ] || [ "$funnel_ssh_target_port" = 2222 ]; } &&
+    [ "$(uci -q get tailscale.service.funnel_ssh_password_auth)" != 1 ]; then
+    { [ -s /etc/dropbear/authorized_keys ] || [ -s /root/.ssh/authorized_keys ]; } || {
+      echo "Install an SSH public key before enabling SSH Funnel" >&2; exit 1;
+    }
+  fi
+fi
+
+[ "$enabled" = "1" ] || enabled=0
+[ "$connect" = "1" ] || connect=0
+[ "$advertise_exit_node" = "1" ] || advertise_exit_node=0
+[ "$accept_routes" = "1" ] || accept_routes=0
+[ "$ssh_enabled" = "1" ] || ssh_enabled=0
+[ -n "$port" ] || port=41641
+
+case "$port" in '' | *[!0-9]*) echo "Invalid Tailscale port" >&2; exit 1 ;; esac
+[ "$port" -ge 1 ] && [ "$port" -le 65535 ] || exit 1
+case "$hostname" in '' | [!a-zA-Z0-9]* | *[!a-zA-Z0-9.-]*) echo "Invalid Tailscale hostname" >&2; exit 1 ;; esac
+case "$advertise_routes" in
+  '') ;;
+  *[!0-9./]*) echo "Invalid advertised subnet" >&2; exit 1 ;;
+  *)
+    ip="${advertise_routes%/*}"
+    prefix="${advertise_routes#*/}"
+    [ "$ip" != "$advertise_routes" ] || { echo "Advertised subnet requires CIDR notation" >&2; exit 1; }
+    case "$prefix" in '' | *[!0-9]*) exit 1 ;; esac
+    [ "$prefix" -ge 1 ] && [ "$prefix" -le 32 ] || exit 1
+    ;;
+esac
 
 if [ ! -c /dev/net/tun ] && zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'; then
   mkdir -p /dev/net

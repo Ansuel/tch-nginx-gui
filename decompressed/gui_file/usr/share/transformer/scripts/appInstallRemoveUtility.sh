@@ -3138,6 +3138,7 @@ app_tailscale() {
       tailscale_subnet="$(ip -4 route show dev br-lan 2>/dev/null | awk '$1 ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\/[0-9]+$/ { print $1; exit }')"
       uci set "tailscale.service.hostname=$tailscale_hostname"
       [ -z "$tailscale_subnet" ] || uci set "tailscale.service.advertise_routes=$tailscale_subnet"
+      uci set "tailscale.service.version=$tailscale_version"
       uci set "tailscale.service.runtime_dir=$tailscale_runtime_dir"
       uci set "tailscale.service.storage_dir=$tailscale_storage_dir"
       uci set "tailscale.service.archive_path=$tailscale_archive_path"
