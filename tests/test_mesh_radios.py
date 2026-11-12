@@ -112,6 +112,7 @@ package.preload['web.lp'] = function() return {setpath=function() end, include=f
 package.preload.dkjson = function() return {encode=function() return '{}' end} end
 package.preload.easymesh_helper = function() return {
   is_supported=function() return true end, use_new_layout=function() return true end,
+  handle_card_toggle=function() return false end,
 } end
 local function emit(v)
   if type(v)=='table' then for _,item in ipairs(v) do emit(item) end

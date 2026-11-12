@@ -34,10 +34,7 @@ if not ok then
   content.agentState = "0"
   content.controllerState = "0"
 end
-local getState = content.agentState == "1" and true or false
-if has_variant and postHelper.getVariantValue(variantHelper, "extenderInfo") then
-  getState = content.agentState == "1" and content.controllerState == "1" and true or false
-end
+local getState = content.agentState == "1" or content.controllerState == "1"
 
 local easyMeshState = getState and T"Enabled" or T"Disabled"
 local statusLed = getState and "light green" or "light off"
@@ -47,12 +44,19 @@ local switchName = nil
 local modal_link = ""
 local session = ngx.ctx.session
 local selectedModal = "/modals/easy-mesh-configuration.lp"
+local configModal = selectedModal
 if easymesh_helper.use_new_layout() then
+  configModal = "/modals/easymesh-configuration-modal-newEM.lp"
   selectedModal = getState and "/modals/easymesh-topology-modal-newEM.lp" or "/modals/easymesh-configuration-modal-newEM.lp"
 end
 if session:hasAccess(selectedModal) then
-  modalPath = selectedModal
   modal_link='class="modal-link" data-toggle="modal" data-remote="' .. selectedModal .. '" data-id="easy-mesh-configuration"'
+end
+if session:hasAccess(configModal) then
+  modalPath = configModal
+  switchName = "easyMeshCardEnable"
+elseif session:hasAccess(selectedModal) then
+  modalPath = selectedModal
 elseif not session:isdefaultuser() then
   return
 end
@@ -60,7 +64,7 @@ end
 \
 <div class="span3">\
   <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
-    ');  ngx.print( ui_helper.createCardHeader(T"EasyMesh", modalPath, switchName, nil) ); ngx.print('\
+    ');  ngx.print( ui_helper.createCardHeader(T"EasyMesh", modalPath, switchName, getState and "1" or "0") ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf542;">\
       <div class="divtable" style="position: relative; z-index: 20;">\
         <div id="easy_mesh">\

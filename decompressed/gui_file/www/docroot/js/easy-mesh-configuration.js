@@ -14,7 +14,10 @@
   }
 
   function setState(enabled) {
-    $("#agentEnable, #controllerEnable, #wificonductorEnable").val(enabled ? "1" : "0");
+    $("#agentEnable, #wificonductorEnable").val(enabled ? "1" : "0");
+    if (typeof easyMeshAgentOnly === "undefined" || !easyMeshAgentOnly) {
+      $("#controllerEnable").val(enabled ? "1" : "0");
+    }
     if (enabled) {
       $("#wifibandsteerEnable, #wifiGuestbandsteerEnable").val("0");
     } else if (bandsteerDisabled) {
@@ -28,16 +31,30 @@
     showState(enabled);
   }
 
-  showState($("#easyMeshEnable").val() === "1");
-  $("#easyMeshEnable").closest(".switch").on("click", function () {
+  var acceptedValue = $("#easyMeshEnable").val();
+  showState(acceptedValue === "1");
+  $(document).off("click.easyMeshConfirm");
+  // The shared switch widget updates its hidden value before firing change.
+  $("#easyMeshEnable").on("change", function () {
     var enabled = $("#easyMeshEnable").val() === "1";
     if (confirmPopup === "true") {
       confirmationDialogue(enabled ? easyMeshEnableMessage : easyMeshDisableMessage,
-        enabled ? enableTitle : disableTitle, enabled ? "enable" : "disable");
-      $(document).one("click", enabled ? ".enable" : ".disable", function () { setState(enabled); });
+        enabled ? enableTitle : disableTitle);
+      $(document).off("click.easyMeshConfirm").one("click.easyMeshConfirm", "#ok", function () {
+        setState(enabled);
+        acceptedValue = enabled ? "1" : "0";
+        $(document).off("click.easyMeshConfirm");
+        tch.removeProgress();
+      }).one("click.easyMeshConfirm", "#cancel", function () {
+        var input = $("#easyMeshEnable").val(acceptedValue);
+        input.closest(".switch").toggleClass("switchOn", acceptedValue === "1")
+          .children(".switcher").toggleClass("switcherOn", acceptedValue === "1");
+        $(document).off("click.easyMeshConfirm");
+        tch.removeProgress();
+      });
     } else {
       setState(enabled);
+      acceptedValue = enabled ? "1" : "0";
     }
   });
-  $(document).on("click", "#ok, #cancel", function () { tch.removeProgress(); });
 }());

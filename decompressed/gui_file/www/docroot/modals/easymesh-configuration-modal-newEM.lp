@@ -8,6 +8,7 @@ if not mesh.is_supported() or not mesh.use_new_layout() then
   ngx.print(ui.createFooter())
   return
 end
+if mesh.handle_card_toggle() then return end
 
   -- Localization
   gettext.textdomain('webui-core')
