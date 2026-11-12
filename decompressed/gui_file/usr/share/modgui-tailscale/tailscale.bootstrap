@@ -27,8 +27,12 @@ archive_sha256="$(uci -q get tailscale.service.archive_sha256)"
 [ -n "$runtime_dir" ] || runtime_dir=/opt/tailscale
 
 if [ ! -x "$runtime_dir/tailscale" ] || [ ! -x "$runtime_dir/tailscaled" ]; then
+	[ -n "$archive_sha256" ] || fail "Runtime checksum is missing"
+	set_status verifying "Verifying cached Tailscale runtime"
 	boot_archive="$archive_path"
-	if [ -n "$download_url" ]; then
+	if [ ! -s "$boot_archive" ] ||
+		[ "$(sha256sum "$boot_archive" | awk '{print $1}')" != "$archive_sha256" ]; then
+		[ -n "$download_url" ] || fail "Verified runtime archive is unavailable"
 		set_status downloading "Downloading verified Tailscale runtime"
 		rm -f "$archive"
 		curl -kfL "$download_url" --output "$archive" || fail "Runtime download failed"
@@ -38,6 +42,16 @@ if [ ! -x "$runtime_dir/tailscale" ] || [ ! -x "$runtime_dir/tailscaled" ]; then
 	[ -n "$archive_sha256" ] || fail "Runtime checksum is missing"
 	set_status verifying "Verifying Tailscale runtime"
 	[ "$(sha256sum "$boot_archive" | awk '{print $1}')" = "$archive_sha256" ] || fail "Runtime checksum mismatch"
+	# Recover a missing/corrupt persistent cache without blocking RAM startup
+	# if flash is no longer writable or has insufficient space.
+	if [ "$boot_archive" = "$archive" ] && [ -n "$archive_path" ]; then
+		if cp "$archive" "$archive_path.new" && mv -f "$archive_path.new" "$archive_path"; then
+			:
+		else
+			rm -f "$archive_path.new"
+			echo "Tailscale bootstrap: could not refresh runtime cache" >&2
+		fi
+	fi
 	set_status extracting "Preparing Tailscale runtime"
 	rm -rf "$extract_dir" "$runtime_dir"
 	mkdir -p "$extract_dir" || fail "Cannot create extraction directory"
@@ -57,7 +71,7 @@ if [ ! -x "$runtime_dir/tailscale" ] || [ ! -x "$runtime_dir/tailscaled" ]; then
 		break
 	done
 	rm -rf "$extract_dir"
-	[ -z "$download_url" ] || rm -f "$archive"
+	rm -f "$archive"
 	[ "$found" = 1 ] || fail "Expected binaries were not found in the archive"
 fi
 

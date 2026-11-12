@@ -29,7 +29,8 @@ class TailscaleStatus(unittest.TestCase):
 uci() {
     case "$*" in
         *service.enabled) echo "$ENABLED" ;;
-        *service.download_url) echo https://pkgs.tailscale.com/stable/tailscale_1.104.5_arm.tgz ;;
+        *service.version) echo 1.104.5 ;;
+        *service.download_url) : ;;
     esac
 }
 ip() { echo '    inet 100.64.0.1/32 scope global tailscale0'; }
@@ -43,10 +44,26 @@ pgrep() { [ "$BOOTSTRAP" = 1 ]; }
                         ["sh", "-c", f"ENABLED={int(enabled)}; RUNNING={int(running)}; BOOTSTRAP={int(bootstrap)};\n" + script],
                         capture_output=True, text=True, check=True)
                     status = dict(line.split("=", 1) for line in result.stdout.splitlines())
+                    self.assertEqual(status["version"], "1.104.5")
                     self.assertEqual(status["phase"], expected)
                     self.assertEqual(status["online"], "true" if expected == "connected" else "false")
                     self.assertNotIn('PRIVILEGED_SERVICE_CHECK', result.stderr)
 
+
+    def test_version_falls_back_to_download_url(self):
+        script = """
+uci() {
+ case "$*" in
+ *service.download_url) echo https://pkgs.tailscale.com/stable/tailscale_1.104.5_arm.tgz ;;
+ esac
+}
+ip() { :; }
+pidof() { return 1; }
+pgrep() { return 1; }
+""" + STATUS.read_text()
+        result = subprocess.run(["sh", "-c", script], capture_output=True, text=True, check=True)
+        status = dict(line.split("=", 1) for line in result.stdout.splitlines())
+        self.assertEqual(status["version"], "1.104.5")
 
 if __name__ == "__main__":
     unittest.main()

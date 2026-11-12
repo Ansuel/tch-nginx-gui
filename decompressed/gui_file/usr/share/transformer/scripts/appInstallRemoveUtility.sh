@@ -2863,6 +2863,39 @@ app_tailscale() {
     [ "$tailscale_available_kb" -ge "$1" ]
   }
 
+  tailscale_try_persistent_runtime() {
+    # Filesystem compression can make the extracted runtime fit even when its
+    # nominal size does not. Copy at most 1 MB between free-space checks, so a
+    # failed attempt leaves the 4 MB reserve available for settings and state.
+    local binary bytes block target
+    target=/opt/tailscale
+    [ ! -e "$target" ] || return 1
+    mkdir -p "$target" || return 1
+    for binary in tailscale tailscaled; do
+      bytes="$(wc -c < "$tailscale_source/$binary")"
+      block=0
+      : > "$target/$binary" || { rm -rf "$target"; return 1; }
+      while [ "$((block * 1048576))" -lt "$bytes" ]; do
+        if ! tailscale_has_space 5120 /opt ||
+          ! dd if="$tailscale_source/$binary" bs=1048576 skip="$block" count=1 >> "$target/$binary" 2>/dev/null; then
+          rm -rf "$target"
+          return 1
+        fi
+        block=$((block + 1))
+      done
+      if [ "$(sha256sum "$tailscale_source/$binary" | awk '{print $1}')" != \
+        "$(sha256sum "$target/$binary" | awk '{print $1}')" ]; then
+        rm -rf "$target"
+        return 1
+      fi
+    done
+    if ! tailscale_has_space 4096 /opt; then
+      rm -rf "$target"
+      return 1
+    fi
+    return 0
+  }
+
   tailscale_register_gui() {
     uci -q del_list web.ruleset_main.rules=tailscalemodal
     uci add_list web.ruleset_main.rules=tailscalemodal
@@ -2974,26 +3007,23 @@ app_tailscale() {
     fi
     if [ ! -f "$tailscale_owned" ] &&
       { [ -e /etc/config/tailscale ] || [ -e /etc/init.d/tailscale ] ||
-        [ -e /opt/tailscale ] || [ -e /overlay/modgui-tailscale ]; }; then
+        [ -e /opt/tailscale ] || [ -e /opt/modgui-tailscale-cache ] ||
+        [ -e /overlay/modgui-tailscale ]; }; then
       echo "Pre-existing Tailscale configuration or state was found; refusing to overwrite it"
       return 1
     fi
     modgui_install_tun tailscale || return 1
-    if tailscale_has_space 98304 /opt; then
-      tailscale_runtime_dir="/opt/tailscale"
-      tailscale_storage_dir="$tailscale_runtime_dir"
-      tailscale_archive_path=""
-      tailscale_download_url=""
-    elif tailscale_has_space 131072 /tmp; then
-      tailscale_runtime_dir="/tmp/modgui-tailscale-runtime"
-      tailscale_storage_dir="$tailscale_runtime_dir"
-      tailscale_archive_path=""
-      tailscale_download_url="https://pkgs.tailscale.com/stable/tailscale_${tailscale_version}_${tailscale_arch}.tgz"
-    else
-      echo "Tailscale needs 96 MB in /opt or 128 MB of temporary RAM for low-storage mode"
+    # Download and extraction need staging space even for a persistent runtime.
+    # Select the final storage using the verified binaries' actual size below.
+    if ! tailscale_has_space 131072 /tmp; then
+      echo "Tailscale needs 128 MB of temporary RAM during installation"
       modgui_release_tun tailscale
       return 1
     fi
+    tailscale_runtime_dir="/tmp/modgui-tailscale-runtime"
+    tailscale_storage_dir="$tailscale_runtime_dir"
+    tailscale_archive_path=""
+    tailscale_download_url="https://pkgs.tailscale.com/stable/tailscale_${tailscale_version}_${tailscale_arch}.tgz"
     opkg list-installed | awk '{print $1}' > "$tailscale_before" || {
       modgui_release_tun tailscale
       return 1
@@ -3009,7 +3039,7 @@ app_tailscale() {
       tailscale_rollback_install
       return 1
     fi
-    mkdir -p "$tailscale_extract" "$tailscale_runtime_dir" "$tailscale_storage_dir" "$tailscale_state_dir" || {
+    mkdir -p "$tailscale_extract" "$tailscale_state_dir" || {
       tailscale_rollback_install
       return 1
     }
@@ -3023,6 +3053,33 @@ app_tailscale() {
       tailscale_rollback_install
       return 1
     }
+    # Prefer extracted binaries, reserving 4 MB for configuration and state.
+    # Use the measured size instead of the former fixed 96 MB threshold.
+    # Do not assume a compression ratio for JFFS2 or other filesystems.
+    tailscale_runtime_kb="$(du -k "$tailscale_source/tailscale" "$tailscale_source/tailscaled" | awk '{sum += $1} END {print sum}')"
+    tailscale_cache_kb="$(du -k "$tailscale_archive" | awk '{print $1}')"
+    tailscale_runtime_prepared=0
+    if tailscale_has_space "$((tailscale_runtime_kb + 4096))" /opt; then
+      tailscale_runtime_dir=/opt/tailscale
+      tailscale_storage_dir="$tailscale_runtime_dir"
+      tailscale_download_url=""
+    elif tailscale_has_space "$((tailscale_cache_kb + 4096))" /opt; then
+      if tailscale_try_persistent_runtime; then
+        tailscale_runtime_dir=/opt/tailscale
+        tailscale_storage_dir="$tailscale_runtime_dir"
+        tailscale_download_url=""
+        tailscale_runtime_prepared=1
+      else
+        tailscale_storage_dir=/opt/modgui-tailscale-cache
+        tailscale_archive_path="$tailscale_storage_dir/runtime.tgz"
+      fi
+    else
+      echo "Not enough persistent space for the Tailscale archive; runtime will be downloaded after reboot"
+    fi
+    mkdir -p "$tailscale_runtime_dir" "$tailscale_storage_dir" || {
+      tailscale_rollback_install
+      return 1
+    }
     case "$tailscale_runtime_dir" in
     /tmp/*)
       rm -rf "$tailscale_runtime_dir"
@@ -3032,14 +3089,16 @@ app_tailscale() {
       }
       ;;
     *)
-      cp "$tailscale_source/tailscale" "$tailscale_runtime_dir/tailscale" || {
-        tailscale_rollback_install
-        return 1
-      }
-      cp "$tailscale_source/tailscaled" "$tailscale_runtime_dir/tailscaled" || {
-        tailscale_rollback_install
-        return 1
-      }
+      if [ "$tailscale_runtime_prepared" != 1 ]; then
+        cp "$tailscale_source/tailscale" "$tailscale_runtime_dir/tailscale" || {
+          tailscale_rollback_install
+          return 1
+        }
+        cp "$tailscale_source/tailscaled" "$tailscale_runtime_dir/tailscaled" || {
+          tailscale_rollback_install
+          return 1
+        }
+      fi
       ;;
     esac
     chmod 755 "$tailscale_runtime_dir/tailscale" "$tailscale_runtime_dir/tailscaled"
@@ -3083,6 +3142,7 @@ app_tailscale() {
       tailscale_subnet="$(ip -4 route show dev br-lan 2>/dev/null | awk '$1 ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\/[0-9]+$/ { print $1; exit }')"
       uci set "tailscale.service.hostname=$tailscale_hostname"
       [ -z "$tailscale_subnet" ] || uci set "tailscale.service.advertise_routes=$tailscale_subnet"
+      uci set "tailscale.service.version=$tailscale_version"
       uci set "tailscale.service.runtime_dir=$tailscale_runtime_dir"
       uci set "tailscale.service.storage_dir=$tailscale_storage_dir"
       uci set "tailscale.service.archive_path=$tailscale_archive_path"
@@ -3153,16 +3213,15 @@ app_tailscale() {
 }
 
 app_dumaos() {
-  dumaos_version="2.0-46"
+  dumaos_version="2.0-47"
   dumaos_tag="dumaos-repack-v$dumaos_version"
   dumaos_package="dumaos-repack_${dumaos_version}_arm_cortex-a9.ipk"
-  dumaos_sha256="4fe83ddc7a34e1ada525302863f7683f54d1b37f21233c7db0750f253e50e4ef"
+  dumaos_sha256="45d8c456610b67bbbe9e6aaabf61e527c0a16fbdba15eab50911021b2ae64774"
   dumaos_tmp="/tmp/dumaos-repack-install.$$.ipk"
-  dumaos_module="/lib/modules/4.1.52/extra/act-connmark-damson-4.1.52.ko"
-  dumaos_module_sha256="9bbd94d4e1ed2d02e1c990797b6540d3af3a4a13680099cb7014c4e211bc83ff"
+  dumaos_qos_owned="/etc/.modgui-dumaos-qos-packages"
 
   dumaos_installed() {
-    opkg status dumaos-repack 2>/dev/null | grep -q '^Status:.*installed'
+    opkg status dumaos-repack 2>/dev/null | grep -q '^Status:.* installed$'
   }
 
   dumaos_installed_version() {
@@ -3213,27 +3272,48 @@ app_dumaos() {
 
   dumaos_install_qos_module() {
     [ "$(uname -r)" = "4.1.52" ] || return 0
-    if [ ! -f "$dumaos_module" ]; then
-      mkdir -p /lib/modules/4.1.52/extra || return 1
-      curl -kfL "https://raw.githubusercontent.com/FrancYescO/GUI_ipk/kmods-4.1.52/artifacts/act-connmark-damson-4.1.52.ko" \
-        --output "$dumaos_module.tmp" || {
-          rm -f "$dumaos_module.tmp"
-          return 1
-        }
-      dumaos_module_actual_sha256="$(sha256sum "$dumaos_module.tmp" | awk '{print $1}')"
-      if [ "$dumaos_module_actual_sha256" != "$dumaos_module_sha256" ]; then
-        echo "DumaOS QoS module checksum mismatch"
-        rm -f "$dumaos_module.tmp"
-        return 1
-      fi
-      mv "$dumaos_module.tmp" "$dumaos_module" || return 1
-      depmod -a 4.1.52 2>/dev/null || true
-    fi
-    echo act_connmark > /etc/modules.d/99-dumaos-qos || return 1
-    modprobe act_connmark 2>/dev/null || insmod "$dumaos_module" 2>/dev/null || {
+    dumaos_qos_package="$(modgui_kernel_package '^kmod-act-connmark(-|$)')"
+    [ -n "$dumaos_qos_package" ] || {
+      echo "No act_connmark package with matching kernel/ABI is available"
+      return 1
+    }
+    dumaos_qos_before="$(opkg list-installed 2>/dev/null | awk '$1 ~ /^kmod-act-connmark(-|$)/ {print $1}')"
+    dumaos_qos_install_result=0
+    opkg install "$dumaos_qos_package" || dumaos_qos_install_result=$?
+    for dumaos_qos_new in $(opkg list-installed 2>/dev/null | awk '$1 ~ /^kmod-act-connmark(-|$)/ {print $1}'); do
+      printf '%s\n' "$dumaos_qos_before" | grep -Fxq "$dumaos_qos_new" && continue
+      if [ -f "$dumaos_qos_owned" ] && grep -Fxq "$dumaos_qos_new" "$dumaos_qos_owned"; then continue; fi
+      printf '%s\n' "$dumaos_qos_new" >> "$dumaos_qos_owned" || return 1
+    done
+    [ "$dumaos_qos_install_result" = 0 ] || return 1
+    modprobe act_connmark 2>/dev/null || insmod "/lib/modules/$(uname -r)/act_connmark.ko" 2>/dev/null || {
       echo "Unable to load the DumaOS act_connmark QoS module"
       return 1
     }
+    mkdir -p /etc/modules.d || return 1
+    echo act_connmark > /etc/modules.d/99-dumaos-qos
+  }
+
+  dumaos_remove_qos_module() {
+    if [ -f "$dumaos_qos_owned" ]; then
+      if lsmod | grep -q '^act_connmark '; then
+        rmmod act_connmark 2>/dev/null || {
+          echo "act_connmark is still in use; keeping its packages"
+          return 0
+        }
+      fi
+      dumaos_qos_kept=0
+      while IFS= read -r dumaos_qos_package; do
+        case "$dumaos_qos_package" in
+          kmod-act-connmark|kmod-act-connmark-*) ;;
+          *) echo "Invalid DumaOS QoS ownership record"; return 1 ;;
+        esac
+        opkg remove "$dumaos_qos_package" || dumaos_qos_kept=1
+      done < "$dumaos_qos_owned"
+      [ "$dumaos_qos_kept" = 0 ] || return 0
+      rm -f "$dumaos_qos_owned"
+    fi
+    rm -f /etc/modules.d/99-dumaos-qos
   }
 
   dumaos_remove_firewall() {
@@ -3251,6 +3331,9 @@ app_dumaos() {
   dumaos_start() {
     uci -q set dumaos.tr69.dumaos_enabled=1
     uci -q commit dumaos
+    # Repeated install/start must not replace an already running procd
+    # instance while the previous process manager is still cleaning up.
+    dumaos_running && return 0
     if [ -x /usr/lib/dumaos/platform/control.sh ]; then
       /usr/lib/dumaos/platform/control.sh start
       return $?
@@ -3292,7 +3375,15 @@ app_dumaos() {
       echo "DumaOS requires a supported ARMv7 gateway with kernel 4.1.52; this kernel is unsupported"
       return 1
     }
-    if [ "$(dumaos_installed_version)" != "$dumaos_version" ]; then
+    if [ "$(dumaos_installed_version)" = "$dumaos_version" ] && ! dumaos_installed; then
+      # A matching version can still be unpacked after a failed postinst.
+      # Complete configuration before enabling the extension or its services.
+      opkg configure dumaos-repack || return 1
+      dumaos_installed || {
+        echo "DumaOS package configuration is incomplete"
+        return 1
+      }
+    elif [ "$(dumaos_installed_version)" != "$dumaos_version" ]; then
       require_free_space 40960 /usr || return 1
       require_free_space 10240 /tmp || return 1
       opkg update || return 1
@@ -3328,13 +3419,15 @@ app_dumaos() {
     ;;
   remove)
     dumaos_installed || {
+      dumaos_remove_qos_module || return 1
       set_extension_state dumaos_app 0
       return 0
     }
     dumaos_stop
     opkg remove dumaos-repack || return 1
+    dumaos_remove_qos_module || return 1
     dumaos_remove_firewall
-    rm -f "$dumaos_tmp" "$dumaos_module.tmp"
+    rm -f "$dumaos_tmp"
     uci -q delete web.dumaos_card
     uci -q delete web.dumaosmodal
     uci -q del_list web.ruleset_main.rules=dumaosmodal

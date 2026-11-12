@@ -2419,4 +2419,60 @@ function M.getVariantValue(variant, option)
   end
 end
 
+--function to convert tx/rx rate into GB,MB,KB and B respectively
+function M.convertData(val)
+  val = tonumber(val)
+  if val and val ~= "" then
+    if (val > 1000*1000*1000) then
+      val = val/(1000*1000*1000)
+      return format("%.2f", val) .. " GB"
+    elseif (val > 1000*1000) then
+      val = val/(1000*1000)
+      return format("%.2f", val) .. " MB"
+    elseif (val > 1000) then
+      val = val/1000
+      return format("%.2f", val) .. " KB"
+    elseif (val > 0) then
+      return val .. " B"
+    end
+    return val
+  end
+end
+
+--function to convert phyrate into gbps,mbps,kbps and bps respectively
+function M.convertPhyRate(val, extender)
+  val = tonumber(val)
+  if val and val ~= "" then
+    if extender then
+      if (val > 1000) then
+        val = val/(1000)
+        return format("%.2f", val) .. " Gbps"
+      elseif (val < 1) then
+        if ((val*1000) < 1000) and ((val*1000) > 1) then
+          val = (val*1000)
+          return format("%.2f", val) .. " Kbps"
+        else
+          val = (val*1000*1000)
+          return format("%.2f", val) .. " bps"
+        end
+      else
+        return val .. " Mbps"
+      end
+    else
+      if (val > 1000*1000) then
+        val = val/(1000*1000)
+        return format("%.2f", val) .. " Gbps"
+      elseif (val > 1000) then
+        val = val/(1000)
+        return format("%.2f", val) .. " Mbps"
+      elseif (val < 1) then
+        return format("%.2f", val*1000) .. " bps"
+      else
+        return val .. " Kbps"
+      end
+    end
+    return val
+  end
+end
+
 return M

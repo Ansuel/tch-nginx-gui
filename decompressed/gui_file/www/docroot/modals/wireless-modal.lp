@@ -393,7 +393,7 @@ end
 local wifipower = {}
 
 for i=-6,6 do
-	local power = i < 0 and i or format("+%s",i)
+	local power = i <= 0 and i or format("+%s",i)
 	tinsert(wifipower,{tostring(power),format("%s dBm",power)})
 end
 
@@ -597,6 +597,51 @@ end
 
 local bandsteerpathap = bspeerap and format("rpc.wireless.ap.@" .. "%s.", bspeerap) or ""
 
+-- Like the native newEM form, edit controller credentials in the GUI only.
+-- The agent uses rpc.wireless to apply those credentials to the actual radios.
+local function getMultiapCredential()
+    local state = {
+        controller = "uci.multiap.controller.enabled",
+        agent = "uci.multiap.agent.enabled",
+    }
+    content_helper.getExactContent(state)
+    if state.controller ~= "1" or state.agent ~= "1" then return end
+    local network = "main"
+    if match(curiface, "_%d+$") then
+        local feature = proxy.get("uci.multiap.tch_feature_extensions.enable")
+        if not feature or not feature[1] or feature[1].value ~= "1" then return end
+        network = "guest"
+    end
+    local path = "uci.web.network.@" .. network .. "."
+    local interfaces = content_helper.convertResultToObject(path .. "intf.@.", proxy.get(path .. "intf."))
+    local credentials = content_helper.convertResultToObject(path .. "cred.@.", proxy.get(path .. "cred."))
+    local selected, primary
+    for _, credential in ipairs(credentials) do
+        if match(credential.paramindex, "^@?1$") then primary = untaint(credential.value) end
+        for _, iface in ipairs(interfaces) do
+            if iface.value == curiface and iface.paramindex == credential.paramindex then
+                selected = untaint(credential.value)
+            end
+        end
+    end
+    if not selected then return false end
+    if primary then
+        local bands = proxy.get("uci.multiap.controller_credentials.@" .. primary .. ".frequency_bands")
+        bands = bands and bands[1] and bands[1].value or ""
+        if match(bands, "radio_2G") and match(bands, "radio_5G") then selected = primary end
+    end
+    local credential = "uci.multiap.controller_credentials.@" .. selected .. "."
+    local backhaul = proxy.get(credential .. "backhaul")
+    if not backhaul or not backhaul[1] or backhaul[1].value == "1" then return false end
+    return credential
+end
+
+local multiap_credential = getMultiapCredential()
+if multiap_credential == false then
+    ngx.log(ngx.ERR, "Wireless controller credential unavailable or protected")
+    return ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
+end
+
 local function getValidateBandSteerPeerFields(value, object, key)
     local state = object.ap_enabled
     local bandsteer_enabled
@@ -775,7 +820,7 @@ local function getParamsAndValidation()
     end
   end
 
-  if bspeerap then
+  if bspeerap and not multiap_credential then
     local bandsteerParams = {
       bsid = pap .. "@" .. curap .. ".bandsteer_id",
       bspeerid = pap .. "@" .. bspeerap .. ".bandsteer_id",
@@ -840,6 +885,12 @@ local function getParamsAndValidation()
 	eco_fast_radio_toggle = vB,
   }
 
+  if multiap_credential then
+    mapParams.ssid = multiap_credential .. "ssid"
+    mapParams.security = multiap_credential .. "security_mode"
+    mapParams.wpa_psk = multiap_credential .. "wpa_psk_key"
+    mapValid.bsid = nil
+  end
 	if isguest ~= "1" then
 		mapValid.admin_state = validateRadioandAp
 	end
@@ -871,7 +922,7 @@ end
 
 if ngx.req.get_method() == "POST" and ngx.req.get_post_args().action == "bs_check" then
     local postargs = ngx.req.get_post_args()
-	if content["ssid"] ~= postargs.ssidName or content["security"] ~= postargs.security or content["wpa_psk"] ~= postargs.wpa_psk then
+	if not multiap_credential and (content["ssid"] ~= postargs.ssidName or content["security"] ~= postargs.security or content["wpa_psk"] ~= postargs.wpa_psk) then
 	session:store("bs_check_action", "TRUE")
     proxy.set("uci.wireless.wifi-ap.@ap0.bandsteer_id", "off")
 	proxy.set("uci.wireless.wifi-ap.@ap1.bandsteer_id", "off")
@@ -897,7 +948,7 @@ if ngx.req.get_method() == "POST" then
     bandsteerhelpmsg[1] = tmpbandsteerhelpmsg
   end
 
-  if content["action"] == "SAVE" then
+  if content["action"] == "SAVE" and not multiap_credential then
     local retval = false
     local postargs = ngx.req.get_post_args()
     if postargs["rssi_threshold"] ~= nil then

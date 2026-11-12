@@ -503,8 +503,10 @@ modgui_has_tun() { attempts=$((attempts + 1)); [ "$attempts" -ge "$1" ]; }
                     'set -- check tun',
                 ))
                 script = setup + '\n' + definitions + '\n' + mocks + '\n' + dispatch
-                result = subprocess.run(['sh', '-s', cpu, kernel, version, str(int(available))], input=script,
-                                        capture_output=True, text=True)
+                # The complete installer can exceed Linux's per-argument limit.
+                # Keep the script on stdin and reserve argv for its parameters.
+                result = subprocess.run(['sh', '-s', '--', cpu, kernel, version, str(int(available))],
+                                        input=script, capture_output=True, text=True)
                 self.assertEqual(result.returncode == 0, expected, result.stderr)
 
     def test_arm_tun_download_retains_legacy_tls_and_verifies_module(self):

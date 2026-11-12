@@ -46,9 +46,13 @@ local modalPath = nil
 local switchName = nil
 local modal_link = ""
 local session = ngx.ctx.session
-if session:hasAccess("/modals/easy-mesh-configuration.lp") then
-  modalPath = "/modals/easy-mesh-configuration.lp"
-  modal_link='class="modal-link" data-toggle="modal" data-remote="/modals/easy-mesh-configuration.lp" data-id="easy-mesh-configuration"'
+local selectedModal = "/modals/easy-mesh-configuration.lp"
+if easymesh_helper.use_new_layout() then
+  selectedModal = getState and "/modals/easymesh-topology-modal-newEM.lp" or "/modals/easymesh-configuration-modal-newEM.lp"
+end
+if session:hasAccess(selectedModal) then
+  modalPath = selectedModal
+  modal_link='class="modal-link" data-toggle="modal" data-remote="' .. selectedModal .. '" data-id="easy-mesh-configuration"'
 elseif not session:isdefaultuser() then
   return
 end

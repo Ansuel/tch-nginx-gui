@@ -10,15 +10,16 @@ RUNTIMES = list(filter(None, (shutil.which('lua'), shutil.which('luajit'))))
 
 class MultiAP(unittest.TestCase):
     @unittest.skipUnless(RUNTIMES, 'Lua required')
-    def test_rpc_setters_with_native_firmware_helper(self):
+    def test_native_credentials_and_agent_radio_rpcs(self):
         for lua in RUNTIMES:
-            with self.subTest(runtime=lua):
-                result = subprocess.run([
-                    lua, str(ROOT / 'tests/test_multiap.lua'),
-                    str(ROOT / 'decompressed/gui_file'),
-                    str(ROOT / 'tests/fixtures/multiap-bandsteerhelper.lua'),
-                ], text=True, capture_output=True)
-                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            for helper in ('tests/fixtures/multiap-bandsteerhelper.lua',
+                           'decompressed/gui_file/usr/lib/lua/transformer/shared/bandsteerhelper.lua'):
+                with self.subTest(runtime=lua, helper=helper):
+                    result = subprocess.run([
+                        lua, str(ROOT / 'tests/test_multiap.lua'),
+                        str(ROOT / 'decompressed/gui_file'), str(ROOT / helper),
+                    ], text=True, capture_output=True)
+                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     @unittest.skipUnless(RUNTIMES, 'Lua required')
     def test_restore_only_missing_network_metadata_and_keep_lists(self):

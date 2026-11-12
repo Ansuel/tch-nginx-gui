@@ -726,6 +726,133 @@ uname() { [ "$1" = "-r" ] && printf '%s\\n' "$test_kernel"; }
         self.assertIn("https://login%.tailscale%.com/", modal)
         self.assertNotIn("authkey", modal.lower())
 
+    def test_dumaos_finishes_matching_unpacked_version_before_enabling(self):
+        source = INSTALLER.read_text()
+        start = source.index('  dumaos_installed() {')
+        installed = source[start:source.index('  dumaos_installed_version()', start)]
+        start = source.index('    if [ "$(dumaos_installed_version)" = "$dumaos_version" ] && ! dumaos_installed; then')
+        recovery = source[start:source.index('    elif [ "$(dumaos_installed_version)"', start)] + '\n    fi\n'
+        for state, configure_result, finish, success, configure in (
+            ('installed', 0, True, True, False),
+            ('unpacked', 0, True, True, True),
+            ('unpacked', 1, False, False, True),
+            ('unpacked', 0, False, False, True),
+            ('not-installed', 1, False, False, True),
+        ):
+            with self.subTest(state=state, configure_result=configure_result, finish=finish):
+                script = installed + '''
+dumaos_version=2.0-47
+dumaos_installed_version() { echo 2.0-47; }
+state="$1"
+configure_result="$2"
+finish="$3"
+opkg() {
+ case "$1" in
+ status) printf 'Status: install user %s\\n' "$state" ;;
+ configure) echo CONFIGURE; [ "$configure_result" = 0 ] || return 1
+   [ "$finish" != 1 ] || state=installed ;;
+ esac
+ return 0
+}
+recover() {
+''' + recovery + '\necho READY\n}\nrecover\n'
+                result = subprocess.run(['sh', '-c', script, 'probe', state, str(configure_result), str(int(finish))], capture_output=True, text=True)
+                self.assertEqual(result.returncode == 0, success, result.stderr)
+                self.assertEqual('CONFIGURE' in result.stdout, configure)
+                self.assertEqual('READY' in result.stdout, success)
+
+    def test_dumaos_start_keeps_running_process_manager(self):
+        source = INSTALLER.read_text()
+        start = source.index('  dumaos_start() {')
+        function = source[start:source.index('  dumaos_stop() {', start)]
+        script = function + "\nuci() { :; }\ndumaos_running() { return 0; }\ndumaos_start\n"
+        result = subprocess.run(['sh', '-c', script], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, '')
+        self.assertEqual(result.stderr, '')
+
+    def test_dumaos_qos_uses_abi_selected_package_and_stops_on_failure(self):
+        source = INSTALLER.read_text()
+        start = source.index('  dumaos_install_qos_module() {')
+        function = source[start:source.index('  dumaos_remove_firewall()', start)]
+        cases = (
+            ('kmod-act-connmark', 0, 'loaded', True, False),
+            ('kmod-act-connmark', 0, 'loaded', True, True),
+            ('kmod-act-connmark', 0, 'fallback', True, False),
+            ('kmod-act-connmark', 0, 'failed', False, False),
+            ('kmod-act-connmark', 1, 'loaded', False, False),
+            ('kmod-act-connmark', 2, 'loaded', False, False),
+            ('', 0, 'loaded', False, False),
+        )
+        for package, install_result, loader, success, preexisting in cases:
+            with self.subTest(package=package, install_result=install_result, loader=loader), tempfile.TemporaryDirectory() as directory:
+                private = function.replace('/etc/modules.d', directory + '/modules.d')
+                script = 'dumaos_qos_owned=' + str(Path(directory, 'qos-owned')) + '\n' + private + '''
+installed="$4"
+package="$1"; install_result="$2"; loader="$3"
+uname() { echo 4.1.52; }
+modgui_kernel_package() {
+ [ "$1" = '^kmod-act-connmark(-|$)' ] || return 1
+ printf '%s' "$package"
+}
+opkg() {
+ case "$1" in
+ list-installed) [ "$installed" != 1 ] || printf '%s\n' 'kmod-act-connmark - 4.1.52-4' 'kmod-act-connmark-4.1.52-manual - 4.1.52-4' ;;
+ install) echo "OPKG:$*"; if [ "$install_result" = 2 ]; then installed=1; return 1; fi
+ [ "$install_result" = 0 ] || return 1; installed=1 ;;
+ esac
+ return 0
+}
+modprobe() { echo MODPROBE; [ "$loader" = loaded ]; }
+insmod() { echo "INSMOD:$1"; [ "$loader" = fallback ]; }
+curl() { echo UNEXPECTED_DOWNLOAD; return 1; }
+dumaos_install_qos_module
+'''
+                result = subprocess.run(['sh', '-c', script, 'probe', package, str(install_result), loader, str(int(preexisting))], capture_output=True, text=True)
+                self.assertEqual(result.returncode == 0, success, result.stderr)
+                self.assertEqual('OPKG:install kmod-act-connmark' in result.stdout, bool(package))
+                self.assertEqual('MODPROBE' in result.stdout, bool(package) and install_result == 0)
+                self.assertNotIn('UNEXPECTED_DOWNLOAD', result.stdout)
+                owned = Path(directory, 'qos-owned')
+                self.assertEqual(owned.exists(), bool(package) and install_result in (0, 2) and not preexisting)
+                if owned.exists():
+                    self.assertEqual(owned.read_text().splitlines(), ['kmod-act-connmark', 'kmod-act-connmark-4.1.52-manual'])
+                marker = Path(directory, 'modules.d/99-dumaos-qos')
+                self.assertEqual(marker.exists(), success)
+                if success:
+                    self.assertEqual(marker.read_text(), 'act_connmark\n')
+                if loader == 'fallback' and success:
+                    self.assertIn('INSMOD:/lib/modules/4.1.52/act_connmark.ko', result.stdout)
+
+    def test_dumaos_qos_remove_preserves_preexisting_or_busy_packages(self):
+        source = INSTALLER.read_text()
+        start = source.index('  dumaos_remove_qos_module() {')
+        function = source[start:source.index('  dumaos_remove_firewall()', start)]
+        for owned, busy, remove_result in ((False, False, 0), (True, False, 0), (True, True, 0), (True, False, 1)):
+            with self.subTest(owned=owned, busy=busy, remove_result=remove_result), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / 'modules.d').mkdir()
+                boot = root / 'modules.d/99-dumaos-qos'
+                boot.write_text('act_connmark\n')
+                owner = root / 'qos-owned'
+                if owned:
+                    owner.write_text('kmod-act-connmark\nkmod-act-connmark-4.1.52-manual\n')
+                script = 'dumaos_qos_owned=' + str(owner) + '\n' + function.replace('/etc/modules.d', str(root / 'modules.d')) + '''
+busy="$1"; remove_result="$2"
+lsmod() { echo 'act_connmark 1771 0'; }
+rmmod() { echo UNLOAD; return "$busy"; }
+opkg() { echo "OPKG:$*"; return "$remove_result"; }
+dumaos_remove_qos_module
+'''
+                result = subprocess.run(['sh', '-c', script, 'probe', str(int(busy)), str(remove_result)], capture_output=True, text=True, check=True)
+                self.assertEqual('UNLOAD' in result.stdout, owned)
+                self.assertEqual('OPKG:' in result.stdout, owned and not busy)
+                keep = owned and (busy or remove_result != 0)
+                self.assertEqual(owner.exists(), keep)
+                self.assertEqual(boot.exists(), keep)
+                if owned and not busy:
+                    self.assertEqual([line for line in result.stdout.splitlines() if line.startswith('OPKG:')], ['OPKG:remove kmod-act-connmark', 'OPKG:remove kmod-act-connmark-4.1.52-manual'])
+
     def test_dumaos_is_pinned_verified_detected_and_armv7_only(self):
         installer = INSTALLER.read_text()
         start = installer.index("app_dumaos()")
@@ -736,11 +863,11 @@ uname() { [ "$1" = "-r" ] && printf '%s\\n' "$test_kernel"; }
         config = CONFIG.read_text()
         dumaos_modal = (GUI / "www/docroot/modals/dumaos-modal.lp").read_text()
 
-        self.assertIn('dumaos_version="2.0-46"', dumaos)
+        self.assertIn('dumaos_version="2.0-47"', dumaos)
         self.assertIn('dumaos_tag="dumaos-repack-v$dumaos_version"', dumaos)
         self.assertIn('dumaos-repack_${dumaos_version}_arm_cortex-a9.ipk', dumaos)
         self.assertIn(
-            'dumaos_sha256="4fe83ddc7a34e1ada525302863f7683f54d1b37f21233c7db0750f253e50e4ef"',
+            'dumaos_sha256="45d8c456610b67bbbe9e6aaabf61e527c0a16fbdba15eab50911021b2ae64774"',
             dumaos,
         )
         self.assertIn("releases/download/$dumaos_tag/$dumaos_package", dumaos)
@@ -750,7 +877,9 @@ uname() { [ "$1" = "-r" ] && printf '%s\\n' "$test_kernel"; }
         self.assertNotIn("--force-overwrite", dumaos)
         self.assertIn("opkg remove dumaos-repack", dumaos)
         self.assertIn("dumaos_install_qos_module", dumaos)
-        self.assertIn("act-connmark-damson-4.1.52.ko", dumaos)
+        self.assertIn("modgui_kernel_package '^kmod-act-connmark(-|$)'", dumaos)
+        self.assertIn('opkg install "$dumaos_qos_package"', dumaos)
+        self.assertNotIn('act-connmark-damson-4.1.52.ko', dumaos)
         self.assertIn("/www/cards/015_dumaos.lp", dumaos)
         self.assertNotIn("uci set web.dumaos_card", dumaos)
         self.assertNotIn('[ -f /www/cards/015_dumaos.lp ]', dumaos)
