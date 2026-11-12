@@ -393,7 +393,7 @@ end
 local wifipower = {}
 
 for i=-6,6 do
-	local power = i < 0 and i or format("+%s",i)
+	local power = i <= 0 and i or format("+%s",i)
 	tinsert(wifipower,{tostring(power),format("%s dBm",power)})
 end
 

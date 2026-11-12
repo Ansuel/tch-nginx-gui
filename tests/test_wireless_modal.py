@@ -51,7 +51,8 @@ local function radio(supported, band, width, quantenna, no160)
     return content.requested_channel_width
   end
   return {standards = wifi_standard, widths = channelwidth, controls = cw,
-    validate = getValidateChannelWidth, lists = cwmaps, normalize = normalize}
+    validate = getValidateChannelWidth, lists = cwmaps, normalize = normalize,
+    powers = wifipower}
 end
 local function has(choices, value)
   for _, option in ipairs(choices) do
@@ -126,6 +127,18 @@ assert(has(native.widths, '20/40') and not has(native.widths, '20/40MHz'))
         result = subprocess.run([LUA, '-e', f'assert(loadfile({str(path)!r}))'],
                                 text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_power_preserves_native_zero_and_legacy_signed_values(self):
+        self.run_radio(r'''
+local powers = radio('anacax', '5GHz', '20/40/80', false, true).powers
+-- A missing current value makes the browser select -6 and saves it with
+-- unrelated Wi-Fi edits. Native and legacy firmware both return "0".
+assert(has(powers, '0'))
+assert(not has(powers, '+0'))
+assert(has(powers, '-6') and has(powers, '+1') and has(powers, '+2'))
+local validate = gVIES(powers)
+assert(validate('0') and validate('+2') and validate('-3'))
+''')
 
 
 class ModalJavascript(unittest.TestCase):

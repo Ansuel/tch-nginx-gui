@@ -35,7 +35,12 @@ local uci = {
   end,
   revert = function(b) pending[b.config] = nil end,
 }
-lfs = {attributes = function() return 'file' end}
+local filesystem = {attributes = function() return 'file' end}
+lfs = filesystem
+package.preload.lfs = function() return filesystem end
+if nativePath == root .. '/usr/lib/lua/transformer/shared/bandsteerhelper.lua' then
+  lfs = nil -- Older runtimes must not need a preloaded global lfs.
+end
 package.preload['transformer.mapper.ucihelper'] = function() return uci end
 package.preload['ubus'] = function() return {connect = function() return {
   call = function() return {} end,
@@ -149,10 +154,31 @@ ssid.set.ssid(nil,'ssid','Legacy name','wl0'); ssid.commit()
 assert(db.wireless.wl0.ssid=='Legacy name')
 print('PASS unmanaged guests, agent-only, disabled mesh and legacy firmware')
 reset()
+db.multiap = {}
+filesystem.attributes = function() return nil end
+local helper = require('transformer.shared.bandsteerhelper')
+assert(not helper.isMultiapEnabled('ap0'))
+local tx = {}
+assert(helper.setSSID('wl0','ap0','No MultiAP file',commitapply,tx))
+assert(helper.setSecurityOption('ap0','wpa_psk_key','No MultiAP password',commitapply,tx))
+assert(tx.wireless and not tx.multiap)
+uci.commit({config='wireless'})
+assert(db.wireless.wl0.ssid=='No MultiAP file' and db.wireless.ap0.wpa_psk_key=='No MultiAP password')
+filesystem.attributes = function() return 'file' end
+print('PASS native legacy setters without a MultiAP configuration file')
+reset()
 package.loaded['transformer.shared.bandsteerhelper'] = nil
 package.preload['transformer.shared.bandsteerhelper'] = function() error('missing native module') end
 local ok,err = ssid.set.ssid(nil,'ssid','Must not diverge','wl0')
 assert(not ok and err and not pending.wireless)
+package.loaded['transformer.shared.bandsteerhelper'] = nil
+package.preload['transformer.shared.bandsteerhelper'] = function()
+  return {} -- Older GUI installs supplied a helper without MultiAP methods.
+end
+local ok,err = ssid.set.ssid(nil,'ssid','Overwritten native helper','wl0')
+assert(not ok and err == 'Native MultiAP credential support is unavailable' and not pending.wireless)
+local ok,err = security.set(nil,'wpa_psk_passphrase','Unchanged test password','ap1')
+assert(not ok and err == 'Native MultiAP credential support is unavailable' and not pending.wireless)
 package.loaded['transformer.shared.bandsteerhelper'] = {
   isMultiapEnabled = function() return true end,
   setSecurityOption = function() error('must not substitute for missing SSID setter') end,
