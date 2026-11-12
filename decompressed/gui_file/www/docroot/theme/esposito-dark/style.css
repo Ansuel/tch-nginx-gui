@@ -1,32 +1,27 @@
 :root {
-  /* ===================== PALETTE PREMIUM DARK ===================== */
-  /* Colori di base: tonalità notte profonda, meno affaticanti del nero assoluto */
-  --bg-main: #0b0f19;        
-  --bg-elevated: #111827;    
-  --bg-card: #151e32;        
-  --bg-card-hover: #1e293b;  
-  --bg-input: #0f172a;       
-  --bg-header: #0b0f19;      
-  --bg-dropdown: #1e293b;    
+  --bg-main: #000000;
+  --bg-elevated: #050505;
+  --bg-card: #0a0a0a;
+  --bg-card-hover: #111111;
+  --bg-input: #080808;
+  --bg-header: #060606;
+  --bg-dropdown: #0b0b0b;
 
-  /* Accenti: Blu elettrico/Azzurro moderno per bottoni e link */
-  --accent: #3b82f6;         
-  --accent-hover: #60a5fa;   
-  --accent-active: #2563eb;  
-  --accent-soft: rgba(59, 130, 246, 0.15);
-  --accent-soft-strong: rgba(59, 130, 246, 0.25);
+  --accent: #e5e5e5;
+  --accent-hover: #ffffff;
+  --accent-active: #bdbdbd;
+  --accent-soft: rgba(255, 255, 255, 0.08);
+  --accent-soft-strong: rgba(255, 255, 255, 0.14);
 
-  /* Testi: Bianchi ammorbiditi per alto contrasto senza abbagliare */
-  --text-main: #f1f5f9;      
-  --text-soft: #94a3b8;      
-  --text-muted: #64748b;     
-  --text-dark: #0f172a;      
+  --text-main: #f5f5f5;
+  --text-soft: #c4c4c4;
+  --text-muted: #8a8a8a;
+  --text-dark: #0a0a0a;
 
-  /* Bordi e Ombre */
-  --border: #334155;
-  --border-strong: #475569;
-  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.35);
-  --shadow-accent: 0 0 0 2px rgba(59, 130, 246, 0.3), 0 8px 16px rgba(59, 130, 246, 0.15);
+  --border: #1e1e1e;
+  --border-strong: #2c2c2c;
+  --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-accent: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 10px 26px rgba(0, 0, 0, 0.5);
 }
 
 /* ===================== SCROLLBAR ===================== */
@@ -37,16 +32,16 @@ body::-webkit-scrollbar,
 }
 body::-webkit-scrollbar-thumb,
 .modal-body::-webkit-scrollbar-thumb {
-  background: var(--accent-soft-strong);
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 999px;
 }
 body::-webkit-scrollbar-thumb:hover,
 .modal-body::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
+  background: rgba(255, 255, 255, 0.32);
 }
 body::-webkit-scrollbar-thumb:active,
 .modal-body::-webkit-scrollbar-thumb:active {
-  background: var(--accent-active);
+  background: var(--accent);
 }
 body::-webkit-scrollbar-track,
 body::-webkit-scrollbar-corner {
@@ -63,7 +58,7 @@ html, body {
 }
 body {
   color: var(--text-main);
-  background: var(--bg-main);
+  background: #000000;
   font-family: "Segoe UI", "Inter", sans-serif;
 }
 
@@ -82,10 +77,10 @@ body {
   animation: bounce 2s infinite 2s;
   font-size: 36px;
   transition: all .2s ease-in-out;
-  background: transparent !important;
-  border: none !important;          
-  box-shadow: none !important;     
-  backdrop-filter: none !important; 
+  background: transparent !important; /* Rende lo sfondo trasparente */
+  border: none !important;          /* Rimuove il bordo circostante */
+  box-shadow: none !important;     /* Rimuove l'ombra circolare */
+  backdrop-filter: none !important; /* Rimuove l'effetto di sfocatura dello sfondo */
 }
 .scroll-down:hover,
 .scroll-up:hover {
@@ -119,7 +114,7 @@ a {
   transition: color .2s ease;
 }
 a:hover {
-  color: var(--accent-hover);
+  color: #ffffff;
   text-decoration: none;
 }
 .smallcard .modal-link:hover {
@@ -139,17 +134,17 @@ a:hover {
 .header .btn,
 #webui_language,
 .dropdown-menu > li > a {
-  background: linear-gradient(180deg, var(--bg-card-hover) 0%, var(--bg-card) 100%);
+  background: linear-gradient(180deg, #171717 0%, #0b0b0b 100%);
   border: 1px solid var(--border);
   color: var(--text-main);
   text-shadow: none;
   border-radius: 10px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
   transition: background .2s ease, border-color .2s ease, box-shadow .2s ease, color .2s ease;
 }
 .btn-primary {
-  background: linear-gradient(180deg, var(--accent-hover) 0%, var(--accent) 100%);
-  color: #ffffff;
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-active) 100%);
+  color: #0a0a0a;
   border-color: transparent;
   font-weight: 600;
 }
@@ -159,10 +154,10 @@ a:hover {
 .header .btn-group > .btn,
 .header .btn.dropdown-toggle,
 .header #webui_language {
-  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-header) 100%) !important;
+  background: linear-gradient(180deg, #151515 0%, #0b0b0b 100%) !important;
   color: var(--text-main) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.25) !important;
+  border: 1px solid var(--border-strong) !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35) !important;
 }
 
 .smallcard .header .settings:hover,
@@ -182,31 +177,31 @@ a:hover {
 .dropdown-submenu:hover > a,
 .dropdown-submenu:focus > a {
   color: #ffffff !important;
-  background: linear-gradient(180deg, var(--bg-dropdown) 0%, var(--bg-elevated) 100%) !important;
-  border-color: var(--accent) !important;
+  background: linear-gradient(180deg, #1c1c1c 0%, #101010 100%) !important;
+  border-color: #5a5a5a !important;
   outline: none;
-  box-shadow: var(--shadow-accent) !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.10), 0 10px 24px rgba(0, 0, 0, 0.5) !important;
 }
 
 .btn-primary:hover,
 .btn-primary:focus {
-  color: #ffffff;
-  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-active) 100%);
-  border-color: transparent;
+  color: #0a0a0a !important;
+  background: linear-gradient(180deg, var(--accent-hover) 0%, var(--accent) 100%) !important;
+  border-color: transparent !important;
   outline: none;
-  box-shadow: var(--shadow-accent);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18), 0 10px 24px rgba(0, 0, 0, 0.5) !important;
 }
 
 .btn:active,
 .btn-primary:active,
 .header .btn:active {
-  box-shadow: 0 0 0 3px var(--accent-soft);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
 }
 
 .btn[disabled] {
   color: var(--text-muted);
-  background: var(--bg-input);
-  border-color: var(--border-strong);
+  background: #0b0b0b;
+  border-color: #161616;
   opacity: 0.6;
 }
 
@@ -228,7 +223,7 @@ a:hover {
 
 /* Language select */
 #webui_language {
-  background-color: var(--bg-header) !important;
+  background-color: #0b0b0b !important;
   color: var(--text-main) !important;
 }
 #webui_language option {
@@ -239,8 +234,8 @@ a:hover {
 /* ===================== DROPDOWN ===================== */
 .header .dropdown-menu,
 #logged .dropdown-menu {
-  background: var(--bg-dropdown) !important;
-  border: 1px solid var(--border) !important;
+  background: #0b0b0b !important;
+  border: 1px solid #2f2f2f !important;
   border-radius: 10px !important;
   box-shadow: 0 16px 32px rgba(0,0,0,0.55) !important;
   padding: 6px !important;
@@ -250,7 +245,7 @@ a:hover {
 #logged .dropdown-menu > li > a {
   display: block;
   background: transparent !important;
-  color: var(--text-main) !important;
+  color: #ededed !important;
   padding: 10px 12px !important;
   border-radius: 8px !important;
   text-shadow: none !important;
@@ -259,7 +254,7 @@ a:hover {
 .header .dropdown-menu > li > a:focus,
 #logged .dropdown-menu > li > a:hover,
 #logged .dropdown-menu > li > a:focus {
-  background: var(--accent-soft-strong) !important;
+  background: #1f1f1f !important;
   color: #ffffff !important;
 }
 .header .dropdown-menu .divider,
@@ -267,7 +262,7 @@ a:hover {
   display: block !important;
   height: 1px !important;
   margin: 6px 0 !important;
-  background: var(--border-strong) !important;
+  background: rgba(255,255,255,0.08) !important;
   border: 0 !important;
 }
 
@@ -307,12 +302,12 @@ input:focus,
 textarea:focus,
 select:focus {
   border-color: var(--accent) !important;
-  box-shadow: 0 0 0 3px var(--accent-soft) !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.10) !important;
   outline: none;
 }
 .switchOn {
-  background-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft), 0 0 14px var(--accent-soft-strong);
+  background-color: #3a3a3a;
+  box-shadow: 0 0 0 1px #9a9a9a, 0 0 12px rgba(255, 255, 255, 0.12);
 }
 
 /* ===================== MODALS ===================== */
@@ -330,7 +325,7 @@ legend {
   padding: 15px;
   background-color: var(--bg-elevated);
   position: relative;
-  overflow-y: auto;
+  overflow-y: auto;   /* richiesto da position:sticky sui figli */
 }
 .modal {
   background-color: unset;
@@ -351,7 +346,7 @@ legend {
 }
 
 .hostmaptable tr.grey td {
-  background-color: var(--bg-main) !important;
+  background-color:black !important;
 }
 
 /* Legend sticky */
@@ -362,23 +357,24 @@ legend {
   display: block !important;
   margin: 0 -15px 12px -15px !important;
   padding: 10px 15px 8px 15px !important;
-  background: var(--bg-elevated) !important;
-  border-bottom: 1px solid var(--border) !important;
+  background: #050505 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
   box-shadow: 0 6px 10px rgba(0,0,0,0.22);
 }
 
 /* ===================== CARDS ===================== */
 .smallcard {
-  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-main) 100%);
+  background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
   box-shadow: var(--shadow-soft);
-  border: 1px solid var(--border);
+  border: 1px solid #1c1c1c;
   border-radius: 14px;
   transition: background 220ms ease, box-shadow 220ms ease, border-color 220ms ease, transform 220ms ease;
+  
 }
 .smallcard:hover {
-  background: linear-gradient(180deg, var(--bg-card-hover) 0%, var(--bg-elevated) 100%);
-  box-shadow: var(--shadow-accent);
-  border-color: var(--accent);
+  background: linear-gradient(180deg, #121212 0%, #080808 100%);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 10px 24px rgba(0, 0, 0, 0.55);
+  border-color: #3a3a3a;
   transform: translateY(-2px);
 }
 
@@ -392,7 +388,7 @@ legend {
 }
 
 .smallcard > .header {
-  background: linear-gradient(90deg, var(--accent-soft) 0%, var(--bg-card) 55%, var(--bg-main) 100%) !important;
+  background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, transparent 70%) !important;
   border: 0;
   color: var(--text-main);
 }
@@ -415,14 +411,7 @@ legend {
   isolation: isolate;
   font-size: 14px;
 }
-.card_bg:before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at top right, var(--accent-soft), transparent 32%);
-  pointer-events: none;
-  z-index: 0;
-}
+
 /* Background icon: absolute, behind all content, never interactive */
 .card_bg:after {
   position: absolute !important;
@@ -432,15 +421,15 @@ legend {
   font-size: 36px !important;
   z-index: -1 !important;
   pointer-events: none !important;
-  color: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.05);
 }
 .smallcard:hover .card_bg:after {
-  color: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.10) !important;
 }
 
 .gateway_bg:after,
 .login_bg:after {
-  color: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.05);
 }
 
 /* All real content sits above the decorative pseudo-elements */
@@ -453,6 +442,11 @@ legend {
 
 /* ===================== CARD CONTENT — stable layout ===================== */
 
+/*
+  FIX: table layout inside cards
+  - fixed width so columns don't jump
+  - no unwanted transforms or animations on inner elements
+*/
 .smallcard .content {
   overflow: hidden;
   z-index: 2;
@@ -469,13 +463,21 @@ legend {
   text-align: center !important;
   vertical-align: middle !important;
   padding: 8px 6px !important;
+  /* Prevent text from jumping */
   white-space: normal !important;
   word-break: break-word !important;
   overflow-wrap: anywhere !important;
   line-height: 1.4 !important;
 }
 
+/*
+  FIX: links and icons inside card content must NOT inherit
+  the card-level translateY or bounce animations.
+  We reset only transform/animation; position is left as-is
+  so relative/absolute children still work correctly.
+*/
 .smallcard .content a {
+  /* Don't override position — let each element keep its own */
   transform: none !important;
   animation: none !important;
   transition: color .15s ease, opacity .15s ease, background-color .15s ease !important;
@@ -495,13 +497,14 @@ legend {
   vertical-align: middle !important;
   line-height: 1 !important;
   transform: none !important;
-  animation: none !important;
+  animation: none !important;  /* icons: safe — spinners use .spinner3, not .fa */
   transition: color .15s ease, opacity .15s ease !important;
   text-shadow: none !important;
 }
 
-/* ===================== MODAL CONTENT ===================== */
-
+/*
+  FIX: text overlap in modal body
+*/
 .modal-body,
 .modal-body p,
 .modal-body span,
@@ -525,21 +528,21 @@ legend {
   text-align: left !important;
 }
 
-/* Nav tabs */
+/* Nav tabs: allow wrapping on narrow viewports */
 .nav-tabs > li > a,
 .nav-pills > li > a {
   white-space: normal !important;
   line-height: 1.25 !important;
   height: auto !important;
   color: var(--text-soft) !important;
-  background: var(--bg-input) !important;
+  background: rgba(255,255,255,0.04) !important;
   border-color: var(--border) !important;
 }
 .nav-tabs > li > a:hover,
 .nav-pills > li > a:hover {
   color: var(--text-main) !important;
-  background: var(--accent-soft) !important;
-  border-color: var(--accent) !important;
+  background: rgba(255,255,255,0.08) !important;
+  border-color: #5a5a5a !important;
 }
 .nav-tabs > li.active > a,
 .nav-tabs > li.active > a:hover,
@@ -547,12 +550,12 @@ legend {
 .nav-pills > li.active > a,
 .nav-pills > li.active > a:hover,
 .nav-pills > li.active > a:focus {
-  color: #ffffff !important;
+  color: #0a0a0a !important;
   background: var(--accent) !important;
   border-color: var(--accent) !important;
 }
 
-/* ===================== LOGGED BUTTON ===================== */
+/* ===================== #logged button group ===================== */
 #logged {
   display: inline-block !important;
   position: relative !important;
@@ -589,7 +592,7 @@ legend {
   top: 8px;
   bottom: 8px;
   width: 1px;
-  background: var(--border-strong);
+  background: rgba(255,255,255,0.08);
 }
 #logged .dropdown-menu {
   position: absolute !important;
@@ -611,7 +614,7 @@ legend {
   margin-bottom: 20px;
 }
 .login {
-  background: linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg-main) 100%);
+  background: linear-gradient(180deg, rgba(10,10,10,0.98) 0%, rgba(5,5,5,0.98) 100%);
   border-top: 3px solid var(--accent);
   box-shadow: 0 18px 40px rgba(0,0,0,0.45);
   border-radius: 14px;
@@ -622,11 +625,11 @@ legend {
 .btn-group > .btn,
 .btn-group > .dropdown-menu,
 .btn-group > .popover {
-  background-color: rgba(255,255,255,0.02);
+  background-color: rgba(255,255,255,0.03);
 }
 .smallcard:hover .table-striped tbody > tr:nth-child(odd) > td,
 .smallcard:hover .table-striped tbody > tr:nth-child(odd) > th {
-  background-color: var(--accent-soft);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 .header > .row {
   margin-left: 2rem;
@@ -636,18 +639,21 @@ legend {
   text-shadow: none;
 }
 .copyright > p > font {
-  color: var(--text-muted);
+  color: var(--text-soft);
 }
 
 /* ===================== FIX HOVER TABELLE E LISTE ===================== */
+/* Sovrascrive il grigio chiaro originale di Bootstrap al passaggio del mouse */
+
 .table-hover tbody tr:hover > td,
 .table-hover tbody tr:hover > th,
 .table tbody tr:hover > td,
 .table tbody tr:hover > th {
-  background-color: var(--accent-soft-strong) !important; 
+  background-color: var(--accent-soft-strong) !important; /* grigio chiaro semitrasparente */
   color: #ffffff !important;
 }
 
+/* Nel caso in cui quella lista sia costruita con dei link o list-group anziché una tabella */
 .list-group-item:hover,
 a.list-group-item:hover,
 .smallcard .content a:hover,
@@ -656,36 +662,42 @@ a.list-group-item:hover,
   color: #ffffff !important;
 }
 
-/* FIX: Questo rendeva lo sfondo bianco rovinando la dark mode! */
-#wrapper {
-  background-color: white;
+#wrapper{
+	background-color: white;
 }
 
-/* ===================== ALERTS ===================== */
-.alert-info {
-  background-color: var(--accent-soft);
-  color: var(--accent-hover);
-  border: 1px solid var(--accent-soft-strong) !important;
-  border-radius: 8px;
+.alert-info{
+	background-color:transparent;
+	color: white;
 }
-.alert-info.hide {
-  display: none;
+.alert-info.hide{
+	background-color:transparent;
+	color:white;
+	border: 1px solid white !important;
+	border-radius: 4px;	
 }
 
-/* ===================== QR CODE ===================== */
 #qrcode {
   display: flex;
   justify-content: center;
   align-items: center;
+  /* Riduci questo valore per rimpicciolirlo ancora (es: 0.4 o 0.3) */
   transform: scale(0.4) !important; 
+  /* Impedisce che rimanga troppo spazio vuoto intorno al QR rimpicciolito */
   margin: -50px 0 !important; 
   transform-origin: center !important;
+  
+  /* SPOSTAMENTO VERSO L'ALTO */
+  /* Aumenta il valore negativo (es. -80px o -120px) per farlo salire di più */
   margin-top: -270px !important; 
+  
+  /* Riduciamo lo spazio sotto per non lasciare un buco vuoto */
   margin-bottom: -110px !important;
+  
 }
 
 #qrcode table {
-  background: white; 
+  background: white; /* Consigliato per mantenere il contrasto per la lettura */
   padding: 10px;
   border-radius: 8px;
 }
@@ -710,4 +722,13 @@ a.list-group-item:hover,
     gap: 2px; /* Spazio tra il pallino e il SUO testo (puoi metterlo anche a 2px o 0) */
     margin: 0 8px 0 0;
     white-space: nowrap; /* Evita che il testo di un singolo bottone si spezzi in due righe */
+}
+
+
+/* ===================== LEGGIBILITA' SWITCH ===================== */
+.switchOn,
+.switchOn * {
+  color: #ffffff !important;
+  text-shadow: none !important;
+  font-weight: 600;
 }
