@@ -177,19 +177,19 @@ a:hover {
 .dropdown-submenu:hover > a,
 .dropdown-submenu:focus > a {
   color: #ffffff !important;
-  background: linear-gradient(180deg, #1c1c1c 0%, #101010 100%) !important;
-  border-color: #5a5a5a !important;
+  background: linear-gradient(180deg, #333333 0%, #222222 100%) !important;
+  border-color: #9a9a9a !important;
   outline: none;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.10), 0 10px 24px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25), 0 0 16px rgba(255, 255, 255, 0.14), 0 10px 24px rgba(0, 0, 0, 0.5) !important;
 }
 
 .btn-primary:hover,
 .btn-primary:focus {
   color: #0a0a0a !important;
-  background: linear-gradient(180deg, var(--accent-hover) 0%, var(--accent) 100%) !important;
-  border-color: transparent !important;
+  background: #ffffff !important;
+  border-color: #ffffff !important;
   outline: none;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18), 0 10px 24px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.30), 0 0 22px rgba(255, 255, 255, 0.40) !important;
 }
 
 .btn:active,
@@ -731,4 +731,91 @@ a.list-group-item:hover,
   color: #ffffff !important;
   text-shadow: none !important;
   font-weight: 600;
+}
+
+/* ===== HOVER LINK NELLE CARD (solo contenuto, mai header) ===== */
+html body .smallcard .content a:not(.btn):hover,
+html body .smallcard .content a:not(.btn):focus,
+html body .smallcard .content .modal-link:not(.btn):hover,
+html body .smallcard .content [data-toggle]:not(.btn):hover {
+  color: #ffffff !important;
+}
+
+html body .smallcard .content a:has(> i:only-child):hover {
+  background-color: rgba(255, 255, 255, 0.16) !important;
+}
+html body .smallcard .content a:has(> i:only-child):hover i {
+  color: #ffffff !important;
+}
+
+
+/* ===================== ALERT / UPGRADE-ALERT ===================== */
+/* Il fondo giallo crema di Bootstrap rendeva illeggibile il testo chiaro: versione dark neutra */
+html body .upgrade-alert,
+html body .alert,
+html body .alert-warning {
+  background-color: #1a1a1a !important;
+  background-image: none !important;
+  color: #f5f5f5 !important;
+  border: 1px solid #4a4a4a !important;
+  border-radius: 8px !important;
+  text-shadow: none !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+html body .upgrade-alert *,
+html body .alert *,
+html body .alert-warning * {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+html body .upgrade-alert a,
+html body .alert a {
+  text-decoration: underline;
+}
+html body .upgrade-alert .close,
+html body .alert .close {
+  color: #ffffff !important;
+  opacity: .7;
+}
+html body .upgrade-alert .close:hover,
+html body .alert .close:hover {
+  opacity: 1;
+}
+
+
+/* ===================== NAV-LIST (menu laterale) ===================== */
+/* Il text-shadow chiaro di Bootstrap su sfondo scuro rendeva i caratteri "sgranati" */
+html body .nav-list > li > a,
+html body .nav-list .nav-header,
+html body .nav-list > .active > a,
+html body .nav-list > .active > a:hover,
+html body .nav-list > .active > a:focus,
+html body .nav-tabs > li > a,
+html body .nav-pills > li > a {
+  text-shadow: none !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+html body .nav-list .nav-header {
+  color: #9a9a9a !important;
+}
+html body .nav-list > li > a {
+  color: #e6e6e6;
+  border-radius: 6px;
+}
+html body .nav-list > li > a:hover,
+html body .nav-list > li > a:focus {
+  background-color: rgba(255, 255, 255, 0.10) !important;
+  color: #ffffff !important;
+}
+/* Voce selezionata: grigio chiaro con barra laterale, al posto del blu #08c */
+html body .nav-list > .active > a,
+html body .nav-list > li.active > a,
+html body .nav-list > .active > a:hover,
+html body .nav-list > .active > a:focus {
+  background-color: rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 #e5e5e5 !important;
 }
