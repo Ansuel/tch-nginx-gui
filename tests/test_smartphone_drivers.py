@@ -1,6 +1,7 @@
 """Exercise feed-based USB dependencies across kernel layouts and failures."""
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -66,8 +67,10 @@ elif op in ('install', 'upgrade'):
 else: raise AssertionError(args)
 ''', python=True)
         source = MANAGER.read_text()
-        for prefix in ('/etc/', '/lib/', '/sys/', '/tmp/'):
-            source = source.replace(prefix, str(self.root) + prefix)
+        # Rewrite once: on Linux the fixture root itself starts with /tmp/.
+        # Sequential replacements would rewrite already redirected paths.
+        source = re.sub(r'/(?:etc|lib|sys|tmp)/',
+                        lambda match: str(self.root) + match.group(), source)
         self.script = self.root / 'drivers.sh'
         self.script.write_text(source)
 
