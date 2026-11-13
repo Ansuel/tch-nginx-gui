@@ -4,12 +4,16 @@
 status_file=/etc/modgui-smartphone-drivers.status
 boot_file=/etc/modules.d/60-modgui-smartphone-net
 module_dir=/lib/modules/$(uname -r)
+reboot_file=/tmp/modgui-smartphone-drivers-reboot
 
 report() {
-    printf '%s\n' "$1" > "$status_file"
-    printf '%s\n' "$1"
+    message=$1
+    [ ! -f "$reboot_file" ] || message="$message Please reboot the router to use updated USB drivers."
+    printf '%s\n' "$message" > "$status_file"
+    printf '%s\n' "$message"
 }
 installed() { opkg status "$1" 2>/dev/null | grep -q '^Status: .* installed$'; }
+version() { opkg status "$1" 2>/dev/null | sed -n 's/^Version: //p'; }
 available() { printf '%s\n' "$catalog" | awk -v name="$1" '$1 == name {found=1} END {exit !found}'; }
 module_file() {
     # Firmware modules may be flat or under kernel/drivers/net/usb.
@@ -45,12 +49,29 @@ for spec in kmod-usb-net:usbnet kmod-usb-net-cdc-ether:cdc_ether \
     kmod-usb-net-cdc-eem:cdc_eem kmod-usb-net-cdc-subset:cdc_subset; do
     package=${spec%%:*}
     module=${spec#*:}
-    # Reuse firmware, built-in and independently installed modules. In
-    # particular, do not overwrite manual/vendor drivers with standard ones.
-    if ! present "$module" && ! installed "$package"; then
+    # Built-in drivers cannot be replaced by installing a module. Otherwise
+    # prefer the configured feed, retaining opkg's ABI and file ownership checks.
+    if ! builtin "$module"; then
         if available "$package"; then
-            opkg install "$package" || failed=1
-        else
+            was_installed=0
+            installed "$package" && was_installed=1
+            old_version=$(version "$package")
+            if [ "$was_installed" = 1 ]; then
+                opkg upgrade "$package"
+            else
+                opkg install "$package"
+            fi
+            result=$?
+            new_version=$(version "$package")
+            # Never unload a live tethering driver. /tmp retains the notice
+            # across refreshes and clears it on the next router boot.
+            if [ -d "/sys/module/$module" ] &&
+                { [ "$old_version" != "$new_version" ] ||
+                  { [ "$was_installed" = 0 ] && installed "$package"; }; }; then
+                touch "$reboot_file"
+            fi
+            [ "$result" = 0 ] || failed=1
+        elif ! present "$module" && ! installed "$package"; then
             missing="$missing $package"
         fi
     fi
@@ -74,6 +95,10 @@ if [ "$failed" = 1 ]; then
 elif [ -z "$modules" ]; then
     report 'No USB network drivers available in the configured feeds.'
     exit 1
+elif [ -f "$reboot_file" ]; then
+    message='USB driver packages updated from feeds.'
+    [ -z "$missing" ] || message="$message Optional packages not supplied by the feeds:$missing"
+    report "$message"
 elif [ -n "$missing" ]; then
     report "Available USB drivers ready; optional packages not supplied by the feeds:$missing"
 else

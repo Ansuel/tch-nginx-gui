@@ -1,6 +1,7 @@
 """Exercise feed-based USB dependencies across kernel layouts and failures."""
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -18,7 +19,7 @@ class SmartphoneDriversTest(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        for directory in ('bin', 'etc/modules.d', 'sys/module', 'lib/modules', 'state'):
+        for directory in ('bin', 'etc/modules.d', 'sys/module', 'lib/modules', 'state', 'tmp'):
             (self.root / directory).mkdir(parents=True)
         self.env = dict(os.environ, PATH=str(self.root / 'bin') + ':/usr/bin:/bin',
                         FIXTURE=str(self.root), KERNEL_RELEASE='6.6.42-vendor',
@@ -48,22 +49,28 @@ elif op == 'list':
     # Vendor/manual names are deliberately not part of automatic selection.
     print('kmod-rndis-host-otherboard-4.1.38-manual - 1.0')
 elif op == 'status':
-    if (r/'state'/names[0]).exists(): print('Status: install user installed')
+    if (r/'state'/names[0]).exists():
+        print('Status: install user installed')
+        print('Version: ' + (r/'state'/names[0]).read_text())
     else: sys.exit(1)
-elif op == 'install':
+elif op in ('install', 'upgrade'):
     assert os.environ['FEED_ABI'] == os.environ['KERNEL_ABI'], 'opkg: incompatible kernel dependency'
     for name in names:
         assert name in packages, name
         if os.environ.get('FAIL_PACKAGE') == name: sys.exit(1)
-        (r/'state'/name).touch()
+        version = os.environ.get('FEED_VERSION', '1.0')
+        if op == 'upgrade' and (r/'state'/name).read_text() == version: continue
+        (r/'state'/name).write_text(version)
         folder = r/'lib/modules'/os.environ['KERNEL_RELEASE']/os.environ.get('MODULE_LAYOUT', '')
         folder.mkdir(parents=True, exist_ok=True)
         (folder/(packages[name]+'.ko')).write_text('module from feed')
 else: raise AssertionError(args)
 ''', python=True)
         source = MANAGER.read_text()
-        for prefix in ('/etc/', '/lib/', '/sys/'):
-            source = source.replace(prefix, str(self.root) + prefix)
+        # Rewrite once: on Linux the fixture root itself starts with /tmp/.
+        # Sequential replacements would rewrite already redirected paths.
+        source = re.sub(r'/(?:etc|lib|sys|tmp)/',
+                        lambda match: str(self.root) + match.group(), source)
         self.script = self.root / 'drivers.sh'
         self.script.write_text(source)
 
@@ -90,15 +97,16 @@ else: raise AssertionError(args)
         self.assertNotIn('--force', (self.root/'opkg.log').read_text())
         self.assertNotIn('install kmod-rndis-host-otherboard', (self.root/'opkg.log').read_text())
 
-    def test_existing_vendor_module_is_preserved_without_package_or_reload(self):
+    def test_existing_vendor_module_is_replaced_from_feed_without_reload(self):
         module = self.root/'lib/modules/6.6.42-vendor/rndis_host.ko'
         module.parent.mkdir(parents=True)
         module.write_text('independently installed vendor driver')
         (self.root/'sys/module/rndis_host').mkdir()
         result = self.run_manager()
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertEqual(module.read_text(), 'independently installed vendor driver')
-        self.assertNotIn('install kmod-usb-net-rndis', (self.root/'opkg.log').read_text())
+        self.assertEqual(module.read_text(), 'module from feed')
+        self.assertIn('install kmod-usb-net-rndis', (self.root/'opkg.log').read_text())
+        self.assertIn('reboot the router', result.stdout)
         self.assertNotIn('modprobe rndis_host', (self.root/'modules.log').read_text())
 
     def test_builtin_modules_do_not_require_installation_or_loading(self):
@@ -137,13 +145,47 @@ else: raise AssertionError(args)
         self.assertIn('could not be installed or loaded', result.stdout)
         self.assertNotIn('rmmod', (self.root/'modules.log').read_text())
 
-    def test_refresh_reuses_installed_modules(self):
+    def test_refresh_checks_feed_without_reloading_current_modules(self):
         self.assertEqual(self.run_manager().returncode, 0)
         (self.root/'opkg.log').write_text('')
         (self.root/'modules.log').write_text('')
         self.assertEqual(self.run_manager().returncode, 0)
         self.assertNotIn('install ', (self.root/'opkg.log').read_text())
+        self.assertIn('upgrade kmod-usb-net-rndis', (self.root/'opkg.log').read_text())
         self.assertEqual((self.root/'modules.log').read_text(), '')
+        self.assertFalse((self.root/'tmp/modgui-smartphone-drivers-reboot').exists())
+
+    def test_feed_upgrade_of_loaded_driver_requires_reboot_until_next_boot(self):
+        self.assertEqual(self.run_manager().returncode, 0)
+        (self.root/'modules.log').write_text('')
+        result = self.run_manager(FEED_VERSION='2.0')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual((self.root/'state/kmod-usb-net-rndis').read_text(), '2.0')
+        self.assertIn('reboot the router', result.stdout)
+        self.assertEqual((self.root/'modules.log').read_text(), '')
+        self.assertIn('reboot the router', self.run_manager(FEED_VERSION='2.0').stdout)
+        failed_refresh = self.run_manager(FAIL_UPDATE='1')
+        self.assertNotEqual(failed_refresh.returncode, 0)
+        self.assertIn('reboot the router', failed_refresh.stdout)
+        (self.root/'tmp/modgui-smartphone-drivers-reboot').unlink()
+        self.assertNotIn('reboot the router', self.run_manager(FEED_VERSION='2.0').stdout)
+
+    def test_incompatible_upgrade_preserves_installed_driver(self):
+        self.assertEqual(self.run_manager().returncode, 0)
+        result = self.run_manager(FEED_VERSION='2.0', FEED_ABI='wrong')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual((self.root/'state/kmod-usb-net-rndis').read_text(), '1.0')
+        self.assertTrue((self.root/'sys/module/rndis_host').exists())
+        self.assertNotIn('--force', (self.root/'opkg.log').read_text())
+
+    def test_existing_driver_is_retained_when_feed_has_no_package(self):
+        module = self.root/'lib/modules/6.6.42-vendor/rndis_host.ko'
+        module.parent.mkdir(parents=True)
+        module.write_text('vendor driver')
+        result = self.run_manager(MISSING='kmod-usb-net-rndis')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(module.read_text(), 'vendor driver')
+        self.assertNotIn('install kmod-usb-net-rndis', (self.root/'opkg.log').read_text())
 
     def test_legacy_loading_fallback_finds_nested_module_files(self):
         result = self.run_manager(FAIL_MODPROBE='1', MODULE_LAYOUT='kernel/drivers/net/usb')
