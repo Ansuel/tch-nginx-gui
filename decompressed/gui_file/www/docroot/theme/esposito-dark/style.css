@@ -1,0 +1,821 @@
+:root {
+  --bg-main: #000000;
+  --bg-elevated: #050505;
+  --bg-card: #0a0a0a;
+  --bg-card-hover: #111111;
+  --bg-input: #080808;
+  --bg-header: #060606;
+  --bg-dropdown: #0b0b0b;
+
+  --accent: #e5e5e5;
+  --accent-hover: #ffffff;
+  --accent-active: #bdbdbd;
+  --accent-soft: rgba(255, 255, 255, 0.08);
+  --accent-soft-strong: rgba(255, 255, 255, 0.14);
+
+  --text-main: #f5f5f5;
+  --text-soft: #c4c4c4;
+  --text-muted: #8a8a8a;
+  --text-dark: #0a0a0a;
+
+  --border: #1e1e1e;
+  --border-strong: #2c2c2c;
+  --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-accent: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 10px 26px rgba(0, 0, 0, 0.5);
+}
+
+/* ===================== SCROLLBAR ===================== */
+body::-webkit-scrollbar,
+.modal-body::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+body::-webkit-scrollbar-thumb,
+.modal-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+}
+body::-webkit-scrollbar-thumb:hover,
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+body::-webkit-scrollbar-thumb:active,
+.modal-body::-webkit-scrollbar-thumb:active {
+  background: var(--accent);
+}
+body::-webkit-scrollbar-track,
+body::-webkit-scrollbar-corner {
+  background: var(--bg-main);
+}
+.modal-body::-webkit-scrollbar-track,
+.modal-body::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ===================== BASE ===================== */
+html, body {
+  min-height: 100%;
+}
+body {
+  color: var(--text-main);
+  background: #000000;
+  font-family: "Segoe UI", "Inter", sans-serif;
+}
+
+/* ===================== SCROLL BUTTONS ===================== */
+.scroll-down,
+.scroll-up {
+  opacity: 1;
+  position: fixed;
+  bottom: 30px;
+  left: 100%;
+  margin-left: -50px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  z-index: 5;
+  animation: bounce 2s infinite 2s;
+  font-size: 36px;
+  transition: all .2s ease-in-out;
+  background: transparent !important; /* Rende lo sfondo trasparente */
+  border: none !important;          /* Rimuove il bordo circostante */
+  box-shadow: none !important;     /* Rimuove l'ombra circolare */
+  backdrop-filter: none !important; /* Rimuove l'effetto di sfocatura dello sfondo */
+}
+.scroll-down:hover,
+.scroll-up:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-accent);
+  border-color: var(--accent);
+}
+.scroll-down:before,
+.scroll-up:before {
+  position: absolute;
+  top: calc(50% - 8px);
+  left: calc(50% - 7px);
+  color: var(--accent);
+  display: block;
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+}
+.scroll-down:before { content: "\f063"; }
+.scroll-up:before   { content: "\f062"; }
+
+@keyframes bounce {
+  0%, 100%, 20%, 50%, 80% { transform: translateY(0); }
+  40% { transform: translateY(-8px); }
+  60% { transform: translateY(-4px); }
+}
+
+/* ===================== LINKS ===================== */
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color .2s ease;
+}
+a:hover {
+  color: #ffffff;
+  text-decoration: none;
+}
+.smallcard .modal-link:hover {
+  color: var(--accent-hover);
+}
+.smallcard .someInfos,
+.smallcard .smallsomeInfos,
+.smallsomeInfos {
+  color: var(--text-soft);
+}
+
+/* ===================== BUTTONS ===================== */
+.btn-primary,
+.smallcard .header,
+.smallcard .header .settings,
+.btn,
+.header .btn,
+#webui_language,
+.dropdown-menu > li > a {
+  background: linear-gradient(180deg, #171717 0%, #0b0b0b 100%);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  text-shadow: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  transition: background .2s ease, border-color .2s ease, box-shadow .2s ease, color .2s ease;
+}
+.btn-primary {
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-active) 100%);
+  color: #0a0a0a;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+/* Header buttons */
+.header .btn,
+.header .btn-group > .btn,
+.header .btn.dropdown-toggle,
+.header #webui_language {
+  background: linear-gradient(180deg, #151515 0%, #0b0b0b 100%) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-strong) !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35) !important;
+}
+
+.smallcard .header .settings:hover,
+.button:hover,
+.btn:hover,
+.header .btn:hover,
+.header .btn:focus,
+.header .btn-group > .btn:hover,
+.header .btn-group > .btn:focus,
+.header .btn.dropdown-toggle:hover,
+.header .btn.dropdown-toggle:focus,
+#webui_language:hover,
+#webui_language:active,
+#webui_language:focus,
+.dropdown-menu > li > a:hover,
+.dropdown-menu > li > a:focus,
+.dropdown-submenu:hover > a,
+.dropdown-submenu:focus > a {
+  color: #ffffff !important;
+  background: linear-gradient(180deg, #333333 0%, #222222 100%) !important;
+  border-color: #9a9a9a !important;
+  outline: none;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25), 0 0 16px rgba(255, 255, 255, 0.14), 0 10px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  color: #0a0a0a !important;
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.30), 0 0 22px rgba(255, 255, 255, 0.40) !important;
+}
+
+.btn:active,
+.btn-primary:active,
+.header .btn:active {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+}
+
+.btn[disabled] {
+  color: var(--text-muted);
+  background: #0b0b0b;
+  border-color: #161616;
+  opacity: 0.6;
+}
+
+/* Caret */
+.caret,
+.btn .caret,
+.dropdown-toggle .caret {
+  border-top-color: var(--text-main) !important;
+  border-bottom-color: var(--text-main) !important;
+  opacity: 1 !important;
+}
+.header .btn:hover .caret,
+.header .btn:focus .caret,
+.header .dropdown-toggle:hover .caret,
+.header .dropdown-toggle:focus .caret {
+  border-top-color: #ffffff !important;
+  border-bottom-color: #ffffff !important;
+}
+
+/* Language select */
+#webui_language {
+  background-color: #0b0b0b !important;
+  color: var(--text-main) !important;
+}
+#webui_language option {
+  background: var(--bg-dropdown) !important;
+  color: var(--text-main) !important;
+}
+
+/* ===================== DROPDOWN ===================== */
+.header .dropdown-menu,
+#logged .dropdown-menu {
+  background: #0b0b0b !important;
+  border: 1px solid #2f2f2f !important;
+  border-radius: 10px !important;
+  box-shadow: 0 16px 32px rgba(0,0,0,0.55) !important;
+  padding: 6px !important;
+  min-width: 210px;
+}
+.header .dropdown-menu > li > a,
+#logged .dropdown-menu > li > a {
+  display: block;
+  background: transparent !important;
+  color: #ededed !important;
+  padding: 10px 12px !important;
+  border-radius: 8px !important;
+  text-shadow: none !important;
+}
+.header .dropdown-menu > li > a:hover,
+.header .dropdown-menu > li > a:focus,
+#logged .dropdown-menu > li > a:hover,
+#logged .dropdown-menu > li > a:focus {
+  background: #1f1f1f !important;
+  color: #ffffff !important;
+}
+.header .dropdown-menu .divider,
+#logged .dropdown-menu .divider {
+  display: block !important;
+  height: 1px !important;
+  margin: 6px 0 !important;
+  background: rgba(255,255,255,0.08) !important;
+  border: 0 !important;
+}
+
+/* ===================== FORM ===================== */
+.form-search input,
+.form-inline input,
+.form-horizontal input,
+.form-search textarea,
+.form-inline textarea,
+.form-horizontal textarea,
+.form-search select,
+.form-inline select,
+.form-horizontal select,
+.form-search .help-inline,
+.form-inline .help-inline,
+.form-horizontal .help-inline,
+.form-search .uneditable-input,
+.form-inline .uneditable-input,
+.form-horizontal .uneditable-input,
+.form-search .input-prepend,
+.form-inline .input-prepend,
+.form-horizontal .input-prepend,
+.form-search .input-append,
+.form-inline .input-append,
+.form-horizontal .input-append {
+  background-color: var(--bg-input) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.10) !important;
+  outline: none;
+}
+.switchOn {
+  background-color: #3a3a3a;
+  box-shadow: 0 0 0 1px #9a9a9a, 0 0 12px rgba(255, 255, 255, 0.12);
+}
+
+/* ===================== MODALS ===================== */
+.modal-header {
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-header);
+}
+.modal-header h3,
+.modal-header h4,
+legend {
+  color: var(--accent-hover);
+}
+.modal-body {
+  padding: 15px;
+  background-color: var(--bg-elevated);
+  position: relative;
+  overflow-y: auto;   /* richiesto da position:sticky sui figli */
+}
+.modal {
+  background-color: unset;
+}
+.modal-footer {
+  border-top: 1px solid var(--border);
+  background-color: var(--bg-header);
+  border-radius: 0 0 10px 10px;
+  box-shadow: none;
+}
+.modal-action,
+.modal-action i {
+  color: var(--text-soft);
+}
+.modal-action:hover,
+.modal-action:hover i {
+  color: var(--accent-hover);
+}
+
+.hostmaptable tr.grey td {
+  background-color:black !important;
+}
+
+/* Legend sticky */
+.legend {
+  position: fixed !important;
+  top: 0 !important;
+  z-index: 30 !important;
+  display: block !important;
+  margin: 0 -15px 12px -15px !important;
+  padding: 10px 15px 8px 15px !important;
+  background: #050505 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+  box-shadow: 0 6px 10px rgba(0,0,0,0.22);
+}
+
+/* ===================== CARDS ===================== */
+.smallcard {
+  background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid #1c1c1c;
+  border-radius: 14px;
+  transition: background 220ms ease, box-shadow 220ms ease, border-color 220ms ease, transform 220ms ease;
+  
+}
+.smallcard:hover {
+  background: linear-gradient(180deg, #121212 0%, #080808 100%);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 10px 24px rgba(0, 0, 0, 0.55);
+  border-color: #3a3a3a;
+  transform: translateY(-2px);
+}
+
+/* Remove any inherited purple/glow pseudo-elements */
+.smallcard::before,
+.smallcard::after,
+.smallcard > .header::before,
+.smallcard > .header::after {
+  box-shadow: none !important;
+  background-image: none !important;
+}
+
+.smallcard > .header {
+  background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, transparent 70%) !important;
+  border: 0;
+  color: var(--text-main);
+}
+
+.header-title {
+  width: 72%;
+}
+.header-title > p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+/* Card background icon — strictly decorative, never overlapping content */
+.card_bg {
+  position: relative !important;
+  overflow: hidden !important;
+  isolation: isolate;
+  font-size: 14px;
+}
+
+/* Background icon: absolute, behind all content, never interactive */
+.card_bg:after {
+  position: absolute !important;
+  top: 92px !important;
+  right: 12px !important;
+  left: auto !important;
+  font-size: 36px !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+  color: rgba(255,255,255,0.05);
+}
+.smallcard:hover .card_bg:after {
+  color: rgba(255, 255, 255, 0.10) !important;
+}
+
+.gateway_bg:after,
+.login_bg:after {
+  color: rgba(255,255,255,0.05);
+}
+
+/* All real content sits above the decorative pseudo-elements */
+.card_bg > *,
+.smallcard .content,
+.smallcard .content > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* ===================== CARD CONTENT — stable layout ===================== */
+
+/*
+  FIX: table layout inside cards
+  - fixed width so columns don't jump
+  - no unwanted transforms or animations on inner elements
+*/
+.smallcard .content {
+  overflow: hidden;
+  z-index: 2;
+  position: relative;
+}
+
+.smallcard .content table {
+  width: 100% !important;
+  table-layout: fixed !important;
+  border-collapse: collapse !important;
+}
+.smallcard .content td,
+.smallcard .content th {
+  text-align: center !important;
+  vertical-align: middle !important;
+  padding: 8px 6px !important;
+  /* Prevent text from jumping */
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.4 !important;
+}
+
+/*
+  FIX: links and icons inside card content must NOT inherit
+  the card-level translateY or bounce animations.
+  We reset only transform/animation; position is left as-is
+  so relative/absolute children still work correctly.
+*/
+.smallcard .content a {
+  /* Don't override position — let each element keep its own */
+  transform: none !important;
+  animation: none !important;
+  transition: color .15s ease, opacity .15s ease, background-color .15s ease !important;
+  text-shadow: none !important;
+}
+.smallcard .content a:hover,
+.smallcard .content a:focus,
+.smallcard .content a:active {
+  transform: none !important;
+}
+
+.smallcard .content i,
+.smallcard .content .fa,
+.smallcard .content [class^="icon-"],
+.smallcard .content [class*=" icon-"] {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  line-height: 1 !important;
+  transform: none !important;
+  animation: none !important;  /* icons: safe — spinners use .spinner3, not .fa */
+  transition: color .15s ease, opacity .15s ease !important;
+  text-shadow: none !important;
+}
+
+/*
+  FIX: text overlap in modal body
+*/
+.modal-body,
+.modal-body p,
+.modal-body span,
+.modal-body div,
+.modal-body td,
+.modal-body th {
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.4 !important;
+}
+.modal-body table {
+  width: 100% !important;
+  table-layout: auto !important;
+  border-collapse: collapse !important;
+}
+.modal-body td,
+.modal-body th {
+  padding: 6px 8px !important;
+  vertical-align: top !important;
+  text-align: left !important;
+}
+
+/* Nav tabs: allow wrapping on narrow viewports */
+.nav-tabs > li > a,
+.nav-pills > li > a {
+  white-space: normal !important;
+  line-height: 1.25 !important;
+  height: auto !important;
+  color: var(--text-soft) !important;
+  background: rgba(255,255,255,0.04) !important;
+  border-color: var(--border) !important;
+}
+.nav-tabs > li > a:hover,
+.nav-pills > li > a:hover {
+  color: var(--text-main) !important;
+  background: rgba(255,255,255,0.08) !important;
+  border-color: #5a5a5a !important;
+}
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:hover,
+.nav-tabs > li.active > a:focus,
+.nav-pills > li.active > a,
+.nav-pills > li.active > a:hover,
+.nav-pills > li.active > a:focus {
+  color: #0a0a0a !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+/* ===================== #logged button group ===================== */
+#logged {
+  display: inline-block !important;
+  position: relative !important;
+  overflow: visible !important;
+  vertical-align: middle;
+}
+#logged > .btn {
+  float: left;
+  margin: 0 !important;
+  min-height: 42px;
+  line-height: 20px;
+  border-radius: 0 !important;
+}
+#logged > .btn:first-child {
+  border-top-left-radius: 10px !important;
+  border-bottom-left-radius: 10px !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  border-right: 0 !important;
+}
+#logged > .dropdown-toggle {
+  border-top-right-radius: 10px !important;
+  border-bottom-right-radius: 10px !important;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  margin-left: 0 !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+#logged > .dropdown-toggle:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: rgba(255,255,255,0.08);
+}
+#logged .dropdown-menu {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  right: 0 !important;
+  left: auto !important;
+  z-index: 99999 !important;
+}
+
+/* ===================== MISC ===================== */
+.spinner3 > div {
+  background-color: var(--accent) !important;
+}
+#popUp {
+  color: var(--text-main);
+}
+#headertab {
+  height: auto;
+  margin-bottom: 20px;
+}
+.login {
+  background: linear-gradient(180deg, rgba(10,10,10,0.98) 0%, rgba(5,5,5,0.98) 100%);
+  border-top: 3px solid var(--accent);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+.table-striped tbody > tr:nth-child(odd) > td,
+.table-striped tbody > tr:nth-child(odd) > th,
+.btn-group > .btn,
+.btn-group > .dropdown-menu,
+.btn-group > .popover {
+  background-color: rgba(255,255,255,0.03);
+}
+.smallcard:hover .table-striped tbody > tr:nth-child(odd) > td,
+.smallcard:hover .table-striped tbody > tr:nth-child(odd) > th {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.header > .row {
+  margin-left: 2rem;
+  margin-right: 2rem;
+}
+.copyright {
+  text-shadow: none;
+}
+.copyright > p > font {
+  color: var(--text-soft);
+}
+
+/* ===================== FIX HOVER TABELLE E LISTE ===================== */
+/* Sovrascrive il grigio chiaro originale di Bootstrap al passaggio del mouse */
+
+.table-hover tbody tr:hover > td,
+.table-hover tbody tr:hover > th,
+.table tbody tr:hover > td,
+.table tbody tr:hover > th {
+  background-color: var(--accent-soft-strong) !important; /* grigio chiaro semitrasparente */
+  color: #ffffff !important;
+}
+
+/* Nel caso in cui quella lista sia costruita con dei link o list-group anziché una tabella */
+.list-group-item:hover,
+a.list-group-item:hover,
+.smallcard .content a:hover,
+.modal-body a:hover {
+  background-color: var(--bg-card-hover) !important;
+  color: #ffffff !important;
+}
+
+#wrapper{
+	background-color: white;
+}
+
+.alert-info{
+	background-color:transparent;
+	color: white;
+}
+.alert-info.hide{
+	background-color:transparent;
+	color:white;
+	border: 1px solid white !important;
+	border-radius: 4px;	
+}
+
+#qrcode {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Riduci questo valore per rimpicciolirlo ancora (es: 0.4 o 0.3) */
+  transform: scale(0.4) !important; 
+  /* Impedisce che rimanga troppo spazio vuoto intorno al QR rimpicciolito */
+  margin: -50px 0 !important; 
+  transform-origin: center !important;
+  
+  /* SPOSTAMENTO VERSO L'ALTO */
+  /* Aumenta il valore negativo (es. -80px o -120px) per farlo salire di più */
+  margin-top: -270px !important; 
+  
+  /* Riduciamo lo spazio sotto per non lasciare un buco vuoto */
+  margin-bottom: -110px !important;
+  
+}
+
+#qrcode table {
+  background: white; /* Consigliato per mantenere il contrasto per la lettura */
+  padding: 10px;
+  border-radius: 8px;
+}
+
+/* ===================== FIX TOGGLE/SWITCH INTERNI ===================== */
+.modal-body .toggle *,
+.modal-body .toggle-group *,
+.modal-body .switch *,
+.modal-body [class*="switch"] *,
+.modal-body [class*="toggle"] * {
+  white-space: nowrap !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.4 !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+.controls .radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px; /* Spazio tra il pallino e il SUO testo (puoi metterlo anche a 2px o 0) */
+    margin: 0 8px 0 0;
+    white-space: nowrap; /* Evita che il testo di un singolo bottone si spezzi in due righe */
+}
+
+
+/* ===================== LEGGIBILITA' SWITCH ===================== */
+.switchOn,
+.switchOn * {
+  color: #ffffff !important;
+  text-shadow: none !important;
+  font-weight: 600;
+}
+
+/* ===== HOVER LINK NELLE CARD (solo contenuto, mai header) ===== */
+html body .smallcard .content a:not(.btn):hover,
+html body .smallcard .content a:not(.btn):focus,
+html body .smallcard .content .modal-link:not(.btn):hover,
+html body .smallcard .content [data-toggle]:not(.btn):hover {
+  color: #ffffff !important;
+}
+
+html body .smallcard .content a:has(> i:only-child):hover {
+  background-color: rgba(255, 255, 255, 0.16) !important;
+}
+html body .smallcard .content a:has(> i:only-child):hover i {
+  color: #ffffff !important;
+}
+
+
+/* ===================== ALERT / UPGRADE-ALERT ===================== */
+/* Il fondo giallo crema di Bootstrap rendeva illeggibile il testo chiaro: versione dark neutra */
+html body .upgrade-alert,
+html body .alert,
+html body .alert-warning {
+  background-color: #1a1a1a !important;
+  background-image: none !important;
+  color: #f5f5f5 !important;
+  border: 1px solid #4a4a4a !important;
+  border-radius: 8px !important;
+  text-shadow: none !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+html body .upgrade-alert *,
+html body .alert *,
+html body .alert-warning * {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+html body .upgrade-alert a,
+html body .alert a {
+  text-decoration: underline;
+}
+html body .upgrade-alert .close,
+html body .alert .close {
+  color: #ffffff !important;
+  opacity: .7;
+}
+html body .upgrade-alert .close:hover,
+html body .alert .close:hover {
+  opacity: 1;
+}
+
+
+/* ===================== NAV-LIST (menu laterale) ===================== */
+/* Il text-shadow chiaro di Bootstrap su sfondo scuro rendeva i caratteri "sgranati" */
+html body .nav-list > li > a,
+html body .nav-list .nav-header,
+html body .nav-list > .active > a,
+html body .nav-list > .active > a:hover,
+html body .nav-list > .active > a:focus,
+html body .nav-tabs > li > a,
+html body .nav-pills > li > a {
+  text-shadow: none !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+html body .nav-list .nav-header {
+  color: #9a9a9a !important;
+}
+html body .nav-list > li > a {
+  color: #e6e6e6;
+  border-radius: 6px;
+}
+html body .nav-list > li > a:hover,
+html body .nav-list > li > a:focus {
+  background-color: rgba(255, 255, 255, 0.10) !important;
+  color: #ffffff !important;
+}
+/* Voce selezionata: grigio chiaro con barra laterale, al posto del blu #08c */
+html body .nav-list > .active > a,
+html body .nav-list > li.active > a,
+html body .nav-list > .active > a:hover,
+html body .nav-list > .active > a:focus {
+  background-color: rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 #e5e5e5 !important;
+}

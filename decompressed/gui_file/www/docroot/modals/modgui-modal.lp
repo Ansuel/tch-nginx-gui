@@ -449,6 +449,8 @@ local gui_skin_option = {
         { "dark-white_Fritz", T'Dark/White (Fritz!Box Based)'},
         { "dark-midnight_Fritz", T'Dark/Midnight (Fritz!Box Based)'},
         { "dark-red", T'Red Dark'},
+		{ "esposito-blue", T'Esposito Blue'},
+		{ "esposito-dark", T'Esposito Dark'},
 }
 
 local spoof_mode_enum = {
@@ -696,7 +698,7 @@ local card_titles = {
         system = T"System Extras", natalghelper = T"NAT Helpers", xdsl = T"xDSL Configuration",
         wifiExtender = T"EasyMesh", datausage = T"Data Usage", certificates = T"Paired devices",
         wireguard = T"WireGuard", openvpnserver = T"OpenVPN", tailscale = T"Tailscale",
-        l2tpipsec = T"L2TP/IPsec VPN", speedservice = T"Speed Test", nfc = T"NFC",
+        l2tpipsec = T"L2TP/IPsec VPN", speedservice = T"Speed Test", nfc = T"NFC", memory = T"Memory",
 }
 html[#html + 1] = '<form class="form-horizontal" method="post" action="modals/modgui-modal.lp">'
 html[#html + 1] = '<legend>' .. T"Card Settings" .. '</legend>'
@@ -772,9 +774,7 @@ local info_box = {
                 class = "alert alert-info",
         }
 }
-html[#html + 1] = ui_helper.createAlertBlock(T"Disable CWMP Update. Any firmware update from CWMP will be rejected and not flashed. "..
-                        "Consider that CWMP that request a firmware update will keep requesting it until the update is actually installed. "..
-                        "Autoconfiguration won't work. Manually set the version in the System Extra tab to spoof a version or upgrade the firmware.")
+html[#html + 1] = ui_helper.createAlertBlock(T"Disable CWMP Update. Any firmware update from CWMP will be rejected and not flashed. Consider that CWMP that request a firmware update will keep requesting it until the update is actually installed. Autoconfiguration won't work. Manually set the version in the System Extra tab to spoof a version or upgrade the firmware.")
 html[#html + 1] = ui_helper.createSwitch(T"Disable CWMP Update", "disable_cwmp_update", modgui_settings["disable_cwmp_update"])
 html[#html + 1] = ui_helper.createAlertBlock(T"Change the Modem Serial. Consider that the modem serial is the Factory ID + Serial.", info_box)
 html[#html + 1] = ui_helper.createInputText(T"Modem Serial", "modem_serial", modgui_settings["modem_serial"])

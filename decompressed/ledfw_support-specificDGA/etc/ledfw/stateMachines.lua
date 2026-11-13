@@ -31,6 +31,48 @@ end
 
 local wifi_led_nsc = is_WiFi_LED_on_if_NSC()
 
+-- Color of the Power LED when the modem is operational (UCI option ledfw.status_led.power_color).
+-- Allowed values: green (default), blue, orange, red, cyan, magenta, white. Any other value or
+-- an absent option defaults to green; therefore, nothing changes if no configuration is provided.
+-- The color is re-read from UCI each time the device enters the "operational" state
+-- (following the same runFunc + staticLed function pattern used for the Internet LED).
+local power_ok_led = "power:green"
+
+local function get_power_ok_color()
+    local cursor = uci.cursor()
+    local color = cursor:get('ledfw', 'status_led', 'power_color')
+
+    cursor:close()
+    if color == 'blue' or color == 'orange' or color == 'red'
+        or color == 'cyan' or color == 'magenta' or color == 'white' then
+        return color
+    end
+    return 'green'
+end
+
+local function refresh_power_ok_led()
+    power_ok_led = "power:" .. get_power_ok_color()
+end
+
+local function get_power_ok_led()
+    return power_ok_led
+end
+
+
+local function power_ok_actions()
+    return {
+        runFunc(refresh_power_ok_led, {}),
+        staticLed("power:orange", false),
+        staticLed("power:red", false),
+        staticLed("power:blue", false),
+        staticLed("power:cyan", false),
+        staticLed("power:magenta", false),
+        staticLed("power:white", false),
+        staticLed("power:green", false),
+        staticLed(get_power_ok_led, true)
+    }
+end
+
 patterns = {
     status = {
         state = "status_inactive",
@@ -61,7 +103,15 @@ patterns = {
                 staticLed("dect:red", false),
                 staticLed("dect:green", false),
                 staticLed("dect:orange", false),
-                staticLed("voip:green", false)
+                staticLed("voip:green", false),
+                -- eco: also turns off the Info/Power LED (all sub-LEDs)
+                staticLed("power:orange", false),
+                staticLed("power:red", false),
+                staticLed("power:blue", false),
+                staticLed("power:cyan", false),
+                staticLed("power:magenta", false),
+                staticLed("power:white", false),
+                staticLed("power:green", false)
             },
 			status_upgrade = {
                 staticLed("broadband:red", false),
@@ -144,24 +194,20 @@ stateMachines = {
         },
         actions = {
             power_started = {
+                staticLed("power:cyan", false),
+                staticLed("power:magenta", false),
+                staticLed("power:white", false),
                 staticLed("power:orange", false),
                 staticLed("power:red", false),
                 staticLed("power:blue", true),
                 staticLed("power:green", false)
             },
-            service_ok_eco = {
-                staticLed("power:orange", false),
-                staticLed("power:red", false),
-                staticLed("power:blue", false),
-                staticLed("power:green", true)
-            },
-            service_ok_fullpower = {
-                staticLed("power:orange", false),
-                staticLed("power:red", false),
-                staticLed("power:blue", false),
-                staticLed("power:green", true)
-            },
+            service_ok_eco = power_ok_actions(),
+            service_ok_fullpower = power_ok_actions(),
             service_notok = {
+                staticLed("power:cyan", false),
+                staticLed("power:magenta", false),
+                staticLed("power:white", false),
                 staticLed("power:orange", false),
                 staticLed("power:red", true),
                 staticLed("power:blue", false),
@@ -170,8 +216,8 @@ stateMachines = {
         },
         patterns_depend_on = {
             power_started = { "remote_mgmt" , "fw_upgrade" },
-            service_ok_fullpower = { "remote_mgmt", "fw_upgrade" },
-            service_ok_eco = { "remote_mgmt", "fw_upgrade" },
+            service_ok_fullpower = { "status", "remote_mgmt", "fw_upgrade" },
+            service_ok_eco = { "status", "remote_mgmt", "fw_upgrade" },
             service_notok = { "remote_mgmt", "fw_upgrade" }
         }
     },
