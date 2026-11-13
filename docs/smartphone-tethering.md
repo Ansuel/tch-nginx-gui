@@ -51,12 +51,19 @@ There are no board names, fixed kernel versions, ABI hashes or manual package
 profiles in the installer. `opkg` resolves each package for the running firmware;
 kernel dependency failures are reported without forcing compatibility.
 
-Existing modules are reused whether supplied by firmware, built into the kernel
-or installed independently. Discovery uses the running kernel's module directory
-and supports both flat and nested layouts. The installer does not overwrite
-vendor/manual drivers or unload active modules. Manual compatibility packages
-are not automatically selected, since their names alone do not establish
-compatibility. Shared drivers and their autoload entries remain installed when
+For drivers supplied by the configured feeds, installation and refresh prefer
+those packages even when a module already exists: missing packages use
+`opkg install`, and installed packages use a targeted `opkg upgrade`. Normal
+kernel ABI, architecture and file ownership checks remain enabled; neither
+manual compatibility packages nor force options are selected. Existing modules
+are retained when no matching feed package is available. Drivers built into the
+kernel are reused because installing a module cannot replace them.
+
+The installer never unloads active modules. When a package for a loaded driver
+is installed or changes version, the modal reports that a router reboot is
+required to use the updated driver. This notice survives refreshes until reboot.
+Discovery uses the running kernel's module directory and supports flat and
+nested layouts. Shared drivers and their autoload entries remain installed when
 Smartphone USB is removed. Recovery archives from earlier manual replacements
 are retained but are no longer part of the automatic installer.
 
