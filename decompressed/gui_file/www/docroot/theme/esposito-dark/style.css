@@ -77,10 +77,10 @@ body {
   animation: bounce 2s infinite 2s;
   font-size: 36px;
   transition: all .2s ease-in-out;
-  background: transparent !important; /* Rende lo sfondo trasparente */
-  border: none !important;          /* Rimuove il bordo circostante */
-  box-shadow: none !important;     /* Rimuove l'ombra circolare */
-  backdrop-filter: none !important; /* Rimuove l'effetto di sfocatura dello sfondo */
+  background: transparent !important; /* Makes the background transparent */
+  border: none !important;          /* Removes the surrounding border */
+  box-shadow: none !important;     /* Removes the circular shadow */
+  backdrop-filter: none !important; /* Removes the background blur effect */
 }
 .scroll-down:hover,
 .scroll-up:hover {
@@ -325,7 +325,7 @@ legend {
   padding: 15px;
   background-color: var(--bg-elevated);
   position: relative;
-  overflow-y: auto;   /* richiesto da position:sticky sui figli */
+  overflow-y: auto;   /* required by position:sticky on children */
 }
 .modal {
   background-color: unset;
@@ -642,18 +642,18 @@ legend {
   color: var(--text-soft);
 }
 
-/* ===================== FIX HOVER TABELLE E LISTE ===================== */
-/* Sovrascrive il grigio chiaro originale di Bootstrap al passaggio del mouse */
+/* ===================== FIX TABLE AND LIST HOVER ===================== */
+/* Overrides Bootstrap's original light grey on mouse hover */
 
 .table-hover tbody tr:hover > td,
 .table-hover tbody tr:hover > th,
 .table tbody tr:hover > td,
 .table tbody tr:hover > th {
-  background-color: var(--accent-soft-strong) !important; /* grigio chiaro semitrasparente */
+  background-color: var(--accent-soft-strong) !important; /* semi-transparent light grey */
   color: #ffffff !important;
 }
 
-/* Nel caso in cui quella lista sia costruita con dei link o list-group anziché una tabella */
+/* In case that list is built with links or list-group instead of a table */
 .list-group-item:hover,
 a.list-group-item:hover,
 .smallcard .content a:hover,
@@ -681,28 +681,28 @@ a.list-group-item:hover,
   display: flex;
   justify-content: center;
   align-items: center;
-  /* Riduci questo valore per rimpicciolirlo ancora (es: 0.4 o 0.3) */
+  /* Lower this value to shrink it further (e.g. 0.4 or 0.3) */
   transform: scale(0.4) !important; 
-  /* Impedisce che rimanga troppo spazio vuoto intorno al QR rimpicciolito */
+  /* Prevents too much empty space around the shrunken QR */
   margin: -50px 0 !important; 
   transform-origin: center !important;
   
-  /* SPOSTAMENTO VERSO L'ALTO */
-  /* Aumenta il valore negativo (es. -80px o -120px) per farlo salire di più */
+  /* MOVE UPWARDS */
+  /* Increase the negative value (e.g. -80px or -120px) to move it higher */
   margin-top: -270px !important; 
   
-  /* Riduciamo lo spazio sotto per non lasciare un buco vuoto */
+  /* Reduce the space below so no empty gap is left */
   margin-bottom: -110px !important;
   
 }
 
 #qrcode table {
-  background: white; /* Consigliato per mantenere il contrasto per la lettura */
+  background: white; /* Recommended to keep enough contrast for scanning */
   padding: 10px;
   border-radius: 8px;
 }
 
-/* ===================== FIX TOGGLE/SWITCH INTERNI ===================== */
+/* ===================== FIX INNER TOGGLE/SWITCH ===================== */
 .modal-body .toggle *,
 .modal-body .toggle-group *,
 .modal-body .switch *,
@@ -719,13 +719,13 @@ a.list-group-item:hover,
 .controls .radio {
     display: inline-flex;
     align-items: center;
-    gap: 2px; /* Spazio tra il pallino e il SUO testo (puoi metterlo anche a 2px o 0) */
+    gap: 2px; /* Space between the radio dot and ITS text (can also be 2px or 0) */
     margin: 0 8px 0 0;
-    white-space: nowrap; /* Evita che il testo di un singolo bottone si spezzi in due righe */
+    white-space: nowrap; /* Prevents a single button's text from wrapping onto two lines */
 }
 
 
-/* ===================== LEGGIBILITA' SWITCH ===================== */
+/* ===================== SWITCH READABILITY ===================== */
 .switchOn,
 .switchOn * {
   color: #ffffff !important;
@@ -733,7 +733,7 @@ a.list-group-item:hover,
   font-weight: 600;
 }
 
-/* ===== HOVER LINK NELLE CARD (solo contenuto, mai header) ===== */
+/* ===== LINK HOVER IN CARDS (content only, never header) ===== */
 html body .smallcard .content a:not(.btn):hover,
 html body .smallcard .content a:not(.btn):focus,
 html body .smallcard .content .modal-link:not(.btn):hover,
@@ -750,7 +750,7 @@ html body .smallcard .content a:has(> i:only-child):hover i {
 
 
 /* ===================== ALERT / UPGRADE-ALERT ===================== */
-/* Il fondo giallo crema di Bootstrap rendeva illeggibile il testo chiaro: versione dark neutra */
+/* Bootstrap's cream-yellow background made light text unreadable: neutral dark version */
 html body .upgrade-alert,
 html body .alert,
 html body .alert-warning {
@@ -783,8 +783,8 @@ html body .alert .close:hover {
 }
 
 
-/* ===================== NAV-LIST (menu laterale) ===================== */
-/* Il text-shadow chiaro di Bootstrap su sfondo scuro rendeva i caratteri "sgranati" */
+/* ===================== NAV-LIST (side menu) ===================== */
+/* Bootstrap's light text-shadow on a dark background made characters look "grainy" */
 html body .nav-list > li > a,
 html body .nav-list .nav-header,
 html body .nav-list > .active > a,
@@ -809,7 +809,7 @@ html body .nav-list > li > a:focus {
   background-color: rgba(255, 255, 255, 0.10) !important;
   color: #ffffff !important;
 }
-/* Voce selezionata: grigio chiaro con barra laterale, al posto del blu #08c */
+/* Selected item: light grey with side bar, instead of blue #08c */
 html body .nav-list > .active > a,
 html body .nav-list > li.active > a,
 html body .nav-list > .active > a:hover,
@@ -818,4 +818,141 @@ html body .nav-list > .active > a:focus {
   color: #ffffff !important;
   font-weight: 600;
   box-shadow: inset 3px 0 0 #e5e5e5 !important;
+}
+
+/* ===================== ERRORS = RED / SUCCESS = GREEN ===================== */
+/* Palette (dark theme): solid dark tinted background, vivid border and side bar, readable white text */
+:root {
+  --msg-error-bg: #4a1519;
+  --msg-error-border: #ff4d55;
+  --msg-error-text: #ff8a90;
+  --msg-success-bg: #0f3d22;
+  --msg-success-border: #2ee57a;
+  --msg-success-text: #5df0a0;
+}
+
+/* --- Error messages (alert) --- */
+html body .alert.alert-error,
+html body .alert.alert-danger,
+html body .alert-error,
+html body .alert-danger {
+  background-color: var(--msg-error-bg) !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  border: 1px solid var(--msg-error-border) !important;
+  border-left: 5px solid var(--msg-error-border) !important;
+  border-radius: 8px !important;
+  text-shadow: none !important;
+  box-shadow: 0 6px 18px rgba(255, 77, 85, 0.25);
+}
+html body .alert.alert-error *,
+html body .alert.alert-danger *,
+html body .alert-error *,
+html body .alert-danger * {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+html body .alert.alert-error h4,
+html body .alert.alert-danger h4,
+html body .alert.alert-error strong,
+html body .alert.alert-danger strong {
+  color: var(--msg-error-text) !important;
+}
+
+/* --- Success messages (saves and completed operations) --- */
+html body .alert.alert-success,
+html body .alert-success {
+  background-color: var(--msg-success-bg) !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  border: 1px solid var(--msg-success-border) !important;
+  border-left: 5px solid var(--msg-success-border) !important;
+  border-radius: 8px !important;
+  text-shadow: none !important;
+  box-shadow: 0 6px 18px rgba(46, 229, 122, 0.22);
+}
+html body .alert.alert-success *,
+html body .alert-success * {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+html body .alert.alert-success h4,
+html body .alert.alert-success strong {
+  color: var(--msg-success-text) !important;
+}
+
+/* --- Form field validation: error red, ok green --- */
+html body .control-group.error > label,
+html body .control-group.error .control-label,
+html body .control-group.error .help-block,
+html body .control-group.error .help-inline,
+html body .control-group.error .checkbox,
+html body .control-group.error .radio {
+  color: var(--msg-error-text) !important;
+}
+html body .control-group.error input,
+html body .control-group.error select,
+html body .control-group.error textarea {
+  border-color: var(--msg-error-border) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 1px var(--msg-error-border), inset 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+html body .control-group.error input:focus,
+html body .control-group.error select:focus,
+html body .control-group.error textarea:focus {
+  border-color: var(--msg-error-border) !important;
+  box-shadow: 0 0 0 2px rgba(255, 77, 85, 0.45) !important;
+}
+html body .control-group.error .help-inline,
+html body .control-group.error .help-block {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-weight: 600;
+}
+
+html body .control-group.success > label,
+html body .control-group.success .control-label,
+html body .control-group.success .help-block,
+html body .control-group.success .help-inline,
+html body .control-group.success .checkbox,
+html body .control-group.success .radio {
+  color: var(--msg-success-text) !important;
+}
+html body .control-group.success input,
+html body .control-group.success select,
+html body .control-group.success textarea {
+  border-color: var(--msg-success-border) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 1px var(--msg-success-border), inset 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+html body .control-group.success .help-inline,
+html body .control-group.success .help-block {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-weight: 600;
+}
+
+/* --- Status texts and labels --- */
+html body .text-error,
+html body .text-danger {
+  color: var(--msg-error-text) !important;
+}
+html body .text-success {
+  color: var(--msg-success-text) !important;
+}
+html body .label-important,
+html body .badge-important,
+html body .label-danger,
+html body .label-error {
+  background-color: #d9323a !important;
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+html body .label-success,
+html body .badge-success {
+  background-color: #1f9d55 !important;
+  color: #ffffff !important;
+  text-shadow: none !important;
 }

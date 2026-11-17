@@ -4733,3 +4733,9 @@ msgstr "Bianco"
 
 msgid "Hidden network"
 msgstr "Rete Nascosta"
+
+msgid "Unable to identify the existing bridge WAN interface; restore its physical uplink first"
+msgstr "Impossibile identificare l'interfaccia WAN del bridge esistente; ripristinare prima il suo uplink fisico"
+
+msgid "Bridge mode uses the selected WAN interface with WanSensing disabled. Enabling WanSensing exits bridge mode and restores the routed connection."
+msgstr "La modalità bridge utilizza l'interfaccia WAN selezionata con WanSensing disattivato. L'attivazione di WanSensing fa uscire dalla modalità bridge e ripristina la connessione instradata."
