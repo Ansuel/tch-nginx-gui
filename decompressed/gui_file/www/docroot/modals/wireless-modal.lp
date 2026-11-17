@@ -1659,12 +1659,24 @@ else
 <script language ="javascript">\
 \
 function get_random_color() {\
-  var letters = \'0123456789ABCDEF\'.split(\'\');\
-  var color = \'#\';\
-  for (var i = 0; i < 6; i++ ) {\
-    color += letters[Math.round(Math.random() * 15)];\
+  // Random hue, always saturated and not too light: readable on white and never confused with the black axes\
+  var used = window.vistiHues || [];\
+  var hue = 0;\
+  for (var t = 0; t < 20; t++) {\
+    hue = Math.floor(Math.random() * 360);\
+    var ok = true;\
+    for (var j = 0; j < used.length; j++) {\
+      var d = Math.abs(hue - used[j]);\
+      if (d > 180) { d = 360 - d; }\
+      if (d < 25) { ok = false; break; }\
+    }\
+    if (ok) { break; }\
   }\
-   return color;\
+  used.push(hue);\
+  window.vistiHues = used;\
+  var sat = 70 + Math.floor(Math.random() * 30);\
+  var light = 35 + Math.floor(Math.random() * 10);\
+  return "hsl(" + hue + "," + sat + "%," + light + "%)";\
 }\
   function get_y_from_sig(max, min, range, sig) {\
     return ((sig-max)/((min-max)/range))+30;\
@@ -1682,11 +1694,14 @@ function get_random_color() {\
     var ctx;\
   function initializeAnalyzer() {\
     window.vistiAnalyzer = {};\
+    window.vistiHues = [];\
     var c=document.getElementById("wrapper");\
     ctx=c.getContext("2d");\
     ctx.clearRect(0,0,c.width,c.height);\
+    ctx.strokeStyle="#000000";\
+    ctx.fillStyle="#000000";\
+    ctx.lineWidth=1;\
     ctx.beginPath();\
-    ctx.lineStyle="#FF0000";\
 \
     //Y Axis\
     ctx.moveTo(30,30);\
@@ -1867,11 +1882,13 @@ function get_random_color() {\
     if (sig > maximum) { sig = maximum; } else if (sig < minimum) { sig = minimum; }\
     var xcoord = get_x_from_channel(info.center);\
     var half = (info.width / 20) * (is2GAnalyzer ? 80 : 15);\
+    ctx.save();\
     ctx.beginPath();\
     ctx.strokeStyle = rowColor;\
     ctx.moveTo(xcoord - half, 350);\
     ctx.quadraticCurveTo(xcoord, get_curve_y_from_sig(maximum, minimum, range, sig), xcoord + half, 350);\
     ctx.stroke();\
+    ctx.restore();\
 \
     var str20 = (info.width == 20) ? "*" : "";\
     var str40 = (info.width == 40) ? "*" : "";\
