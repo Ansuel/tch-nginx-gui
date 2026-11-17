@@ -60,6 +60,7 @@ elif args == ['shell', 'dumpsys', 'telephony.registry']:
     print('mSignalStrength=CellSignalStrengthLte: rsrp=-95 rsrq=-10 rssnr=120 CellSignalStrengthNr: ssRsrp=2147483647')
     print('getRilDataRadioTechnology=14 nrState=' + os.environ.get('NR_STATE', 'NONE'))
     print('mDataConnectionState=2\\nmOperatorAlphaLong=Example,')
+    print(os.environ.get('TELEPHONY_EXTRA', ''))
 elif args == ['shell', 'getprop', 'ro.build.version.sdk']:
     print('29')
 elif args == ['shell', 'ip', '-4', 'route'] or args == ['shell', 'ip', 'route']:
@@ -126,7 +127,9 @@ path.write_text(json.dumps(state))
         self.write('ip', f'#!{sys.executable}\n' + '''import os, pathlib, sys
 root = pathlib.Path(os.environ['PHONE_TEST_DIR']); args = sys.argv[1:]
 rule = root / 'rule'; route = root / 'route'
-if args == ['-o', '-4', 'addr', 'show', 'dev', 'usb0']:
+if args == ['route', 'show', 'default']:
+    print(os.environ.get('HOST_DEFAULT_ROUTES', ''))
+elif args == ['-o', '-4', 'addr', 'show', 'dev', 'usb0']:
     if os.environ.get('HOST_TEST_IP'): print('26: usb0 inet 10.2.3.4/24 brd 10.2.3.255 scope global usb0')
 elif args == ['-4', 'route', 'show', 'dev', 'usb0']:
     if os.environ.get('HOST_TEST_IP'): print('default via 10.2.3.1 dev usb0')
@@ -182,6 +185,34 @@ elif args[:2] == ['route', 'flush']:
 
     def test_connected_nr_is_5g(self):
         self.assertIn('NET|5G (NSA)', self.run_phone(NR_STATE='CONNECTED').stdout)
+
+    def test_telemetry_without_gnu_grep_extraction_or_gawk(self):
+        self.write('grep', '''#!/bin/sh
+for arg do
+    case "$arg" in
+        --only-matching|-*o*) echo 'non-POSIX grep option' >&2; exit 2 ;;
+    esac
+done
+exec /usr/bin/grep "$@"
+''')
+        self.write('gawk', '#!/bin/sh\nexit 99\n')
+        cases = [
+            ('getRilDataRadioTechnology=14 getRilDataRadioTechnology=20', '5G (SA)'),
+            ('TelephonyDisplayInfo override=NR_NSA', '5G (NSA)'),
+            ('TelephonyDisplayInfo override=NR_ADVANCED', '5G (NSA)'),
+            ('TelephonyDisplayInfo override=NR_NSA\nTelephonyDisplayInfo override=NONE', '4G (LTE)'),
+        ]
+        for extra, network in cases:
+            with self.subTest(extra=extra):
+                result = self.run_phone(
+                    TELEPHONY_EXTRA=extra + '\nmOperatorAlphaLong=Test Mobile,\nmOperatorAlphaLong=null,',
+                    HOST_DEFAULT_ROUTES='default via 192.0.2.1 dev eth0.2\ndefault dev usb0')
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertNotIn('non-POSIX grep option', result.stderr)
+                self.assertIn('NET|' + network, result.stdout)
+                self.assertIn('OPER|Test Mobile', result.stdout)
+                self.assertIn('SIG|-95 dBm', result.stdout)
+                self.assertIn('ACTIVE_WAN|Router (eth0.2)', result.stdout)
 
     def test_non_root_capabilities_hide_privileged_features(self):
         result = self.run_phone(DENY_ROOT='1')

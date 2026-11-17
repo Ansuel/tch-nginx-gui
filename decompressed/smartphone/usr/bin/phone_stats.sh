@@ -205,7 +205,7 @@ capture_screen() {
     trap 'exit 1' HUP INT TERM
     android_shell "umask 077; screencap -p $remote_image" 5 >/dev/null 2>&1 || error "Unable to capture the display. Wake the phone and try again."
     timed 8 "$ADB_BIN" pull "$remote_image" "$screen_tmp" >/dev/null 2>&1 || error "Unable to transfer the screen capture."
-    signature=$(head -c 8 "$screen_tmp" | base64 | tr -d '\r\n')
+    signature=$(dd if="$screen_tmp" bs=8 count=1 2>/dev/null | base64 | tr -d '\r\n')
     size=$(wc -c < "$screen_tmp")
     [ "$signature" = iVBORw0KGgo= ] && [ "$size" -le 8388608 ] || error "Invalid or oversized screen capture."
     chown root:nogroup "$screen_tmp" && chmod 640 "$screen_tmp" || error "Unable to protect screen capture."
@@ -320,11 +320,24 @@ radio_value() {
 }
 SIGNAL=$(radio_value SIGNAL_RAW)
 
-TECH=$(echo "$TEL" | grep -o "getRilDataRadioTechnology=[0-9]*" | tail -n 1 | cut -d'=' -f2)
+TECH=$(printf '%s\n' "$TEL" | awk '
+    { while (match($0, /getRilDataRadioTechnology=[0-9]*/)) {
+        value = substr($0, RSTART, RLENGTH)
+        $0 = substr($0, RSTART + RLENGTH)
+        sub(/^[^=]*=/, "", value)
+    } }
+    END { print value }')
 IS_5G=$(echo "$TEL" | grep -iE "nrState=CONNECTED")
 if echo "$TEL" | grep -q "mDataConnectionState=2"; then DATA_ST="1"; else DATA_ST="0"; fi
 
-NET_OVERRIDE=$(echo "$TEL" | grep "TelephonyDisplayInfo" | tail -n 1 | grep -o "override=[A-Z_]*" | cut -d'=' -f2)
+NET_OVERRIDE=$(printf '%s\n' "$TEL" | awk '
+    /TelephonyDisplayInfo/ {
+        value = ""
+        if (match($0, /override=[A-Z_]*/)) {
+            value = substr($0, RSTART, RLENGTH); sub(/^[^=]*=/, "", value)
+        }
+    }
+    END { print value }')
 if [ "$TECH" = "20" ]; then
     NET="5G (SA)"
 elif [ "$NET_OVERRIDE" = "NR_NSA" ] || [ "$NET_OVERRIDE" = "NR_ADVANCED" ] || [ -n "$IS_5G" ]; then
@@ -340,7 +353,13 @@ else
 fi
 
 # Extract Operator Name
-OPER=$(echo "$TEL" | grep -o "mOperatorAlphaLong=[^,]*" | grep -v "null" | tail -n 1 | cut -d'=' -f2)
+OPER=$(printf '%s\n' "$TEL" | awk '
+    { while (match($0, /mOperatorAlphaLong=[^,]*/)) {
+        candidate = substr($0, RSTART, RLENGTH)
+        $0 = substr($0, RSTART + RLENGTH)
+        if (candidate !~ /null/) { sub(/^[^=]*=/, "", candidate); value = candidate }
+    } }
+    END { print value }')
 if [ -z "$OPER" ] || [ "$OPER" = "" ]; then
     OPER=$(adb shell getprop gsm.operator.alpha | tr -d '\r[]' | awk -F',' '{if($1!="") print $1; else print $2}')
 fi
@@ -396,7 +415,8 @@ command -v base64 >/dev/null 2>&1 && android_shell "command -v screencap >/dev/n
 if [ -n "$V_CHECK" ] && echo "$RULE_CHECK" | grep -q "29999:"; then VPN_SHARE="Attiva"; else VPN_SHARE="Inattiva"; fi
 
 # Gateway Route Analysis
-ACTIVE_GW=$(ip route show default 2>/dev/null | head -n 1 | grep -oE "dev [a-z0-9]+" | awk '{print $2}' | tr -d '\r')
+ACTIVE_GW=$(ip route show default 2>/dev/null | awk '
+    NR == 1 { for (i = 1; i < NF; i++) if ($i == "dev") { print $(i + 1); exit } }' | tr -d '\r')
 if [ "$ACTIVE_GW" = "usb0" ]; then
     ACTIVE_WAN="Smartphone (Priorita Alta)"
 elif echo "$ACTIVE_GW" | grep -qE "wwan|rmnet|usb1"; then
