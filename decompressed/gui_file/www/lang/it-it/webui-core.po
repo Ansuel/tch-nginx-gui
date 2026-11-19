@@ -4618,3 +4618,69 @@ msgstr "Voipblock per Asterisk"
 
 msgid "This will install Voipblock for asterisk"
 msgstr "Installa Voipblock per Asterisk."
+
+msgid "Data Usage"
+msgstr "Utilizzo dati"
+
+msgid "You have reached your data usage limit"
+msgstr "Hai raggiunto il limite di utilizzo dati"
+
+msgid "Monitoring"
+msgstr "Monitoraggio"
+
+msgid "Network Interface"
+msgstr "Interfaccia di rete"
+
+msgid "Data Usage Monitoring"
+msgstr "Monitoraggio utilizzo dati"
+
+msgid "Uplink"
+msgstr "Upload"
+
+msgid "Downlink"
+msgstr "Download"
+
+msgid "Current"
+msgstr "Attuale"
+
+msgid "Total Volume"
+msgstr "Volume totale"
+
+msgid "Limits"
+msgstr "Limiti"
+
+msgid "Monthly Reset Day"
+msgstr "Giorno di azzeramento mensile"
+
+msgid "Enable Warning"
+msgstr "Attiva avviso"
+
+msgid "Data Usage Warning"
+msgstr "Soglia di avviso"
+
+msgid "Data usage threshold reached"
+msgstr "Soglia di avviso raggiunta"
+
+msgid "Enable Limit"
+msgstr "Attiva limite"
+
+msgid "Data Usage Limit"
+msgstr "Limite di utilizzo dati"
+
+msgid "Data usage limit reached"
+msgstr "Limite di utilizzo dati raggiunto"
+
+msgid "SMS Notification"
+msgstr "Notifica SMS"
+
+msgid "Add number"
+msgstr "Aggiungi numero"
+
+msgid "Reset Data Usage"
+msgstr "Azzera utilizzo dati"
+
+msgid "* Data usage is only an approximation. For actual usage, please refer to your network operator"
+msgstr "* L'utilizzo dati è solo indicativo. Per i consumi effettivi fai riferimento al tuo operatore di rete"
+
+msgid "No WAN interface is available for data usage monitoring."
+msgstr "Nessuna interfaccia WAN disponibile per il monitoraggio dell'utilizzo dati."
