@@ -175,38 +175,80 @@ args.interface = 'missing'
 request(); assert(not output.valid and output.rx_traffic == nil)
 args.interface = {'ptm0'}
 request(); assert(not output.valid and output.reason == 'invalid_interface')
+package.preload.wantraffic = function() return {sample = function()
+  return {time = 20, rx = 2000, tx = 5000}, nil, 'usb0'
+end} end
+args = {source = 'wan', interface = 'ptm0', oldrx = '1000', oldtx = '3000', oldtime = '10'}
+request()
+assert(output.valid and output.interface == 'usb0' and output.reason == 'interface_changed')
+assert(output.rx_bytes_per_second == nil)
+args.interface = 'usb0'
+request()
+assert(output.rx_bytes_per_second == 100 and output.tx_bytes_per_second == 200)
 assert(opened == closed)
 '''.replace('ENDPOINT_PATH', repr(str(GUI / 'www/docroot/ajax/traffic_graph.lua'))))
 
-    def test_card_handles_disappearing_wan_and_embeds_initial_sample(self):
+    def test_samples_bridge_port_and_only_uses_phone_when_selected(self):
         self.run_lua('''
-gettext = {textdomain = function() end}
-T = function(value) return value end
-local up, output = '1', {}
-local function append(value)
-  if type(value) == 'table' then for _, entry in ipairs(value) do append(entry) end
-  else output[#output + 1] = tostring(value) end
-end
-ngx = {print = append}
-package.preload.datamodel = function() return {get = function(path)
-  if path:match('ifname$') then return {{value = 'ptm0'}} end
-  return {{value = up}}
-end} end
-package.preload['web.ui_helper'] = function() return {createCardHeader = function(title) return title end} end
-local function render()
-  output = {}
-  dofile(CARD_PATH)
-  return table.concat(output)
-end
-assert(render() == '')
+local wan = 'uci.network.interface.@wan.'
+local phone = 'uci.network.interface.@modgui_phone.'
+local rpc = 'rpc.network.interface.@'
+local values = {
+  [wan .. 'proto'] = 'dhcp',
+  [wan .. 'ifname'] = 'ptm0.835',
+  [rpc .. 'wan.ifname'] = 'ptm0.835',
+  [rpc .. 'wan.up'] = '1',
+}
+package.preload.datamodel = function() return {
+  get = function(path)
+    if values[path] then return {{value = values[path]}} end
+  end,
+  getPN = function(path)
+    assert(path == 'uci.ethernet.port.')
+    return {{path = path .. '@eth4.'}}
+  end,
+} end
+package.path = LUA_PATH .. ';' .. package.path
+local traffic = require('wantraffic')
 files['/proc/uptime'] = '10.5 0'
-files['/proc/net/dev'] = counters('ptm0', '1000', '2000')
-local html = render()
-assert(html:find('WAN Traffic', 1, true) and html:find('traffic_sample_time', 1, true))
-up = '0'
-assert(render() == '')
+files['/proc/net/dev'] = counters('ptm0.835', '1000', '2000')
+  .. counters('eth4', '3000', '4000') .. counters('usb0', '5000', '6000')
+local function check(device, rx)
+  local sample, reason, source = traffic.sample()
+  assert(sample and source == device and sample.rx == rx, reason or source)
+end
+check('ptm0.835', 1000)
+values[rpc .. 'wan.up'] = '0'
+assert(traffic.sample() == nil)
+values[wan .. 'ifname'] = 'br-lan'
+values['uci.network.config.wan_mode'] = 'pppoe'
+values['uci.network.interface.@lan.ifname'] = 'eth0 eth4'
+values['uci.ethernet.port.@eth4.wan'] = '1'
+check('eth4', 3000)
+values[phone .. 'defaultroute'] = '0'
+values[rpc .. 'modgui_phone.up'] = '1'
+values[rpc .. 'modgui_phone.ifname'] = 'usb0'
+check('eth4', 3000)
+values[phone .. 'defaultroute'] = '1'
+local routeDevice = 'eth4'
+local routeClosed = 0
+io.popen = function(command)
+  assert(command == 'ip -4 route show table 29995 default 2>/dev/null')
+  return {
+    read = function() return 'default via 192.0.2.1 dev ' .. routeDevice end,
+    close = function() routeClosed = routeClosed + 1 end,
+  }
+end
+check('eth4', 3000)
+routeDevice = 'usb0'
+check('usb0', 5000)
+values[rpc .. 'modgui_phone.up'] = '0'
+check('eth4', 3000)
+values['uci.ethernet.port.@eth4.wan'] = '0'
+assert(traffic.sample() == nil)
+assert(routeClosed == 2)
 assert(opened == closed)
-'''.replace('CARD_PATH', repr(str(GUI / 'www/info-cards/004_graph.lp'))))
+'''.replace('LUA_PATH', repr(str(GUI / 'www/lua/?.lua'))))
 
     @unittest.skipUnless(shutil.which('node'), 'Node.js required')
     def test_real_graph_callback(self):

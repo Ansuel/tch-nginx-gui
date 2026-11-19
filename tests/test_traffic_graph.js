@@ -1,82 +1,83 @@
 const fs = require('fs');
 const vm = require('vm');
 const assert = require('assert');
+
 const source = fs.readFileSync('decompressed/gui_file/www/info-cards/004_graph.lp', 'utf8');
-const script = source.slice(source.indexOf('var graphRequestPending ='), source.indexOf('$(document).ready'))
-  .replace(/\\\r?\n/g, '\n')
-  .replace("'); ngx.print(graph_interface); ngx.print('", 'ptm0');
-const nodes = {
-  rx_traffic_complete: {textContent: '1000'}, tx_traffic_complete: {textContent: '3000'},
-  traffic_sample_time: {textContent: '10'},
-};
-let request, complete, requestCount = 0, chartUpdates = 0, hour = 23;
-const bindings = {};
-for (const key of Object.keys(nodes)) bindings[key] = value => { nodes[key].textContent = String(value); };
+const script = source.slice(source.indexOf('var trafficSample ='), source.indexOf('$(document).ready'))
+    .replace(/\\\r?\n/g, '\n');
+let label = {textContent: ''};
+let request, chartUpdates = 0, hour = 23, unavailable;
 const context = {
-  document: {hidden: false, getElementById: id => nodes[id]},
-  tch: {elementCSRFtoken: () => ({name: 'CSRFtoken', value: 'test'})},
-  $: {ajax: options => {
-    requestCount++; request = options;
-    assert.strictEqual(options.type, 'POST');
-    assert.strictEqual(options.timeout, 8000);
-    return {always: callback => { complete = callback; }};
-  }},
-  Date: class {getHours() {return hour;} getMinutes() {return 0;} getSeconds() {return 0;}},
-  wanRxdatasets: [], wanTxdatasets: [], timelabel: [],
-  InfoWANChart: {update: () => { chartUpdates++; }},
-  encodeURIComponent, isFinite,
+    document: {getElementById: () => label},
+    tch: {elementCSRFtoken: () => ({name: 'CSRFtoken', value: 'test'})},
+    $: Object.assign(() => ({toggleClass: (_, hidden) => { unavailable = !hidden; }}), {
+        ajax: options => {
+            request = options;
+            assert.strictEqual(options.type, 'POST');
+            assert.strictEqual(options.timeout, 8000);
+            return options;
+        },
+    }),
+    Date: class {getHours() {return hour;} getMinutes() {return 0;} getSeconds() {return 0;}},
+    wanRxdatasets: [], wanTxdatasets: [], timelabel: [],
+    InfoWANChart: {update: () => { chartUpdates++; }},
+    encodeURIComponent, isFinite,
 };
 vm.createContext(context);
 vm.runInContext(script, context);
-const refresh = () => context.InfoGraphCardRefresh(bindings);
-const respond = data => { request.success(data); complete(); };
-refresh(); refresh();
-assert.strictEqual(requestCount, 1, 'overlapping requests must be suppressed');
-assert(request.url.includes('&oldtime=10'));
-respond({valid: true, rx_traffic: '2000', tx_traffic: '5000', sample_time: 20,
-  rx_bytes_per_second: 100, tx_bytes_per_second: 200});
+const refresh = () => {
+    assert.strictEqual(context.InfoGraphCardRefresh(), request);
+    return new URL(request.url, 'http://router').searchParams;
+};
+const sample = (device, time, rate) => ({
+    valid: true, interface: device, rx_traffic: '2000', tx_traffic: '5000', sample_time: time,
+    rx_bytes_per_second: rate, tx_bytes_per_second: rate,
+});
+
+let query = refresh();
+assert.strictEqual(query.get('source'), 'wan');
+assert.strictEqual(query.get('interface'), '');
+request.success(sample('eth4', 10));
+query = refresh();
+assert.strictEqual(query.get('interface'), 'eth4');
+assert.strictEqual(query.get('oldtime'), '10');
+request.success(sample('eth4', 20, 100));
 assert.deepStrictEqual(context.wanRxdatasets, ['800']);
-assert.strictEqual(nodes.traffic_sample_time.textContent, '20');
-hour = 0; // Crossing midnight must not change the rate supplied by the router.
+hour = 0; // Crossing midnight does not change the rate supplied by the router.
 refresh();
-respond({valid: true, rx_traffic: '3000', tx_traffic: '7000', sample_time: 30,
-  rx_bytes_per_second: 100, tx_bytes_per_second: 200});
-assert.strictEqual(context.wanRxdatasets[1], '800');
+request.success(sample('eth4', 30, 100));
+assert.deepStrictEqual(context.wanRxdatasets, ['800', '800']);
+const updates = chartUpdates;
 refresh();
-respond({valid: true, rx_traffic: '1', tx_traffic: '2', sample_time: 40, reason: 'counter_reset'});
-assert.strictEqual(chartUpdates, 2, 'a reset rebases without inserting a spike');
-assert.strictEqual(nodes.rx_traffic_complete.textContent, '1');
-refresh(); respond({valid: false, reason: 'interface_unavailable'});
-assert.strictEqual(nodes.rx_traffic_complete.textContent, '1');
-context.document.hidden = true;
-const before = requestCount;
-refresh(); assert.strictEqual(requestCount, before);
-context.document.hidden = false;
-refresh(); complete(); // An error/timeout must release the request guard.
-refresh(); complete();
+request.success(sample('eth4', 40));
+assert.strictEqual(chartUpdates, updates, 'counter resets must rebase without inserting a spike');
+
+refresh();
+request.success(sample('usb0', 50));
+assert.strictEqual(label.textContent, 'usb0');
+assert.strictEqual(context.wanRxdatasets.length, 0);
+assert.strictEqual(refresh().get('interface'), 'usb0');
+request.success({valid: false});
+assert.strictEqual(label.textContent, '');
+assert.strictEqual(unavailable, true);
+assert.strictEqual(refresh().get('oldtime'), '');
+request.success(sample('eth4', 60));
+assert.strictEqual(unavailable, false);
 for (let i = 0; i < 65; i++) {
-  refresh();
-  respond({valid: true, rx_traffic: String(i), tx_traffic: String(i), sample_time: 50 + i,
-    rx_bytes_per_second: 10, tx_bytes_per_second: 20});
+    refresh();
+    request.success(sample('eth4', 70 + i, 10));
 }
 assert.strictEqual(context.wanRxdatasets.length, 60);
 assert.strictEqual(context.wanTxdatasets.length, 60);
 assert.strictEqual(context.timelabel.length, 60);
-// A response from a removed card must not modify a new card or release its guard.
+
 refresh();
-const oldRequest = request, oldComplete = complete;
-nodes.traffic_sample_time = {textContent: '100'};
+const oldRequest = request;
+label = {textContent: ''};
 vm.runInContext(script, context);
-refresh();
-const updatesBefore = chartUpdates;
-oldRequest.success({valid: true, rx_traffic: '999', tx_traffic: '999', sample_time: 999,
-  rx_bytes_per_second: 999, tx_bytes_per_second: 999});
-oldComplete();
-assert.strictEqual(nodes.traffic_sample_time.textContent, '100');
-assert.strictEqual(context.graphRequestPending, true);
-assert.strictEqual(chartUpdates, updatesBefore);
-complete();
-delete nodes.traffic_sample_time;
-const finalCount = requestCount;
-refresh(); assert.strictEqual(requestCount, finalCount);
-console.log('Traffic graph: router time, resets, hidden pages, bounded data and request lifecycle passed');
+oldRequest.success(sample('usb0', 200));
+assert.strictEqual(label.textContent, '');
+assert.strictEqual(refresh().get('interface'), '');
+label = null;
+assert.strictEqual(context.InfoGraphCardRefresh(), undefined);
+console.log('Traffic graph: interface changes, unavailable links, counter resets and bounded data passed');

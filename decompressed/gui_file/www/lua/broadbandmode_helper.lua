@@ -30,13 +30,13 @@ else
     ethname =  "eth3"
 end
 
-local function selected(kind)
-    if bridge.get("uci.wansensing.global.enable") == "1" then
+local function selected(kind, uplink)
+    if not uplink and bridge.get("uci.wansensing.global.enable") == "1" then
         local l2 = bridge.get("uci.wansensing.global.l2type") or ""
         if kind == "gpon" then return l2 == "SFP" or l2 == "FIBER" end
         return l2 == ({adsl = "ADSL", vdsl = "VDSL", ethernet = "ETH"})[kind]
     end
-    local parent = bridge.vlanContext().connection
+    local parent = bridge.vlanContext(uplink).connection
     if kind == "adsl" then return bridge.isDslInterface(parent, "atm") end
     if kind == "vdsl" then return bridge.isDslInterface(parent, "ptm") end
     if parent ~= bridge.ethernetPort(ethname) then return false end
@@ -88,7 +88,7 @@ for _, definition in ipairs(definitions) do
         description = definition[2],
         view = definition[3],
         card = definition[4],
-        check = function() return selected(kind) end,
+        check = function(uplink) return selected(kind, uplink) end,
         operations = function()
             return bridge.changeUplink(function() return selectInterface(kind) end)
         end,

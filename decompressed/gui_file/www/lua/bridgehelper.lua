@@ -51,11 +51,12 @@ function M.isBridged()
     return get(config .. "wan_mode") == "bridge"
 end
 
-function M.getUplink()
-    local saved = M.isBridged() and get(config .. "bridge_ifname")
+function M.getUplink(bridged)
+    if bridged == nil then bridged = M.isBridged() end
+    local saved = bridged and get(config .. "bridge_ifname")
     if saved and saved ~= "" then return saved end
     local current = get(wan .. "ifname") or ""
-    if M.isBridged() and current == "br-lan" then
+    if bridged and current == "br-lan" then
         -- Older GUI bridges kept no uplink metadata. Recover only an
         -- unambiguous WAN-designated Ethernet port already in this bridge.
         local _, members = words(get(lan))

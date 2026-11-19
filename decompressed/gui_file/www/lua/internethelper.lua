@@ -4,8 +4,8 @@ local M = {}
 
 -- Bridge is a topology choice; routed protocols follow the actual WAN
 -- configuration, which vendor scripts can change without updating wan_mode.
-function M.getConnectionMode(configured, protocol)
-    if configured == "bridge" then return "bridge" end
+function M.getConnectionMode(configured, protocol, device)
+    if configured == "bridge" or protocol == "bridge" or device == "br-lan" then return "bridge" end
     for _, mode in ipairs({"dhcp", "pppoe", "pppoa", "static"}) do
         if protocol == mode then return mode end
     end

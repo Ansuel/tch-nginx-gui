@@ -456,10 +456,11 @@ package.preload['web.ui_helper'] = function() return {
 } end
 package.preload['web.post_helper'] = function() return {secondsToTime = function() return '' end} end
 package.preload['web.taint'] = function() return {untaint_mt = {}} end
-package.preload['web.dyntab_helper'] = function() return {process = function()
-  return {current = {description = 'Ethernet'}}
-end} end
-package.preload.broadbandmode_helper = function() return {} end
+package.preload.bridgehelper = function() return dofile(BRIDGE) end
+package.preload.broadbandmode_helper = function() return {
+  {description = 'VDSL2', default = true, check = function() return false end},
+  {description = 'Ethernet', check = function(uplink) return uplink == 'eth4' end},
+} end
 package.preload.internetmode_helper = function() return {
   {name = 'bridge', description = 'Bridge'}, {name = 'dhcp', description = 'DHCP'},
   {name = 'pppoe', description = 'PPPoE'},
@@ -478,8 +479,19 @@ values['uci.network.interface.@wan.proto'] = 'dhcp'
 labels = {}
 dofile(INFOCARD)
 assert(labels['Connection Type'] == 'DHCP')
+assert(labels['Broadband Connection'] == 'Unknown')
+values['uci.network.interface.@wan.ifname'] = 'br-lan'
+values['uci.network.interface.@lan.ifname'] = 'eth0 eth4'
+values['uci.ethernet.port.@eth4.wan'] = '1'
+names = {{path = 'uci.ethernet.port.@eth4.'}}
+labels = {}
+dofile(INFOCARD)
+assert(labels['Connection Type'] == 'Bridge')
+assert(labels['Broadband Connection'] == 'Ethernet')
+assert(labels['IPv4 address'] == '192.0.2.7')
 assert(#writes == 0)
-'''.replace('INFOCARD', repr(str(ROOT / 'www/info-cards/002_wanstats.lp'))))
+'''.replace('INFOCARD', repr(str(ROOT / 'www/info-cards/002_wanstats.lp')))
+   .replace('BRIDGE', repr(str(ROOT / 'www/lua/bridgehelper.lua'))))
 
 
 if __name__ == '__main__':
