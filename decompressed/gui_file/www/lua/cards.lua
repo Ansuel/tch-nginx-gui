@@ -103,6 +103,9 @@ end
 function M.get_card_from_modal(modal)
   modal = plain(modal)
   if not modal then return end
+  -- Modal views (for example EasyMesh setup) retain their parent card when
+  -- the AJAX refresh passes the complete URL, including its query string.
+  modal = modal:match("^[^?]+")
   local config = get_config()
   local card = config.modal_to_card[modal]
   if card and card_visible(config, clean_card(card)) then return card end

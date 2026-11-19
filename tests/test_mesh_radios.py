@@ -55,7 +55,7 @@ console.log('Native newEM roles and GUI confirmation integration OK');
 string.untaint = function(s) return s end
 T = function(s) return s end
 gettext = {textdomain = function() end}
-local role, enabled, output = 'admin', '0', {}
+local role, enabled, output, layout, inventory = 'admin', '0', {}, true, false
 local variants = {ExtenderPage = {extenderConfig = {
   showEMConfigPage = {value=true}, extenderInfo = {value=true}, backhaulConfig = {value=true},
 }}, Wireless = {wireless = {}}}
@@ -71,6 +71,9 @@ local function value(path)
 end
 local proxy = {
   get = function(path)
+    if inventory and path=='rpc.multiap.device.' then
+      return {{al_mac='00:11:22:33:44:55',serial_number='Booster',local_interfaces='',backhaul_interface_type='Ethernet'}}
+    end
     if path == 'uci.multiap.controller_credentials.' then
       return {{paramindex='@cred2', backhaul='1', fronthaul='0'}}
     end
@@ -89,7 +92,7 @@ package.preload['web.content_helper'] = function() return {
 local function valid() return true end
 local post = {
   getVariant = function(v, section, page) return v[section] and v[section][page] end,
-  getVariantValue = function(v, key) return v and v[key] and v[key].value or false end,
+  getVariantValue = function(v, key) return v and v[key] and v[key].value end,
   isFeatureEnabled = function() return false end,
   validatePSK = valid, validateBoolean = valid, validateNonEmptyString = valid,
   getAndValidation = function() return valid end,
@@ -100,7 +103,12 @@ local post = {
     local params = {}; for key,path in pairs(map) do params[key]=value(path) end
     return params,{}
   end,
-  handleTableQuery = function() return {},{} end,
+  handleTableQuery = function(_,options)
+    if inventory and options.tableid=='agentData' then
+      return {{'','00:11:22:33:44:55','','','Ethernet','',1200,2000000}},{}
+    end
+    return {},{}
+  end,
 }
 package.preload['web.post_helper'] = function() return post end
 package.preload['web.ui_helper'] = function() return setmetatable({}, {
@@ -111,7 +119,7 @@ package.preload['web.web'] = function() return {html_escape=function(s) return s
 package.preload['web.lp'] = function() return {setpath=function() end, include=function() end} end
 package.preload.dkjson = function() return {encode=function() return '{}' end} end
 package.preload.easymesh_helper = function() return {
-  is_supported=function() return true end, use_new_layout=function() return true end,
+  is_supported=function() return true end, use_new_layout=function() return layout end,
   handle_card_toggle=function() return false end,
 } end
 local function emit(v)
@@ -124,14 +132,23 @@ ngx = {ctx={session={getrole=function() return role end}}, var={request_method='
 '''
         script += f'local root = {str(ROOT)!r}\n'
         script += r'''
+package.preload.easymesh_topology=function() return assert(loadfile(root..'/www/lua/easymesh_topology.lua'))() end
 for _, current_role in ipairs({'admin','engineer'}) do
   role = current_role
   for _, state in ipairs({'0','1'}) do
     enabled = state
     for _, name in ipairs({'configuration','topology','devices-info'}) do
-      output = {}
+      output = {};inventory=name=='devices-info'
       assert(loadfile(root .. '/www/docroot/modals/easymesh-' .. name .. '-modal-newEM.lp'))()
       assert(#table.concat(output) > 100, name)
+      if name=='devices-info' then
+        layout=false; output={}
+        assert(loadfile(root .. '/www/docroot/modals/easymesh-devices-info-modal-newEM.lp'))()
+        assert(#table.concat(output)>100,'legacy devices inventory')
+        assert(table.concat(output):find('var hidedetails = false',1,true),'missing variants must produce valid JavaScript')
+        layout=true
+      end
+      inventory=false
     end
   end
 end

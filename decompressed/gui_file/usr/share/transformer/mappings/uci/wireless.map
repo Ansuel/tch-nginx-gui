@@ -23,7 +23,7 @@ mapper("uci_1to1").registerNamedMultiMap(wireless_wifidevice)
 local wireless_wifiiface = {
   config = config_wireless,
   type = "wifi-iface",
-  options = { "device", "ssid", "network", "state", "mode", "uapsd", "ap_display_name", "stb", "upload_rate", "download_rate", "rate_control_enabled" }
+  options = { "device", "ssid", "network", "state", "mode", "uapsd", "ap_display_name", "stb", "upload_rate", "download_rate", "rate_control_enabled", "fronthaul", "backhaul", "multiap_profile" }
 }
 
 mapper("uci_1to1").registerNamedMultiMap(wireless_wifiiface)
@@ -32,7 +32,7 @@ mapper("uci_1to1").registerNamedMultiMap(wireless_wifiiface)
 local wireless_wifibandsteer = {
   config = config_wireless,
   type = "wifi-bandsteer",
-  options = { "policy_mode", "rssi_threshold", "rssi_5g_threshold", "sta_comeback_to", "monitor_window", },
+  options = { "policy_mode", "rssi_threshold", "rssi_5g_threshold", "sta_comeback_to", "monitor_window", "state", },
 }
 
 mapper("uci_1to1").registerNamedMultiMap(wireless_wifibandsteer)
@@ -44,7 +44,7 @@ local wireless_wifiap = {
   options = { "iface", "state", "public", "ap_isolation", "station_history", "security_mode",
               "wps_state", "wsc_state", "wps_ap_setup_locked",
               "acl_mode", "acl_registration_time", "trace_modules", "trace_level", "wps_w7pbc", "bandsteer_id",
-              "pmksa_cache", "max_assoc", "eap_reauth_period", "reauth_period_pmksa_lifetime_linked", "nas_wan_intf", "group_id",
+              "pmksa_cache", "max_assoc", "eap_reauth_period", "reauth_period_pmksa_lifetime_linked", "nas_wan_intf", "group_id", "pmf",
               "wep_key", "wpa_psk_key", "wps_ap_pin" },
   lists = { "acl_accept_list", "acl_deny_list", }
 }

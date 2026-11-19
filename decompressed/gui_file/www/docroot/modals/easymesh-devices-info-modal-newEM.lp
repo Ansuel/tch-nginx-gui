@@ -1,10 +1,10 @@
 --pretranslated: do not change this file
 local mesh = require("easymesh_helper")
-if not mesh.is_supported() or not mesh.use_new_layout() then
+if not mesh.is_supported() then
   local ui = require("web.ui_helper")
   gettext.textdomain('webui-core')
   ngx.print(ui.createHeader(T"EasyMesh", false, true))
-  ngx.print(ui.createAlert({class = "alert-warning"}, T"EasyMesh is not supported on this device."))
+  ngx.print(ui.createAlertBlock(T"EasyMesh is not supported on this device.", {alert={class="alert-warning"}}))
   ngx.print(ui.createFooter())
   return
 end
@@ -23,7 +23,25 @@ local ngx = ngx
 local table, string = table, string
 local tonumber, tostring, untaint = tonumber, tostring, string.untaint
 local format, match = string.format, string.match
-local variant_helper = require("variant_helper")
+-- Older web helpers lack the formatters shipped with the native newEM pages.
+local function metric(value, units, scale)
+  local number = tonumber(value)
+  if not number then return "" end
+  number = number * scale
+  local index = 1
+  while number >= 1000 and index < #units do
+    number, index = number / 1000, index + 1
+  end
+  return format("%.2f %s", number, units[index])
+end
+local convertData = post_helper.convertData or function(value)
+  return metric(value, {"B", "KB", "MB", "GB"}, 1)
+end
+local convertPhyRate = post_helper.convertPhyRate or function(value, extender)
+  return metric(value, {"bps", "Kbps", "Mbps", "Gbps"}, extender and 1000000 or 1000)
+end
+local has_variant, variant_helper = pcall(require, "variant_helper")
+if not has_variant then variant_helper = {} end
 local variantHelper = post_helper.getVariant(variant_helper, "ExtenderPage", "extenderConfig")
 local variantHelperWireless = post_helper.getVariant(variant_helper, "Wireless", "wireless")
 
@@ -232,7 +250,7 @@ if doNotSteerEnabled ~= "1" or not showDoNotSteer then
 end
 
 local tod_rule = false
-for k,v in ipairs(proxy.getPN("uci.tod.timer.", true)) do
+for k,v in ipairs(proxy.getPN("uci.tod.timer.", true) or {}) do
   local key = match(v.path, "%@%l+(%w+)")
   local ssid = proxy.get("uci.tod.ap.@ap"..key..".ssid") and proxy.get("uci.tod.ap.@ap"..key..".ssid")[1].value
   if ssid == "all" and proxy.get("uci.tod.action.@action"..key..".enabled")[1].value == "0" then
@@ -260,7 +278,7 @@ for _, intf in ipairs(webInterfaces) do
 end
 
 local steerPath = "uci.wee.donotsteer.donotsteer_list."
-local steerMac = content_helper.convertResultToObject(steerPath, proxy.get(steerPath))
+local steerMac = content_helper.convertResultToObject(steerPath, proxy.get(steerPath)) or {}
 
 local function isChecked(mac)
   local checked = "0"
@@ -324,9 +342,9 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
       }
       ngx.print(ui_helper.createAlertBlock(T"The Wi-Fi Schedule is currently enabled and your Wi-Fi connection will turn off as specified.", tod_warning))
     end  ngx.print('\
-    <div class="container">\
-      <div class="row">\
-        <div class="span11">\
+    <div class="mesh-devices-content" style="max-width:100%;overflow-x:auto">\
+      <div>\
+        <div>\
           <fieldset>\
             ');
 	    if not  post_helper.getVariantValue(variantHelper, "ShowWiFiDevicesWithoutHostManager") then
@@ -345,8 +363,8 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
                       for i, v in pairs(devices_data) do
                         if sta_v.paramindex == "@" .. v[MACcolumnindex] and #v == 6 then
                           v[#v+1] = sta_v.rssi and sta_v.rssi .. "dBm" or ""
-                          v[#v+1] = sta_v.tx_phy_rate and sta_v.rx_phy_rate and post_helper.convertPhyRate(sta_v.tx_phy_rate, false) .. " / " .. post_helper.convertPhyRate(sta_v.rx_phy_rate, false) or ""
-                          v[#v+1] = sta_v.tx_bytes and sta_v.rx_bytes and post_helper.convertData(sta_v.tx_bytes) .. " / " .. post_helper.convertData(sta_v.rx_bytes) or ""
+                          v[#v+1] = sta_v.tx_phy_rate and sta_v.rx_phy_rate and convertPhyRate(sta_v.tx_phy_rate, false) .. " / " .. convertPhyRate(sta_v.rx_phy_rate, false) or ""
+                          v[#v+1] = sta_v.tx_bytes and sta_v.rx_bytes and convertData(sta_v.tx_bytes) .. " / " .. convertData(sta_v.rx_bytes) or ""
                           if doNotSteerEnabled == "1" and showDoNotSteer then
                             v[#v+1] = isChecked(v[MACcolumnindex])
                           end
@@ -401,8 +419,8 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
                                 local internal_tmp = 1
                                 internal_devices_data_multiap[counter][internal_tmp] = sta_d.mac
                                 internal_devices_data_multiap[counter][internal_tmp+1] = sta_d.rssi and sta_d.rssi ~= "" and sta_d.rssi .. " dBm" or ""
-                                internal_devices_data_multiap[counter][internal_tmp+2] = sta_d.dl_mac_rate and sta_d.dl_mac_rate ~= "" and sta_d.ul_mac_rate and sta_d.ul_mac_rate ~= "" and post_helper.convertPhyRate(sta_d.dl_mac_rate, true) .. " / " .. post_helper.convertPhyRate(sta_d.ul_mac_rate, true) or ""
-                                internal_devices_data_multiap[counter][internal_tmp+3] = sta_d.txbytes and sta_d.txbytes ~= "" and sta_d.rxbytes and sta_d.rxbytes ~= "" and post_helper.convertData(sta_d.txbytes) .. " / " .. post_helper.convertData(sta_d.rxbytes) or ""
+                                internal_devices_data_multiap[counter][internal_tmp+2] = sta_d.dl_mac_rate and sta_d.dl_mac_rate ~= "" and sta_d.ul_mac_rate and sta_d.ul_mac_rate ~= "" and convertPhyRate(sta_d.dl_mac_rate, true) .. " / " .. convertPhyRate(sta_d.ul_mac_rate, true) or ""
+                                internal_devices_data_multiap[counter][internal_tmp+3] = sta_d.txbytes and sta_d.txbytes ~= "" and sta_d.rxbytes and sta_d.rxbytes ~= "" and convertData(sta_d.txbytes) .. " / " .. convertData(sta_d.rxbytes) or ""
                                 if doNotSteerEnabled == "1" and showDoNotSteer then
                                   internal_devices_data_multiap[counter][internal_tmp+4] = isChecked(sta_d.mac)
 	                        end
@@ -440,15 +458,15 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
                       value[4] = value[4] and value[4] or ""      --IPv6Address
                       value[5] = match(value[5], "WiFi%p5G%pL") == "WiFi-5G-L" and "5GHz-Low" or match(value[5], "WiFi%p5G%pH") == "WiFi-5G-H" and "5GHz-High" or match(value[5], "WiFi%p2") == "WiFi-2" and "2.4GHz" or value[5]
                       value[6] = value[5] == "Ethernet" and "NA" or value[5]=="Unknown" and "" or value[6].."dBm"    --RSSI
-                      value[7] = value[7] and value[7] ~= "" and post_helper.convertPhyRate(value[7], true).." / "..post_helper.convertPhyRate(value[7], true) or ""     --Download/Upload link rate
+                      value[7] = value[7] and value[7] ~= "" and convertPhyRate(value[7], true).." / "..convertPhyRate(value[7], true) or ""     --Download/Upload link rate
                       agent_details[#agent_details+1] = agent_devices_data[index]
                       local bytesReceived = proxy.get(format("rpc.multiap.device.@%s.BackhaulBytesReceived", agent_MAC))
-                      bytesReceived = bytesReceived and bytesReceived[1].value and bytesReceived[1].value ~= "" and post_helper.convertData(bytesReceived[1].value) or ""
-                      value[8] = value[8] and value[8] ~= "" and post_helper.convertData(value[8]) or ""
+                      bytesReceived = bytesReceived and bytesReceived[1].value and bytesReceived[1].value ~= "" and convertData(bytesReceived[1].value) or ""
+                      value[8] = value[8] and value[8] ~= "" and convertData(value[8]) or ""
                       value[8] = value[8] == "" and bytesReceived == "" and "" or value[8].." / "..bytesReceived     --Tx/Rx Data
                       for _, sta_v in ipairs(staList) do     --To calculate dl_mac_rate and ul_mac_rate of wireless extender
                         if intfMAC == sta_v.mac then
-                          value[7] = sta_v.dl_mac_rate and sta_v.dl_mac_rate ~= "" and sta_v.ul_mac_rate and sta_v.ul_mac_rate ~= "" and post_helper.convertPhyRate(sta_v.dl_mac_rate, true) .. " / " .. post_helper.convertPhyRate(sta_v.ul_mac_rate, true)
+                          value[7] = sta_v.dl_mac_rate and sta_v.dl_mac_rate ~= "" and sta_v.ul_mac_rate and sta_v.ul_mac_rate ~= "" and convertPhyRate(sta_v.dl_mac_rate, true) .. " / " .. convertPhyRate(sta_v.ul_mac_rate, true)
                         end
                       end
                     end
@@ -458,13 +476,13 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
                     if value[1] and value[1] == agent_MAC then
                       value[2] = value[2] ~= "" and value[2].."dBm" or "NA"    --RSSI
                       agent_details[#agent_details+1] = agent_devices_data[index]
-                      value[3] = value[3] and value[3] ~= "" and post_helper.convertPhyRate(value[3], true).." / "..post_helper.convertPhyRate(value[3], true) or ""
+                      value[3] = value[3] and value[3] ~= "" and convertPhyRate(value[3], true).." / "..convertPhyRate(value[3], true) or ""
                       local bytesReceived = proxy.get(format("rpc.multiap.device.@%s.BackhaulBytesReceived", agent_MAC))
-                      bytesReceived = bytesReceived and bytesReceived[1].value and bytesReceived[1].value ~= "" and post_helper.convertData(bytesReceived[1].value) or "NA"
-                      value[4] = value[4] and value[4] ~= "" and post_helper.convertData(value[4]) or "NA".." / "..bytesReceived     --Tx/Rx Data
+                      bytesReceived = bytesReceived and bytesReceived[1].value and bytesReceived[1].value ~= "" and convertData(bytesReceived[1].value) or "NA"
+                      value[4] = value[4] and value[4] ~= "" and convertData(value[4]) or "NA".." / "..bytesReceived     --Tx/Rx Data
                       for _, sta_v in ipairs(staList) do     --To calculate dl_mac_rate and ul_mac_rate of wireless extender
                         if intfMAC == sta_v.mac then
-                          value[3] = sta_v.dl_mac_rate and sta_v.dl_mac_rate ~= "" and sta_v.ul_mac_rate and sta_v.ul_mac_rate ~= "" and post_helper.convertPhyRate(sta_v.dl_mac_rate, true) .. " / " .. post_helper.convertPhyRate(sta_v.ul_mac_rate, true)
+                          value[3] = sta_v.dl_mac_rate and sta_v.dl_mac_rate ~= "" and sta_v.ul_mac_rate and sta_v.ul_mac_rate ~= "" and convertPhyRate(sta_v.dl_mac_rate, true) .. " / " .. convertPhyRate(sta_v.ul_mac_rate, true)
                         end
                       end
                     end
@@ -484,9 +502,9 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
 			    local tmp = 1
                             if sta_v.mac == sta_i then
                               sta_count = sta_count + 1
-                              local devicelinkrate = sta_v.dl_mac_rate and sta_v.dl_mac_rate ~= "" and sta_v.ul_mac_rate and sta_v.ul_mac_rate ~= "" and post_helper.convertPhyRate(sta_v.dl_mac_rate, true) .. " / " .. post_helper.convertPhyRate(sta_v.ul_mac_rate, true) or ""
+                              local devicelinkrate = sta_v.dl_mac_rate and sta_v.dl_mac_rate ~= "" and sta_v.ul_mac_rate and sta_v.ul_mac_rate ~= "" and convertPhyRate(sta_v.dl_mac_rate, true) .. " / " .. convertPhyRate(sta_v.ul_mac_rate, true) or ""
                               local devicesignalstrength = sta_v.rssi and sta_v.rssi ~= "" and sta_v.rssi .. " dBm" or ""
-                              local devicetraffic = sta_v.txbytes and sta_v.txbytes ~= "" and sta_v.rxbytes and sta_v.rxbytes ~= "" and post_helper.convertData(sta_v.txbytes) .. " / " .. post_helper.convertData(sta_v.rxbytes) or ""
+                              local devicetraffic = sta_v.txbytes and sta_v.txbytes ~= "" and sta_v.rxbytes and sta_v.rxbytes ~= "" and convertData(sta_v.txbytes) .. " / " .. convertData(sta_v.rxbytes) or ""
                               if not post_helper.getVariantValue(variantHelper, "ShowWiFiDevicesWithoutHostManager") then
                                 for i, v in pairs(devices_data) do
                                   if sta_v.mac == v[MACcolumnindex] and #v == 6 then
@@ -537,7 +555,7 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
                 end
                 html[#html+1] = format('<span id=%s-header><legend>%s</legend></span>', agent_MAC, agent_name)
                 html[#html+1] = ui_helper.createTable(agent_devices_columns, agent_details, agent_devices_options, nil, agent_devices_helpmsg)
-                html[#html+1] = format('<span id=%s-list><legend style="font-size:large;padding-left:10px;">'..T"Connected Devices:"..'%s</legend></span>', agent_MAC, sta_count)
+                html[#html+1] = format('<span id=%s-list><legend style="font-size:large;">'..T"Connected Devices:"..'%s</legend></span>', agent_MAC, sta_count)
                 html[#html+1] = ui_helper.createTable(devices_columns, newdevices_data, devices_options, nil, devices_helpmsg)
               end
             end
@@ -572,21 +590,8 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
   });\
 \
   var multiap_enabled = ');  ngx.print( multiap_enabled ); ngx.print('\
-  var hidedetails = ');  ngx.print( post_helper.getVariantValue(variantHelper, "hideWifiDevice") ); ngx.print('\
-  //Removing Horizontal  Scroll bar in Normal View .If any column is added or removed,remove this function if needed.\
-  function removeScroll(){\
-    var modal_width = $("#modalBody").width();\
-    var table_width = $("#easymeshDevices").width();\
-      if (table_width<modal_width)\
-        $("#modalBody").css("overflow-x","hidden");\
-      else\
-        $("#modalBody").css("overflow-x","auto");\
-  }\
-  $(window).resize(function(){\
-    removeScroll();\
-  });\
+  var hidedetails = ');  ngx.print(post_helper.getVariantValue(variantHelper, "hideWifiDevice") and "true" or "false"); ngx.print('\
   $(document).ready(function () {\
-    removeScroll();\
     //Dynamically adding ID to each row with the mac address of the device.\
     $("tbody").find(\'tr\').each(function (key, val) {\
       var cellObj = $(this).find(\'td\');\
@@ -623,11 +628,10 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
     }\
   });\
 \
-  var query = "easyMeshDevices";\
-  if ($("[id=\'" + query + "\']").parent().hasClass("active")) {\
+  if ($("a[data-remote=\'/modals/easymesh-devices-info-modal-newEM.lp\']").parent().hasClass("active")) {\
     if (typeof(controller_status) != \'undefined\' || typeof(agent_status) != \'undefined\') {\
-      clearInterval(controller_status);\
-      clearInterval(agent_status);\
+      if (typeof(controller_status) != \'undefined\') clearInterval(controller_status);\
+      if (typeof(agent_status) != \'undefined\') clearInterval(agent_status);\
     }\
   }\
 </script>\

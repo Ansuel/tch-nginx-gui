@@ -4,7 +4,7 @@ if not mesh.is_supported() or not mesh.use_new_layout() then
   local ui = require("web.ui_helper")
   gettext.textdomain('webui-core')
   ngx.print(ui.createHeader(T"EasyMesh", false, true))
-  ngx.print(ui.createAlert({class = "alert-warning"}, T"EasyMesh is not supported on this device."))
+  ngx.print(ui.createAlertBlock(T"EasyMesh is not supported on this device.", {alert={class="alert-warning"}}))
   ngx.print(ui.createFooter())
   return
 end
