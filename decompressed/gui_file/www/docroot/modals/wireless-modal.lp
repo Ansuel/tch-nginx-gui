@@ -1009,7 +1009,6 @@ end
   }
   local step = 2
   for i=0, 60, step do
-     ngx.sleep(step)
      local content_val = proxy.get(unpack(content_ssid))
      if (content_val and #content_val > 0) then
         content["macaddress"] = content_val[1].value
@@ -1019,6 +1018,7 @@ end
         content["wps_ap_setup_locked"] = content_val[5].value
         break
      end
+     ngx.sleep(step)
   end
 
 param = {
