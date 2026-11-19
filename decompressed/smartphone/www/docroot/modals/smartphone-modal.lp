@@ -38,7 +38,8 @@ if ngx.req.get_method() == "POST" then
     else
         local allowed = { screen_wake = true, screen_sleep = true, capture_screen = true, reboot = true, reconnect_data = true,
             data_on = true, data_off = true, start_vpn = true, stop_vpn = true,
-            uplink_link = true, uplink_fallback = true, uplink_primary = true, uplink_stop = true }
+            uplink_link = true, uplink_fallback = true, uplink_primary = true, uplink_stop = true,
+            usb_ncm = true, usb_rndis = true }
         if type(action) ~= "string" or not allowed[action] then
             ngx.status = ngx.HTTP_BAD_REQUEST
             response = {status = "error", message = "Unsupported smartphone action"}
@@ -54,6 +55,8 @@ if ngx.req.get_method() == "POST" then
                 uplink_fallback = "Telefono impostato come fallback della WAN. Attendere DHCP e verifica connettività.",
                 uplink_primary = "Telefono impostato come linea principale; la WAN sarà usata come fallback.",
                 uplink_stop = "Tethering disattivato e configurazione precedente ripristinata.",
+                usb_ncm = "Modalità CDC NCM confermata.",
+                usb_rndis = "Modalità RNDIS confermata.",
             }
             response.message = ok and (messages[action] or "Comando completato.") or "Comando non riuscito: verificare telefono e collegamento USB."
             if not ok and type(errors) == "table" and errors[1] and errors[1].errmsg then
@@ -78,26 +81,76 @@ end
     ngx.print('<input type="hidden" id="global-csrf-token" name="CSRFtoken" value="' .. session:getCSRFtoken() .. '">')
 
     local lbl = { span = { class = "span4" } }
+    local function available(value)
+        return value and value:match("%S") and value ~= "N/A"
+    end
+    local function withUnit(value, suffix)
+        return available(value) and (value .. suffix) or nil
+    end
+    local function row(label, id, value, status)
+        local markup
+        if status then
+            local icons = {
+                online = "icon-ok icon-large green",
+                offline = "icon-ban-circle icon-large red",
+                checking = "icon-time",
+            }
+            markup = '<i aria-hidden="true" class="' .. (icons[status] or "") .. '"></i> '
+        end
+        markup = (markup or "") .. '<span id="' .. id .. '">' .. (available(value) and value or "") .. '</span>'
+        ngx.print('<div class="phone-stat"' .. (available(value) and '' or ' style="display:none"') .. '>',
+            ui_helper.createLabel(label, markup, lbl), '</div>')
+    end
+    local function section(title, rows)
+        local visible = false
+        for _, item in ipairs(rows) do
+            if available(item[3]) then visible = true; break end
+        end
+        ngx.print('<fieldset class="phone-stat-section"' .. (visible and '' or ' style="display:none"') ..
+            '><legend>' .. title .. '</legend>')
+        for _, item in ipairs(rows) do row(item[1], item[2], item[3], item[4]) end
+        ngx.print('</fieldset>')
+    end
+    local function binaryStatus(value, yes, no)
+        if value == "1" then return yes, "online" end
+        if value == "0" then return no, "offline" end
+        return nil, ""
+    end
+    local function linkStatus()
+        if d.HOST_IF and d.HOST_ADMIN == "up" and d.HOST_CARRIER == "1" then return "Attivo", "online" end
+        if d.HOST_IF and (d.HOST_ADMIN == "down" or d.HOST_CARRIER == "0") then return "Inattivo", "offline" end
+        if not d.HOST_IF and d.USB_NETWORK == "1" then return "Interfaccia non rilevata", "offline" end
+        return nil, ""
+    end
+    local health = {online = "Raggiungibile", offline = "Non raggiungibile", checking = "In verifica"}
+    local modes = {off = "Disattivato", link = "Solo DHCP", fallback = "Telefono di riserva", primary = "Telefono principale"}
+    local lines = {phone = "Telefono", wan = "WAN", none = "Nessuna linea selezionata"}
 
     ngx.print('<div class="alert alert-warning" id="phone-error"' .. (d.ERROR and '' or ' style="display:none"') .. '>' .. (d.ERROR or '') .. '</div>')
-    ngx.print('<fieldset><legend>Informazioni Dispositivo</legend>')
-    ngx.print(ui_helper.createLabel("Modello:", '<span id="live_model">' .. (d.DEV or d.USB_DEV or "N/A") .. '</span>', lbl))
-    ngx.print(ui_helper.createLabel("Potenza Segnale:", '<span id="live_sig">'..(d.SIG or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("Dati Cellulari:", '<span id="live_data">' .. (d.DATA_ST == "1" and "Attivi" or "Inattivi") .. '</span>', lbl))
-    ngx.print('</fieldset>')
+    section("Informazioni Dispositivo", {
+        {"Modello:", "live_model", d.DEV or d.USB_DEV},
+        {"Potenza Segnale:", "live_sig", d.SIG},
+        {"Dati Cellulari:", "live_data", binaryStatus(d.DATA_ST, "Attivi", "Inattivi")},
+    })
 
-    local function host_link(data)
-        if not data.HOST_IF then return data.USB_NETWORK == "1" and "Interfaccia non rilevata" or "N/A" end
-        return data.HOST_ADMIN == "up" and data.HOST_CARRIER == "1" and "Attivo" or "Inattivo"
-    end
     ngx.print('<fieldset><legend>Tethering sul router</legend>')
-    ngx.print(ui_helper.createLabel("Interfaccia:", '<span id="host_if">' .. (d.HOST_IF or "N/A") .. '</span>', lbl))
-    ngx.print(ui_helper.createLabel("Link USB:", '<span id="host_link">' .. host_link(d) .. '</span>', lbl))
-    ngx.print(ui_helper.createLabel("IPv4:", '<span id="host_ipv4">' .. (d.HOST_IPV4 or "Non assegnato") .. '</span>', lbl))
-    ngx.print(ui_helper.createLabel("Gateway DHCP:", '<span id="host_gateway">' .. (d.HOST_GATEWAY or d.UPLINK_GATEWAY or "Non configurato") .. '</span>', lbl))
-    ngx.print(ui_helper.createLabel("Velocità USB:", '<span id="host_speed">' .. (d.USB_SPEED and (d.USB_SPEED .. " Mbit/s") or "N/A") .. '</span>', lbl))
-    ngx.print(ui_helper.createLabel("Moduli caricati:", '<span id="host_modules">' .. (d.HOST_MODULES or "Nessuno rilevato") .. '</span>', lbl))
-    ngx.print(ui_helper.createLabel("Installazione driver:", '<span id="host_drivers">' .. (d.HOST_DRIVER_STATUS or "N/A") .. '</span>', lbl))
+    row("Interfaccia:", "host_if", d.HOST_IF)
+    row("Driver in uso:", "host_driver", d.HOST_DRIVER)
+    row("Link USB:", "host_link", linkStatus())
+    row("IPv4:", "host_ipv4", d.HOST_IPV4)
+    row("Gateway DHCP:", "host_gateway", d.HOST_GATEWAY or d.UPLINK_GATEWAY)
+    row("Velocità USB:", "host_speed", withUnit(d.USB_SPEED, " Mbit/s"))
+    row("Moduli caricati:", "host_modules", d.HOST_MODULES)
+    row("Installazione driver:", "host_drivers", d.HOST_DRIVER_STATUS)
+    ngx.print('<label for="phone-usb-mode">Modalità USB:</label><select id="phone-usb-mode">' ..
+        '<option value="">Seleziona modalità</option>' ..
+        '<option value="rndis"' .. (d.HOST_RNDIS ~= "1" and ' disabled' or '') .. '>RNDIS</option>' ..
+        '<option value="ncm"' .. (d.HOST_NCM ~= "1" and ' disabled' or '') .. '>CDC NCM</option></select> ' ..
+        '<button type="button" class="btn" id="phone-usb-apply" onclick="applyPhoneUsbMode()" disabled>Applica modalità USB</button>' ..
+        '<p>Il cambio richiede il debug USB autorizzato e interrompe temporaneamente il tethering.</p>' ..
+        '<p id="phone-usb-ncm-note"' .. (d.HOST_NCM_BLOCKED == "1" and '' or ' style="display:none"') ..
+        '>Cambio a CDC NCM disabilitato su questo kernel per evitare blocchi della rete.</p>' ..
+        '<p id="phone-usb-result" role="status"></p>')
     ngx.print('</fieldset>')
     ngx.print('<fieldset><legend>Priorità Internet (IPv4)</legend>')
     ngx.print('<p>Abilita il tethering USB sul telefono. DHCP e fallback sul router funzionano anche senza autorizzazione ADB.</p>')
@@ -112,47 +165,48 @@ end
         '<button type="button" class="btn btn-primary phone-uplink-action" onclick="applyPhoneUplink()">Attiva / Applica</button> ' ..
         '<button type="button" class="btn phone-uplink-action" onclick="stopPhoneUplink()">Disattiva e ripristina</button>')
     ngx.print('<p id="phone-uplink-result" role="status"></p>')
-    ngx.print(ui_helper.createLabel("Modalità applicata:", '<span id="uplink-mode">' .. (d.UPLINK_MODE or "off") .. '</span>', lbl))
-    ngx.print(ui_helper.createLabel("Altra WAN:", '<span id="uplink-wan">' .. (d.UPLINK_WAN or "Rilevamento automatico") .. '</span>', lbl))
-    ngx.print(ui_helper.createLabel("Linea in uso:", '<span id="uplink-active">' .. (d.UPLINK_ACTIVE or "none") .. '</span>', lbl))
-    ngx.print(ui_helper.createLabel("Disponibilità WAN:", '<span id="uplink-wan-health">' .. (d.UPLINK_WAN_HEALTH or "checking") .. '</span>', lbl))
-    ngx.print(ui_helper.createLabel("Disponibilità telefono:", '<span id="uplink-phone-health">' .. (d.UPLINK_PHONE_HEALTH or "checking") .. '</span>', lbl))
-    ngx.print(ui_helper.createLabel("Monitor:", '<span id="uplink-message">' .. (d.UPLINK_MESSAGE or "") .. '</span>', lbl))
+    row("Modalità applicata:", "uplink-mode", modes[d.UPLINK_MODE])
+    row("Altra WAN:", "uplink-wan", d.UPLINK_WAN)
+    row("Linea in uso:", "uplink-active", lines[d.UPLINK_ACTIVE])
+    row("Disponibilità WAN:", "uplink-wan-health", health[d.UPLINK_WAN_HEALTH], d.UPLINK_WAN_HEALTH or "")
+    row("Disponibilità telefono:", "uplink-phone-health", health[d.UPLINK_PHONE_HEALTH], d.UPLINK_PHONE_HEALTH or "")
+    row("Monitor:", "uplink-message", d.UPLINK_MESSAGE)
     ngx.print('<p>Il monitor controlla 1.1.1.1 e 9.9.9.9 tramite ciascuna linea. Tre controlli falliti attivano il fallback; due successi ripristinano la linea preferita. Le connessioni esistenti possono richiedere una riconnessione. IPv6 e le policy di routing già marcate mantengono la configurazione del router.</p></fieldset>')
 
-    ngx.print('<fieldset><legend>Batteria e Salute</legend>')
-    ngx.print(ui_helper.createLabel("Livello:", '<span id="live_batt">'..(d.BATT or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("Stato:", '<span id="live_batt_stat">'..(d.BATT_STAT or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("Salute:", '<span id="live_batt_health">'..(d.BATT_HEALTH or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("Temperatura:", '<span id="live_temp">'..(d.TEMP or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("Voltaggio:", '<span id="live_volt">'..(d.VOLT or "N/A")..'</span>', lbl))
-    ngx.print('</fieldset>')
+    section("Batteria e Salute", {
+        {"Livello:", "live_batt", d.BATT},
+        {"Stato:", "live_batt_stat", d.BATT_STAT},
+        {"Salute:", "live_batt_health", d.BATT_HEALTH},
+        {"Temperatura:", "live_temp", d.TEMP},
+        {"Voltaggio:", "live_volt", d.VOLT},
+    })
+    section("Sistema e Tethering", {
+        {"Stato USB:", "live_usb", d.USB_STATE},
+        {"Tethering:", "live_tether", d.TETHER},
+        {"VPN Condivisa:", "live_vpn_share", d.ROOT_ACCESS == "1" and d.VPN_SHARE or nil},
+        {"Carico CPU:", "live_load", d.LOAD},
+        {"Memoria RAM:", "live_mem", d.MEM},
+    })
+    section("Dettagli Rete e Cella", {
+        {"Operatore:", "live_oper", d.OPER},
+        {"Tecnologia:", "live_net", d.NET},
+        {"Banda:", "live_band", withUnit(d.BAND, d.BAND_SOURCE == "EARFCN" and " (da EARFCN)" or "")},
+        {"LTE RSRQ:", "live_rsrq", withUnit(d.RSRQ, " dB")},
+        {"LTE RSSNR:", "live_snr", d.SNR},
+        {"5G NR SS-RSRP:", "live_nr_rsrp", withUnit(d.NR_RSRP, " dBm")},
+        {"5G NR SS-RSRQ:", "live_nr_rsrq", withUnit(d.NR_RSRQ, " dB")},
+        {"5G NR SS-SINR:", "live_nr_sinr", withUnit(d.NR_SINR, " dB")},
+        {"PCI:", "live_pci", d.PCI},
+        {"eNB ID (LTE):", "live_enb", d.ENB},
+        {"Settore (LTE):", "live_sector", d.SECTOR},
+        {"ECI (LTE):", "live_eci", d.ECI},
+        {"ECGI (MCC-MNC-ECI):", "live_ecgi", d.ECGI},
+        {"TAC (LTE):", "live_tac", d.TAC},
+        {"EARFCN (LTE):", "live_earfcn", d.EARFCN},
+        {"Slot SIM:", "live_sim_slot", d.SIM_SLOT},
+    })
 
-    ngx.print('<fieldset><legend>Sistema e Tethering</legend>')
-    ngx.print(ui_helper.createLabel("Stato USB:", '<span id="live_usb">'..(d.USB_STATE or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("Tethering:", '<span id="live_tether">'..(d.TETHER or "N/A")..'</span>', lbl))
-    if d.ROOT_ACCESS == "1" then ngx.print(ui_helper.createLabel("VPN Condivisa:", '<strong><span id="live_vpn_share" style="color:#2cdb46;">'..(d.VPN_SHARE or "N/A")..'</span></strong>', lbl)) end
-    ngx.print(ui_helper.createLabel("Carico CPU:", '<span id="live_load">'..(d.LOAD or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("Memoria RAM:", '<span id="live_mem">'..(d.MEM or "N/A")..'</span>', lbl))
-    ngx.print('</fieldset>')
-
-    ngx.print('<fieldset><legend>Dettagli Rete e Cella</legend>')
-    ngx.print(ui_helper.createLabel("Operatore:", d.OPER or "N/A", lbl))
-    ngx.print(ui_helper.createLabel("Tecnologia:", '<span id="live_net">'..(d.NET or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("Banda:", '<span id="live_band">'..((d.BAND or "N/A")..(d.BAND_SOURCE == "EARFCN" and " (da EARFCN)" or ""))..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("Qualità (RSRQ):", '<span id="live_rsrq">'..(d.RSRQ or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("Rapporto segnale/rumore (RSSNR):", '<span id="live_snr">'..(d.SNR or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("PCI:", '<span id="live_pci">'..(d.PCI or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("eNB ID (LTE):", '<span id="live_enb">'..(d.ENB or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("Settore (LTE):", '<span id="live_sector">'..(d.SECTOR or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("ECI (LTE):", '<span id="live_eci">'..(d.ECI or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("ECGI (MCC-MNC-ECI):", '<span id="live_ecgi">'..(d.ECGI or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("TAC (LTE):", '<span id="live_tac">'..(d.TAC or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("EARFCN (LTE):", '<span id="live_earfcn">'..(d.EARFCN or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("Slot SIM:", '<span id="live_sim_slot">'..(d.SIM_SLOT or "N/A")..'</span>', lbl))
-    ngx.print('</fieldset>')
-
-    ngx.print('<fieldset><legend>Grafico Segnale (RSRP)</legend>')
+    ngx.print('<fieldset id="phone-signal-chart" style="display:none"><legend>Grafico Segnale (RSRP)</legend>')
     ngx.print('<div id="live-chart" style="width: 100%; height: 200px; padding: 10px;"></div>')
     ngx.print('</fieldset>')
 
@@ -222,7 +276,7 @@ end
     currentAjax = $.ajax({
       url: "/modals/smartphone-modal.lp",
       type: "POST", dataType: "json",
-      timeout: /^uplink_/.test(action) ? 45000 : 25000,
+      timeout: /^(uplink|usb)_/.test(action) ? 45000 : 25000,
       contentType: "application/x-www-form-urlencoded; charset=UTF-8",
       data: { action: action, CSRFtoken: tok },
       success: function(j){ if(cb && isModalActive) cb(j); },
@@ -273,6 +327,26 @@ end
   }
   function stopPhoneUplink(){ changePhoneUplink("uplink_stop"); }
 
+  var usbChanging = false;
+  function refreshPhoneUsbButton(){
+    $("#phone-usb-apply").prop("disabled", usbChanging || !$("#phone-usb-mode").val());
+  }
+  function applyPhoneUsbMode(){
+    var mode = $("#phone-usb-mode").val();
+    if (usbChanging || !/^(ncm|rndis)$/.test(mode)) return;
+    if (!confirm("Cambiare modalità USB? La connessione tramite il telefono verrà interrotta.")) return;
+    usbChanging = true;
+    $("#phone-usb-mode").prop("disabled", true);
+    refreshPhoneUsbButton();
+    $("#phone-usb-result").text("Cambio modalità USB in corso...");
+    postSmartphone("usb_" + mode, function(res){
+      usbChanging = false;
+      $("#phone-usb-mode").prop("disabled", false);
+      refreshPhoneUsbButton();
+      $("#phone-usb-result").text(res && res.message || "Nessuna risposta dal router.");
+    });
+  }
+
   $(document).ready(function(){
     $(".loading").hide();
     $("#lte-body").removeClass("loading-hidden").css("visibility","visible");
@@ -286,14 +360,71 @@ end
     modal.one('hidden', stopPolling);
     modal.find('.nav-tabs a, [data-dismiss="modal"]').one('click', stopPolling);
 
-    var pts=[];
-    var plot=$.plot("#live-chart",[{data:[],label:" RSRP (dBm)"}],{
-      series:{lines:{show:true,fill:true,fillColor:"rgba(93,33,93,0.2)"}},
-      colors:["#5d215d"], yaxis:{min:-120,max:-60}, xaxis:{show:false}
-    });
+    $("#phone-usb-mode").on("change", refreshPhoneUsbButton);
+    var ltePoints=[], nrPoints=[], sampleIndex=0, plot;
+    var statusIcons={online:"icon-ok icon-large green",offline:"icon-ban-circle icon-large red",checking:"icon-time"};
+    var healthLabels={online:"Raggiungibile",offline:"Non raggiungibile",checking:"In verifica"};
+    var modes={off:"Disattivato",link:"Solo DHCP",fallback:"Telefono di riserva",primary:"Telefono principale"};
+    var lines={phone:"Telefono",wan:"WAN",none:"Nessuna linea selezionata"};
+    function available(value){
+      return typeof value === "string" && /\S/.test(value) && value !== "N/A";
+    }
+    function withUnit(value, suffix){
+      return available(value) ? value + suffix : undefined;
+    }
+    function showRow(id, value, state){
+      var text = $("#" + id), row = text.closest(".phone-stat");
+      var visible = available(value);
+      text.text(visible ? value : "");
+      if (state !== undefined) text.siblings("i").attr("class", statusIcons[state] || "");
+      row.toggle(visible);
+    }
+    function showHealth(id, state){
+      showRow(id, healthLabels[state], state || "");
+    }
+    function showLink(data){
+      if (data.HOST_IF && data.HOST_ADMIN === "up" && data.HOST_CARRIER === "1") {
+        showRow("host_link", "Attivo", "online");
+      } else if (data.HOST_IF && (data.HOST_ADMIN === "down" || data.HOST_CARRIER === "0")) {
+        showRow("host_link", "Inattivo", "offline");
+      } else if (!data.HOST_IF && data.USB_NETWORK === "1") {
+        showRow("host_link", "Interfaccia non rilevata", "offline");
+      } else {
+        showRow("host_link", undefined, "");
+      }
+    }
+    function signalNumber(value){
+      return /^-?\d+$/.test(value) ? Number(value) : null;
+    }
+    function updateChart(data){
+      var lte = signalNumber(data.SIGNAL_RAW), nr = signalNumber(data.NR_RSRP);
+      var visible = lte !== null || nr !== null;
+      $("#phone-signal-chart").toggle(visible);
+      if (ltePoints.length >= 30) { ltePoints.shift(); nrPoints.shift(); }
+      ltePoints.push([sampleIndex, lte]);
+      nrPoints.push([sampleIndex++, nr]);
+      if (!visible) return;
+      var series = [];
+      if (ltePoints.some(function(point){ return point[1] !== null; })) {
+        series.push({data:ltePoints,label:"LTE RSRP (dBm)",color:"#5d215d"});
+      }
+      if (nrPoints.some(function(point){ return point[1] !== null; })) {
+        series.push({data:nrPoints,label:"5G NR SS-RSRP (dBm)",color:"#268084"});
+      }
+      if (!plot) {
+        plot = $.plot("#live-chart",series,{
+          series:{lines:{show:true}}, yaxis:{min:-156,max:-31}, xaxis:{show:false}
+        });
+      } else {
+        plot.setData(series);
+        plot.setupGrid();
+        plot.draw();
+      }
+    }
 
     function update(){
       if (!isModalActive || !document.getElementById('live-chart')) return;
+      if (usbChanging) { pollTimer = setTimeout(update, 1000); return; }
 
       postSmartphone("get_stats", function(j){
         if (!isModalActive) return;
@@ -301,64 +432,70 @@ end
         if (!document.getElementById('live-chart')) { isModalActive = false; return; }
         var error = j.ERROR || (j.status === "error" && j.message);
         $("#phone-error").text(error || "").toggle(!!error);
-        $("#live_model").text(j.DEV || j.USB_DEV || "N/A");
-        $("#host_if").text(j.HOST_IF || "N/A");
-        $("#host_link").text(j.HOST_IF ? (j.HOST_ADMIN === "up" && j.HOST_CARRIER === "1" ? "Attivo" : "Inattivo") :
-            (j.USB_NETWORK === "1" ? "Interfaccia non rilevata" : "N/A"));
-        $("#host_ipv4").text(j.HOST_IPV4 || "Non assegnato");
-        $("#host_gateway").text(j.HOST_GATEWAY || j.UPLINK_GATEWAY || "Non configurato");
-        $("#host_speed").text(j.USB_SPEED ? j.USB_SPEED + " Mbit/s" : "N/A");
-        $("#host_modules").text(j.HOST_MODULES || "Nessuno rilevato");
-        $("#host_drivers").text(j.HOST_DRIVER_STATUS || "N/A");
-        var modes={off:"Disattivato",link:"Solo DHCP",fallback:"Telefono di riserva",primary:"Telefono principale"};
-        $("#uplink-mode").text(modes[j.UPLINK_MODE] || "Disattivato");
-        $("#uplink-wan").text(j.UPLINK_WAN || "Rilevamento automatico");
-        $("#uplink-active").text(j.UPLINK_ACTIVE === "phone" ? "Telefono" : j.UPLINK_ACTIVE === "wan" ? "WAN" : "In verifica / nessuna linea selezionata");
-        $("#uplink-message").text(j.UPLINK_MESSAGE || "");
-        var healthLabels={online:"Raggiungibile",offline:"Non pronta / non raggiungibile",checking:"In verifica"};
-        $("#uplink-wan-health").text(healthLabels[j.UPLINK_WAN_HEALTH] || "In verifica");
-        $("#uplink-phone-health").text(healthLabels[j.UPLINK_PHONE_HEALTH] || "In verifica");
-        $("#live_data").text(j.DATA_ST === "1" ? "Attivi" : "Inattivi");
+        showRow("live_model", j.DEV || j.USB_DEV);
+        showRow("host_if", j.HOST_IF);
+        showRow("host_driver", j.HOST_DRIVER);
+        $("#phone-usb-mode option[value=ncm]").prop("disabled", !!error || j.HOST_NCM !== "1");
+        $("#phone-usb-mode option[value=rndis]").prop("disabled", !!error || j.HOST_RNDIS !== "1");
+        $("#phone-usb-ncm-note").toggle(j.HOST_NCM_BLOCKED === "1");
+        refreshPhoneUsbButton();
+        showLink(j);
+        showRow("host_ipv4", j.HOST_IPV4);
+        showRow("host_gateway", j.HOST_GATEWAY || j.UPLINK_GATEWAY);
+        showRow("host_speed", withUnit(j.USB_SPEED, " Mbit/s"));
+        showRow("host_modules", j.HOST_MODULES);
+        showRow("host_drivers", j.HOST_DRIVER_STATUS);
+        showRow("uplink-mode", modes[j.UPLINK_MODE]);
+        showRow("uplink-wan", j.UPLINK_WAN);
+        showRow("uplink-active", lines[j.UPLINK_ACTIVE]);
+        showRow("uplink-message", j.UPLINK_MESSAGE);
+        showHealth("uplink-wan-health", j.UPLINK_WAN_HEALTH);
+        showHealth("uplink-phone-health", j.UPLINK_PHONE_HEALTH);
+        if (j.DATA_ST === "1") showRow("live_data", "Attivi", "online");
+        else if (j.DATA_ST === "0") showRow("live_data", "Inattivi", "offline");
+        else showRow("live_data", undefined, "");
         $(".phone-root-control").toggle(j.ROOT_ACCESS === "1");
         $(".phone-tailscale-control").toggle(j.ROOT_ACCESS === "1" && j.TAILSCALE_CLI === "1");
         $("#btn_screen_capture").toggle(j.SCREEN_CAPTURE === "1");
-        var val=Number(j.SIGNAL_RAW);
-        if(!isNaN(val)){ if(pts.length>=30) pts.shift(); pts.push(val); }
-        var res=[]; for(var i=0;i<pts.length;i++) res.push([i,pts[i]]);
-        plot.setData([{data:res}]); plot.draw();
+        updateChart(j);
 
-        $("#live_batt").text(j.BATT || "N/A");
-        $("#live_batt_stat").text(j.BATT_STAT || "N/A");
-        $("#live_batt_health").text(j.BATT_HEALTH || "N/A");
-        $("#live_volt").text(j.VOLT || "N/A");
-        $("#live_temp").text(j.TEMP || "N/A");
-        $("#live_sig").text(j.SIG || "N/A");
-        $("#live_net").text(j.NET || "N/A");
-        $("#live_band").text((j.BAND || "N/A") + (j.BAND_SOURCE === "EARFCN" ? " (da EARFCN)" : ""));
-        $("#live_rsrq").text(j.RSRQ || "N/A");
-        $("#live_snr").text(j.SNR || "N/A");
-        $("#live_pci").text(j.PCI || "N/A");
-        $("#live_enb").text(j.ENB || "N/A");
-        $("#live_sector").text(j.SECTOR || "N/A");
-        $("#live_eci").text(j.ECI || "N/A");
-        $("#live_ecgi").text(j.ECGI || "N/A");
-        $("#live_tac").text(j.TAC || "N/A");
-        $("#live_earfcn").text(j.EARFCN || "N/A");
-        $("#live_sim_slot").text(j.SIM_SLOT || "N/A");
-        $("#live_usb").text(j.USB_STATE || "N/A");
-        $("#live_tether").text(j.TETHER || "N/A");
-        $("#live_load").text(j.LOAD || "N/A");
-        $("#live_mem").text(j.MEM || "N/A");
+        showRow("live_batt", j.BATT);
+        showRow("live_batt_stat", j.BATT_STAT);
+        showRow("live_batt_health", j.BATT_HEALTH);
+        showRow("live_volt", j.VOLT);
+        showRow("live_temp", j.TEMP);
+        showRow("live_sig", j.SIG);
+        showRow("live_oper", j.OPER);
+        showRow("live_net", j.NET);
+        showRow("live_band", withUnit(j.BAND, j.BAND_SOURCE === "EARFCN" ? " (da EARFCN)" : ""));
+        showRow("live_rsrq", withUnit(j.RSRQ, " dB"));
+        showRow("live_snr", j.SNR);
+        showRow("live_nr_rsrp", withUnit(j.NR_RSRP, " dBm"));
+        showRow("live_nr_rsrq", withUnit(j.NR_RSRQ, " dB"));
+        showRow("live_nr_sinr", withUnit(j.NR_SINR, " dB"));
+        showRow("live_pci", j.PCI);
+        showRow("live_enb", j.ENB);
+        showRow("live_sector", j.SECTOR);
+        showRow("live_eci", j.ECI);
+        showRow("live_ecgi", j.ECGI);
+        showRow("live_tac", j.TAC);
+        showRow("live_earfcn", j.EARFCN);
+        showRow("live_sim_slot", j.SIM_SLOT);
+        showRow("live_usb", j.USB_STATE);
+        showRow("live_tether", j.TETHER);
+        showRow("live_load", j.LOAD);
+        showRow("live_mem", j.MEM);
 
-        if(j.VPN_SHARE && j.VPN_SHARE === "Attiva") {
-            vpnIsActive = true;
-            $("#live_vpn_share").text("Attiva (Inoltro in corso)");
-            $("#btn_vpn").removeClass("btn-success").addClass("btn-danger").html('<i class="icon-unlock"></i> Disattiva VPN');
-        } else {
-            vpnIsActive = false;
-            $("#live_vpn_share").text("Inattiva");
-            $("#btn_vpn").removeClass("btn-danger").addClass("btn-success").html('<i class="icon-lock"></i> Condividi VPN');
-        }
+        vpnIsActive = j.ROOT_ACCESS === "1" && j.VPN_SHARE === "Attiva";
+        showRow("live_vpn_share", j.ROOT_ACCESS === "1" ? j.VPN_SHARE : undefined);
+        $("#btn_vpn").toggleClass("btn-success", !vpnIsActive).toggleClass("btn-danger", vpnIsActive)
+          .html(vpnIsActive ? '<i class="icon-unlock"></i> Disattiva VPN' : '<i class="icon-lock"></i> Condividi VPN');
+        $(".phone-stat-section").each(function(){
+          var section = $(this);
+          section.toggle(section.children(".phone-stat").filter(function(){
+            return $(this).css("display") !== "none";
+          }).length > 0);
+        });
 
         if (isModalActive) {
             pollTimer = setTimeout(update,5000);
