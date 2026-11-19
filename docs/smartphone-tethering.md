@@ -99,8 +99,11 @@ ready line. Local management routes remain in the main table. Existing marked
 routing policies (for example provider voice rules) and IPv6 retain their
 original behavior. Existing connections may need to reconnect after switching.
 
-The app reserves IPv4 routing tables `29996`–`29998` and rule priorities `90`,
-`91`, `100`, `101`; occupied reservations are rejected before activation.
+The app reserves IPv4 routing tables `29993`–`29995` and rule priorities
+`105`–`108`. It checks for occupied priorities and tables, including rules
+that reference an empty table, before activation.
+Routing matches ignore the firmware's QoS mark bits so classified traffic
+follows the selected uplink. Provider routing marks retain their own policies.
 Support for prefix-suppression rules is checked by capability, without a fixed
 kernel-version profile. Firmware lacking that capability can still use the
 DHCP-only mode. All arguments reaching subprocesses come from enum actions,

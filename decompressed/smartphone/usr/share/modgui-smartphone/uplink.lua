@@ -3,7 +3,11 @@
 local json = require('dkjson')
 local M = {}
 local IFACE, OWNER = 'modgui_phone', 'smartphone-usb'
-local TABLES = {wan = 29996, phone = 29997, active = 29998}
+-- Firmware QoS uses mark bits 0xf800 without selecting a routing policy.
+local ROUTING = {owner = 'routing-v2-owned', wan = {105,29993}, phone = {106,29994},
+    connected = 107, active = {108,29995}, mark = '0/0xffff07ff'}
+local LEGACY_ROUTING = {owner = 'owned', wan = {90,29996}, phone = {91,29997},
+    connected = 100, active = {101,29998}, mark = '0/0xffffffff'}
 local TARGETS = {'1.1.1.1', '9.9.9.9'}
 local function quote(v) return "'" .. tostring(v):gsub("'", "'\\''") .. "'" end
 local function argv(args)
@@ -133,29 +137,42 @@ function M.new(env)
     local function ip(args)
         local a={'ip','-4'}; for _,v in ipairs(args) do a[#a+1]=v end; return run(a)
     end
-    local function reserved_check()
-        if exists(file('owned')) then return end
-        local rules=read({'ip','-4','rule','show'})
-        for _, n in ipairs({90,91,100,101}) do
-            assert(not ('\n'..rules):match('\n'..n..':'), 'Priorità di routing '..n..' già in uso.')
-        end
-        for _, n in pairs(TABLES) do
-            assert(not read({'ip','-4','route','show','table',n}):match('%S'), 'Tabella di routing '..n..' già in uso.')
-        end
-        private_runtime()
-        write(file('owned'),'1\n')
+    local function connected_rule(action, layout)
+        return ip({'rule',action,'pref',layout.connected,'fwmark',layout.mark,'lookup','main','suppress_prefixlength',0})
     end
-    local function delete_rules()
-        for _, spec in ipairs({{90,TABLES.wan},{91,TABLES.phone},{101,TABLES.active}}) do
+    local function delete_rules(layout)
+        for _, spec in ipairs({layout.wan,layout.phone,layout.active}) do
             for _=1,8 do if not ip({'rule','del','pref',spec[1],'lookup',spec[2]}) then break end end
         end
-        ip({'rule','del','pref',100,'fwmark','0/0xffffffff','lookup','main','suppress_prefixlength',0})
+        connected_rule('del',layout)
+    end
+    local function release_layout(layout)
+        if not exists(file(layout.owner)) then return end
+        delete_rules(layout)
+        for _,spec in ipairs({layout.wan,layout.phone,layout.active}) do
+            ip({'route','flush','table',spec[2]})
+        end
+        os.remove(file(layout.owner)); os.remove(file('rules'))
     end
     local function cleanup_routes()
-        if not exists(file('owned')) then return end
-        delete_rules()
-        for _,n in pairs(TABLES) do ip({'route','flush','table',n}) end
-        os.remove(file('owned')); os.remove(file('rules'))
+        release_layout(LEGACY_ROUTING)
+        release_layout(ROUTING)
+    end
+    local function reserved_check()
+        if exists(file(ROUTING.owner)) then return end
+        local live=read({'ip','-4','rule','show'})
+        for _,n in ipairs({ROUTING.wan[1],ROUTING.phone[1],ROUTING.connected,ROUTING.active[1]}) do
+            assert(not ('\n'..live):match('\n'..n..':'), 'Priorità di routing '..n..' già in uso.')
+        end
+        for _,spec in ipairs({ROUTING.wan,ROUTING.phone,ROUTING.active}) do
+            local n=spec[2]
+            assert(not (live..'\n'):match('%slookup%s+'..n..'%s')
+                and not read({'ip','-4','route','show','table',n}):match('%S'),
+                'Tabella di routing '..n..' già in uso.')
+        end
+        release_layout(LEGACY_ROUTING)
+        private_runtime()
+        write(file(ROUTING.owner),'1\n')
     end
     local function route(table_id, i)
         if not i.up then ip({'route','flush','table',table_id}); return false end
@@ -168,21 +185,22 @@ function M.new(env)
     end
     local function rules(wan, phone)
         reserved_check()
-        local signature=(wan.dev or '')..'|'..(wan.ip or '')..'|'..(phone.dev or '')..'|'..(phone.ip or '')
+        local signature=table.concat({ROUTING.mark,wan.dev or '',wan.ip or '',phone.dev or '',phone.ip or ''},'|')
         local old=io.open(file('rules'),'r'); local previous=old and old:read('*a'); if old then old:close() end
         if previous==signature then return end
-        delete_rules()
+        delete_rules(ROUTING)
         -- Probe source addresses use their own tables, including reverse-path
         -- checks. Native marked-policy traffic retains its original routing.
-        for _,spec in ipairs({{wan,90,TABLES.wan},{phone,91,TABLES.phone}}) do
-            if safe(spec[1].dev) and ipv4(spec[1].ip) then
+        for _,spec in ipairs({{wan,ROUTING.wan},{phone,ROUTING.phone}}) do
+            local line, policy=spec[1], spec[2]
+            if safe(line.dev) and ipv4(line.ip) then
                 for _,target in ipairs(TARGETS) do
-                    assert(ip({'rule','add','pref',spec[2],'from',spec[1].ip..'/32','to',target..'/32','lookup',spec[3]}), 'Impossibile creare regola di controllo linea.')
+                    assert(ip({'rule','add','pref',policy[1],'from',line.ip..'/32','to',target..'/32','lookup',policy[2]}), 'Impossibile creare regola di controllo linea.')
                 end
             end
         end
-        assert(ip({'rule','add','pref',100,'fwmark','0/0xffffffff','lookup','main','suppress_prefixlength',0}), 'Il firmware non supporta le regole di fallback richieste.')
-        assert(ip({'rule','add','pref',101,'fwmark','0/0xffffffff','lookup',TABLES.active}), 'Impossibile attivare la tabella di fallback.')
+        assert(connected_rule('add',ROUTING), 'Il firmware non supporta le regole di fallback richieste.')
+        assert(ip({'rule','add','pref',ROUTING.active[1],'fwmark',ROUTING.mark,'lookup',ROUTING.active[2]}), 'Impossibile attivare la tabella di fallback.')
         write(file('rules'),signature)
     end
     local function probe(i)
@@ -209,7 +227,10 @@ function M.new(env)
         write(file('status.json'),json.encode(s))
     end
     local self={}
-    function self.release() cleanup_routes() end
+    function self.release()
+        cleanup_routes()
+        os.remove(file('status.json'))
+    end
     function self.cleanup()
         private_runtime(); write(file('stop'),'1')
         cleanup_routes()
@@ -250,10 +271,10 @@ function M.new(env)
         if mode~='link' then
             reserved_check()
             local live=read({'ip','-4','rule','show'})
-            if not live:match('suppress_prefixlength 0') then
-                local supported=ip({'rule','add','pref',100,'fwmark','0/0xffffffff','lookup','main','suppress_prefixlength',0})
+            if not ('\n'..live):match('\n'..ROUTING.connected..':[^\n]*suppress_prefixlength 0') then
+                local supported=connected_rule('add',ROUTING)
                 if not supported then cleanup_routes(); error('Il firmware non supporta le regole IPv4 di fallback richieste. È disponibile il solo collegamento DHCP.') end
-                ip({'rule','del','pref',100,'fwmark','0/0xffffffff','lookup','main','suppress_prefixlength',0})
+                connected_rule('del',ROUTING)
             end
         end
         local before={network=uci:get_all('network',IFACE),smartphone=uci:get_all('smartphone','uplink'),
@@ -324,10 +345,11 @@ function M.new(env)
         return true
     end
     function self.step()
+        if exists(file('stop')) then return false end
         if exists(file('control.lock/pid')) then return true end
         uci:unload('smartphone'); uci:unload('network')
         config=settings(); config.dns_managed=config.dns_managed=='1'
-        if config.enabled~='1' or exists(file('stop')) then return false end
+        if config.enabled~='1' then return false end
         assert(safe(config.wan),'WAN configurata non valida.')
         local dev=usb()
         local rebind_message
@@ -341,30 +363,37 @@ function M.new(env)
         assert(not (wan.up and phone.up and wan.ip==phone.ip), 'Le due linee hanno lo stesso indirizzo IPv4. Cambiare la rete USB del telefono.')
         if config.mode=='link' then active='none'; status_write(wan,phone,'Solo collegamento DHCP'); return true end
         rules(wan,phone)
-        local wroute,proute=route(TABLES.wan,wan),route(TABLES.phone,phone)
-        health.wan=M.health(health.wan,wroute and probe(wan),wan.up)
-        health.phone=M.health(health.phone,proute and probe(phone),phone.up)
+        local wroute,proute=route(ROUTING.wan[2],wan),route(ROUTING.phone[2],phone)
+        health.wan=M.health(health.wan,wroute and probe(wan),wroute)
+        health.phone=M.health(health.phone,proute and probe(phone),proute)
         if exists(file('stop')) then return false end
         if exists(file('control.lock/pid')) then return true end
         local chosen=M.choose(config.mode,health)
-        if chosen=='none' then ip({'route','flush','table',TABLES.active}); active='none'
-        else
+        local route_error
+        while chosen~='none' do
             local i=chosen=='phone' and phone or wan
-            assert(route(TABLES.active,i),'Impossibile applicare la rotta selezionata.')
-            active=chosen; resolver(i)
+            if route(ROUTING.active[2],i) then resolver(i); break end
+            -- netifd may remove the device or DHCP address after the probes.
+            route_error='Linea cambiata durante l’applicazione della rotta. Verifica in corso.'
+            health[chosen]=M.health(health[chosen],false,false)
+            chosen=M.choose(config.mode,health)
         end
-        status_write(wan,phone,rebind_message or (chosen=='none' and 'Verifica connettività in corso o entrambe le linee non raggiungibili.' or ''))
+        if chosen=='none' then ip({'route','flush','table',ROUTING.active[2]}) end
+        active=chosen
+        status_write(wan,phone,rebind_message or route_error or (chosen=='none' and 'Verifica connettività in corso o entrambe le linee non raggiungibili.' or ''))
         return true
     end
     function self.status()
         local c=settings(); local state={}
         local f=io.open(file('status.json'),'r'); if f then state=json.decode(f:read('*a')) or {}; f:close() end
+        if c.enabled=='1' and (not state.timestamp or os.time()-state.timestamp>45) then
+            state={message='Avvio DHCP/monitor in corso o monitor non attivo.'}
+        end
         local out={UPLINK_MODE=c.enabled=='1' and c.mode or 'off',UPLINK_WAN=c.wan,
             UPLINK_IPV4=state.phone_ip,UPLINK_GATEWAY=state.gateway,
             UPLINK_ACTIVE=state.active or 'none',UPLINK_MESSAGE=state.message,
             UPLINK_WAN_HEALTH=state.wan_health or 'checking',
             UPLINK_PHONE_HEALTH=state.phone_health or 'checking'}
-        if c.enabled=='1' and (not state.timestamp or os.time()-state.timestamp>45) then out.UPLINK_MESSAGE='Avvio DHCP/monitor in corso o monitor non attivo.' end
         for k,v in pairs(out) do if v then print(k..'|'..tostring(v):gsub('[\r\n|]',' ')) end end
     end
     function self.control(action)
