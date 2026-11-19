@@ -8,7 +8,7 @@ if ngx.req.get_method() == "POST" then
     local sample, reason, interface
     local previous_interface = args.interface
     if args.source == "wan" then
-        sample, reason, interface = require("wantraffic").sample()
+        sample, reason, interface = require("internethelper").sampleWanTraffic()
         if string.untaint and previous_interface and type(previous_interface) ~= "table" then
             previous_interface = string.untaint(previous_interface)
         end

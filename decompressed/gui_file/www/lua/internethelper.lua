@@ -20,6 +20,52 @@ function M.getValue(path)
 	return result and result[1] and result[1].value or ""
 end
 
+local function phoneUplink()
+    local phone = "rpc.network.interface.@modgui_phone."
+    if M.getValue("uci.network.interface.@modgui_phone.defaultroute") ~= "1" or M.getValue(phone .. "up") ~= "1" then
+        return
+    end
+    local device = M.getValue(phone .. "ifname")
+    if string.untaint then device = string.untaint(device) end
+    if device == "" then return end
+
+    -- The tethering service installs the selected uplink in this policy
+    -- table. The USB interface can be up while the main WAN is still in use.
+    local routes = io.popen("ip -4 route show table 29995 default 2>/dev/null", "r")
+    if not routes then return end
+    local route = routes:read("*l")
+    routes:close()
+    if route and route:match("^default%s+.*%f[%w]dev%s+(%S+)") == device then return device end
+end
+
+function M.sampleWanTraffic()
+    local netrate = require("netrate")
+    local device = phoneUplink()
+    local bridged
+    if not device then
+        local wan = "uci.network.interface.@wan."
+        local mode = M.getConnectionMode(
+            M.getValue("uci.network.config.wan_mode"), M.getValue(wan .. "proto"), M.getValue(wan .. "ifname"))
+        bridged = mode == "bridge"
+        if bridged then
+            local bridge = require("bridgehelper")
+            device = bridge.resolveUplink(bridge.getUplink(true))
+        elseif M.getValue("rpc.network.interface.@wan.up") == "1" then
+            device = M.getValue("rpc.network.interface.@wan.ifname")
+        end
+    end
+    if string.untaint and device then device = string.untaint(device) end
+    if not device or device == "" or device == "br-lan" then return nil, "interface_unavailable" end
+
+    local sample, reason = netrate.sample(device)
+    if not sample and reason == "interface_unavailable" and not bridged and device:match("^wan") then
+        device = M.getValue("uci.network.device.@" .. device .. ".ifname")
+        if string.untaint then device = string.untaint(device) end
+        if device ~= "br-lan" then sample, reason = netrate.sample(device) end
+    end
+    return sample, reason, device
+end
+
 function M.getMtuValidator(protocol)
 	return function(value, object)
 		-- An empty option leaves protocol/driver defaults in effect.

@@ -175,7 +175,7 @@ args.interface = 'missing'
 request(); assert(not output.valid and output.rx_traffic == nil)
 args.interface = {'ptm0'}
 request(); assert(not output.valid and output.reason == 'invalid_interface')
-package.preload.wantraffic = function() return {sample = function()
+package.preload.internethelper = function() return {sampleWanTraffic = function()
   return {time = 20, rx = 2000, tx = 5000}, nil, 'usb0'
 end} end
 args = {source = 'wan', interface = 'ptm0', oldrx = '1000', oldtx = '3000', oldtime = '10'}
@@ -209,17 +209,17 @@ package.preload.datamodel = function() return {
   end,
 } end
 package.path = LUA_PATH .. ';' .. package.path
-local traffic = require('wantraffic')
+local internet = require('internethelper')
 files['/proc/uptime'] = '10.5 0'
 files['/proc/net/dev'] = counters('ptm0.835', '1000', '2000')
   .. counters('eth4', '3000', '4000') .. counters('usb0', '5000', '6000')
 local function check(device, rx)
-  local sample, reason, source = traffic.sample()
+  local sample, reason, source = internet.sampleWanTraffic()
   assert(sample and source == device and sample.rx == rx, reason or source)
 end
 check('ptm0.835', 1000)
 values[rpc .. 'wan.up'] = '0'
-assert(traffic.sample() == nil)
+assert(internet.sampleWanTraffic() == nil)
 values[wan .. 'ifname'] = 'br-lan'
 values['uci.network.config.wan_mode'] = 'pppoe'
 values['uci.network.interface.@lan.ifname'] = 'eth0 eth4'
@@ -245,7 +245,7 @@ check('usb0', 5000)
 values[rpc .. 'modgui_phone.up'] = '0'
 check('eth4', 3000)
 values['uci.ethernet.port.@eth4.wan'] = '0'
-assert(traffic.sample() == nil)
+assert(internet.sampleWanTraffic() == nil)
 assert(routeClosed == 2)
 assert(opened == closed)
 '''.replace('LUA_PATH', repr(str(GUI / 'www/lua/?.lua'))))
