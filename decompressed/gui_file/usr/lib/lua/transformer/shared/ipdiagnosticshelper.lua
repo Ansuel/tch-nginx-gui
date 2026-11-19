@@ -45,4 +45,26 @@ function M.get_physical_interface(interface, host)
   end
 end
 
+-- Used by /usr/bin/ipping and /usr/bin/igd_traceroute (firmware 19.x).
+-- Copies the command output to tmp_file while it is produced (GUI polling)
+-- and returns the full output.
+function M.copy_ping_or_traceroute_result(user, fp, tmp_file)
+  local output
+  if user == "diagping" or user == "webui" then
+    local tmp_fp = io.open(tmp_file, "w")
+    if not tmp_fp then
+      return
+    end
+    for line in fp:lines() do
+      tmp_fp:write(line .. '\n')
+      tmp_fp:flush()
+      output = output and output .. line .. '\r\n' or line .. '\r\n'
+    end
+    tmp_fp:close()
+  else
+    output = fp:read("*a")
+  end
+  return output
+end
+
 return M
