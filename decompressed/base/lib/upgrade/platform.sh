@@ -12,15 +12,23 @@ homeware_conversion_tmp=/tmp/homeware_conversion_tmp
 homeware_conversion_dir=/overlay/homeware_conversion
 
 logging_file=/tmp/upgrade_logging
+upgrade_log_dir=/overlay/modgui_log
+upgrade_log_latest=/overlay/firmware_upgrade_log.latest
 
 echo_log() {
         echo "$@"
         echo "$@" >> $logging_file
 }
 
+save_upgrade_log() {
+        mkdir -p "$upgrade_log_dir"
+        cp "$logging_file" "$upgrade_log_dir/firmware_upgrade_log_$(date +"%H-%M_%m-%d-%y")"
+        cp "$logging_file" "$upgrade_log_latest"
+        sync
+}
+
 save_log_and_exit() {
-        [ ! -d /overlay/modgui_log ] && mkdir /overlay/modgui_log
-        cp $logging_file /overlay/modgui_log/firmware_upgrade_log_$(date +"%H-%M_%m-%d-%y")
+        save_upgrade_log
         reboot
         exit 1
 }
@@ -135,11 +143,19 @@ platform_do_upgrade() {
         echo_log "Base Files preserved!"
         [ "$SAVE_CONFIG" != "0" ] && preserve_config_file
 
-        # Reset overlay dir
-        [ -d $overlay_dir ] && rm -r $overlay_dir/*
+        # Reset the overlay dir, including hidden files and overlayfs whiteouts.
+        # A plain "$overlay_dir/*" leaves entries such as .wget-hsts behind and
+        # makes the safety check below abort every firmware upgrade.
+        if [ -d "$overlay_dir" ]; then
+                echo_log "Cleaning overlay directory: $overlay_dir"
+                ls -la "$overlay_dir" >> "$logging_file" 2>&1
+                rm -rf "$overlay_dir"/* "$overlay_dir"/.[!.]* "$overlay_dir"/..?*
+        fi
 
         # Make sure modoverlay is empty
-        if [ "$(ls -A $overlay_dir)" ]; then
+        if [ "$(ls -A "$overlay_dir")" ]; then
+                echo_log "Overlay cleanup left these entries:"
+                ls -la "$overlay_dir" >> "$logging_file" 2>&1
                 restore_base_root
                 echo_log "Running on dirty config... This could cause bootloop... Restoring file and restarting!"
                 save_log_and_exit
@@ -170,6 +186,8 @@ platform_do_upgrade() {
                                       }
                         fi
 
+                        echo_log "Overlay prepared; starting firmware write on $booted_bank."
+                        save_upgrade_log
                         platform_do_upgrade_bank $1 $booted_bank || exit 1
                 else
                         echo_log "Rooting file not present in new config! Aborting... "
@@ -178,6 +196,8 @@ platform_do_upgrade() {
                 fi
         else
                 # Not supported keep old code, no modem found with single bank with firmware based on openwrt
+                echo_log "Overlay prepared; starting firmware write on bank_1."
+                save_upgrade_log
                 platform_do_upgrade_bank $1 bank_1 || exit 1
                 mkdir -p /overlay/homeware_conversion
         fi
