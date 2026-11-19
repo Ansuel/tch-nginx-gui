@@ -62,6 +62,10 @@ replies = {{status = 500, body = 'broken', header = {['error-msg'] = 'backend'}}
 run('gateway,xdsl')
 assert(output.modules.gateway.status == 500 and output.modules.gateway.error == 'backend')
 assert(output.modules.xdsl.status == 200 and captures[2][2].args.datatype == 'xdsl')
+replies = {{status = 200, body = 'valid'}, {status = 200, body = 'valid'}}
+run('wan,wanstats')
+assert(not captures[1][2].args.datatype and captures[2][2].args.datatype == 'wanstats')
+assert(output.modules.wanstats.data.value == 1)
 replies = {{status = 200, body = 'trailing'}}
 run('gateway'); assert(output.modules.gateway.data == nil)
 for _, value in ipairs({'gateway,gateway', 'unknown', 'gateway,,ports', ',gateway', 'gateway,', '', '../../secret', {}}) do

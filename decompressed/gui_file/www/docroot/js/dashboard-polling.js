@@ -16,6 +16,7 @@
             // DSL driver RPCs can be slow on older firmware. Keep this read
             // independent so it cannot hold back every other dashboard card.
             if (query[i] === "datatype=xdsl" && name === "wan") return null;
+            else if (query[i] === "datatype=wanstats" && name === "wan") name = "wanstats";
             else if (query[i] !== "auto_update=true") return null;
         }
         return name;

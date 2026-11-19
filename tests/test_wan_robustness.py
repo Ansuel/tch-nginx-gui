@@ -443,7 +443,7 @@ assert(output.status == 'Connected' and not output.status_light:find('PPP', 1, t
 assert(#writes == 0)
 '''.replace('ENDPOINT', repr(str(ROOT / 'www/docroot/ajax/internet.lua'))))
 
-    def test_wan_stats_shows_local_bridge_session_but_not_pure_bridge(self):
+    def test_wan_stats_hides_missing_rows_and_follows_active_uplink(self):
         self.run_lua('''
 local labels = {}
 gettext = {textdomain = function() end}
@@ -451,14 +451,17 @@ ngx = {print = function() end}
 package.preload['web.content_helper'] = function() return {getExactContent = helper.getOptionalContent} end
 package.preload['web.ui_helper'] = function() return {
   createCardHeader = function() return '' end,
-  createSimpleLight = function() return '' end,
-  createLabel = function(label, value) labels[label] = value; return '' end,
+  createLabel = function(label, value, attributes)
+    if not attributes.group.style then labels[label] = value:match('<span data%-wan%-value>(.*)</span>') end
+    return ''
+  end,
 } end
-package.preload['web.post_helper'] = function() return {secondsToTime = function() return '' end} end
+package.preload['web.web'] = function() return {html_escape = function(value) return value end} end
+package.preload['web.post_helper'] = function() return {secondsToTime = function(n) return n .. ' seconds' end} end
 package.preload['web.taint'] = function() return {untaint_mt = {}} end
 package.preload.bridgehelper = function() return dofile(BRIDGE) end
 package.preload.broadbandmode_helper = function() return {
-  {description = 'VDSL2', default = true, check = function() return false end},
+  {description = 'VDSL2', default = true, check = function(uplink) return uplink == 'ptm0' end},
   {description = 'Ethernet', check = function(uplink) return uplink == 'eth4' end},
 } end
 package.preload.internetmode_helper = function() return {
@@ -476,10 +479,36 @@ for _, protocol in ipairs({'dhcp', 'pppoe', 'static', 'bridge'}) do
 end
 values['uci.network.config.wan_mode'] = 'pppoe'
 values['uci.network.interface.@wan.proto'] = 'dhcp'
+values['uci.network.interface.@wan.ifname'] = 'usb0'
+values['rpc.network.interface.@wan.ifname'] = 'usb0'
+values['rpc.network.interface.@wan.up'] = '1'
+values['rpc.network.interface.@wan.ip6addr'] = ''
+values['rpc.network.interface.@wan.nexthop'] = '0.0.0.0'
+values['rpc.network.interface.@wan.uptime'] = '25'
 labels = {}
 dofile(INFOCARD)
 assert(labels['Connection Type'] == 'DHCP')
-assert(labels['Broadband Connection'] == 'Unknown')
+assert(labels['Status'] == 'Connected')
+assert(labels['Broadband Connection'] == nil and labels['IPv6 address'] == nil)
+assert(labels['Gateway'] == nil and labels['DNS servers'] == nil and labels['Uptime'] == '25 seconds')
+values['uci.network.interface.@wan.ifname'] = 'ptm0'
+values['rpc.network.interface.@wan.ifname'] = 'ptm0'
+values['rpc.network.interface.@wan.ip6addr'] = '2001:db8::7'
+labels = {}
+dofile(INFOCARD)
+assert(labels['Broadband Connection'] == 'VDSL2' and labels['IPv6 address'] == '2001:db8::7')
+values['uci.network.interface.@modgui_phone.defaultroute'] = '1'
+values['rpc.network.interface.@modgui_phone.up'] = '1'
+values['rpc.network.interface.@modgui_phone.ifname'] = 'usb0'
+values['rpc.network.interface.@modgui_phone.ipaddr'] = '198.51.100.2'
+io.popen = function()
+  return {read = function() return 'default via 198.51.100.1 dev usb0' end, close = function() end}
+end
+labels = {}
+dofile(INFOCARD)
+assert(labels['IPv4 address'] == '198.51.100.2')
+assert(labels['Broadband Connection'] == nil and labels['IPv6 address'] == nil)
+values['rpc.network.interface.@modgui_phone.up'] = '0'
 values['uci.network.interface.@wan.ifname'] = 'br-lan'
 values['uci.network.interface.@lan.ifname'] = 'eth0 eth4'
 values['uci.ethernet.port.@eth4.wan'] = '1'
