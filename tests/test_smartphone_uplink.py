@@ -27,6 +27,8 @@ class SmartphoneUplinkTest(unittest.TestCase):
     def test_reserved_rules_and_tables_are_not_overwritten(self): self.run_case('reserved')
     def test_monitor_switches_and_returns_to_preferred_line(self): self.run_case('monitor')
     def test_unplugged_phone_selects_wan_and_preserves_marked_policies(self): self.run_case('unplug')
+    def test_usb_disconnect_between_probe_and_route_change_recovers(self): self.run_case('usb_race')
+    def test_legacy_reservations_are_released_without_removing_other_rules(self): self.run_case('migration')
     def test_invalid_mode_cannot_reach_shell_or_configuration(self): self.run_case('invalid')
     def test_control_lock_rejects_concurrent_actions_and_recovers_stale_pid(self): self.run_case('lock')
     def test_failed_apply_keeps_unrelated_concurrent_configuration(self): self.run_case('concurrent')

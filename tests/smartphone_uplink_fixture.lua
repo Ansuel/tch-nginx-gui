@@ -51,7 +51,7 @@ local bus={call=function(_,name)
 end}
 local commands,rules,routes={}, {}, {main='native default'}
 local reachable={['192.0.2.2']=true,['198.51.100.2']=true}
-local fail,pending,occupied=nil,false,false
+local fail,pending,occupied=nil,false,nil
 local function key(a) local p={} for _,v in ipairs(a) do p[#p+1]=tostring(v) end return table.concat(p,' ') end
 local env={uci=u,bus=bus,runtime=folder..'/runtime',config_path=folder..'/config',pid='12345',usb=function() return 'phone0' end}
 env.run=function(a)
@@ -88,8 +88,8 @@ end
 env.read=function(a)
     if a[1]=='uci' and a[2]=='changes' then return pending and a[3]=='network' and 'network.other=value' or '' end
     if a[1]=='uci' and a[2]=='export' then return encode(db[a[3]]) end
-    if a[1]=='ip' and a[3]=='rule' then return occupied and '100: from all lookup custom\n' or '' end
-    if a[1]=='ip' and a[3]=='route' then return '' end
+    if a[1]=='ip' and a[3]=='rule' then return occupied or '' end
+    if a[1]=='ip' and a[3]=='route' then return routes[tostring(a[6])] or '' end
     return ''
 end
 env.restore=function(name,body) db[name]=package.loaded.dkjson.decode(body) end
@@ -106,7 +106,9 @@ elseif case=='conflict' then
     pending=false; db.network.modgui_phone={['.type']='interface',proto='static'}
     local snapshot=encode(db); assert(not pcall(app.apply,'fallback')); assert(encode(db)==snapshot)
 elseif case=='reserved' then
-    occupied=true; assert(not pcall(app.apply,'fallback')); assert(encode(db)==before); assert(#commands==0)
+    for _,conflict in ipairs({'108: from all lookup custom\n','92: from all lookup 29994\n'}) do
+        occupied=conflict; assert(not pcall(app.apply,'fallback')); assert(encode(db)==before); assert(#commands==0)
+    end
 elseif case=='rollback' then
     fail='/etc/init.d/firewall reload'; assert(not pcall(app.apply,'fallback')); assert(encode(db)==before)
 elseif case=='concurrent' then
@@ -138,25 +140,57 @@ elseif case=='apply' or case=='change' then
     assert(table.concat(db.firewall.wan.network,',')=='wan,wan6,custom_other')
     assert(db.dhcp.main.resolvfile==folder..'/original.resolv')
     assert(routes.main=='native default' and #rules==0)
-elseif case=='monitor' or case=='unplug' then
-    assert(app.apply(case=='unplug' and 'primary' or 'fallback'))
+elseif case=='monitor' or case=='unplug' or case=='usb_race' or case=='migration' then
+    occupied='91: from all fwmark 0x1000000/0x1000000 lookup tod\n92: from all to 203.0.113.1 lookup 29997\n'
+    rules={'ip -4 rule add pref 91 fwmark 0x1000000/0x1000000 lookup tod',
+        'ip -4 rule add pref 92 to 203.0.113.1 lookup 29997'}
+    if case=='migration' then
+        local owner=assert(io.open(folder..'/runtime/owned','w')); owner:close()
+        rules[#rules+1]='ip -4 rule add pref 91 from 198.51.100.2/32 to 1.1.1.1/32 lookup 29997'
+        routes['29997']='legacy USB route'
+    end
+    assert(app.apply(case=='monitor' and 'fallback' or 'primary'))
     assert(app.step()); assert(app.step())
-    assert(state().active==(case=='unplug' and 'phone' or 'wan'))
+    assert(state().active==(case=='monitor' and 'wan' or 'phone'))
     if case=='monitor' then
         reachable['192.0.2.2']=false
         app.step(); app.step(); assert(state().active=='wan')
-        app.step(); assert(state().active=='phone'); assert(routes['29998']:find('phone0',1,true))
+        app.step(); assert(state().active=='phone'); assert(routes['29995']:find('phone0',1,true))
         local f=assert(io.open(folder..'/runtime/resolv.conf')); assert(f:read('*a'):find('198.51.100.1',1,true)); f:close()
         reachable['192.0.2.2']=true; app.step(); assert(state().active=='phone')
         app.step(); assert(state().active=='wan')
         f=assert(io.open(folder..'/runtime/resolv.conf')); assert(f:read('*a'):find('192.0.2.1',1,true)); f:close()
-    else
+    elseif case=='unplug' then
         statuses.modgui_phone.up=false; app.step(); assert(state().active=='wan')
         statuses.modgui_phone.up=true; app.step(); app.step(); assert(state().active=='phone')
+    elseif case=='usb_race' then
+        fail='ip -4 route replace default via 198.51.100.1 dev phone0 src 198.51.100.2 onlink table 29995'
+        assert(app.step()); assert(state().active=='wan' and state().message~='')
+        assert(routes['29995']:find('wan0',1,true))
+        statuses.modgui_phone['ipv4-address'][1].address='198.51.100.3'
+        reachable['198.51.100.3']=true
+        assert(app.step()); assert(state().active=='wan')
+        assert(app.step()); assert(state().active=='phone' and state().phone_ip=='198.51.100.3')
+        local last=state(); last.timestamp=os.time()-60
+        local f=assert(io.open(folder..'/runtime/status.json','w')); f:write(encode(last)); f:close()
+        local lines={}
+        local original_print=print
+        print=function(line) lines[#lines+1]=line end
+        app.status()
+        print=original_print
+        local output=table.concat(lines,'\n')
+        assert(output:find('UPLINK_ACTIVE|none',1,true))
+        assert(output:find('UPLINK_PHONE_HEALTH|checking',1,true))
+        assert(not output:find('UPLINK_IPV4|',1,true))
+    else
+        assert(not io.open(folder..'/runtime/owned'))
+        assert(routes['29997']==nil and #rules==8)
     end
     local joined=table.concat(commands,'\n')
-    assert(joined:find('fwmark 0/0xffffffff lookup main suppress_prefixlength 0',1,true))
-    assert(joined:find('from 198.51.100.2/32 to 1.1.1.1/32 lookup 29997',1,true))
+    assert(joined:find('fwmark 0/0xffff07ff lookup main suppress_prefixlength 0',1,true))
+    assert(joined:find('fwmark 0/0xffff07ff lookup 29995',1,true))
+    assert(joined:find('from 198.51.100.2/32 to 1.1.1.1/32 lookup 29994',1,true))
     assert(routes.main=='native default')
-    app.stop(); assert(#rules==0 and routes['29998']==nil)
+    app.stop(); assert(#rules==2 and rules[1]:find('lookup tod',1,true) and rules[2]:find('lookup 29997',1,true))
+    assert(routes['29995']==nil)
 else error(case) end
