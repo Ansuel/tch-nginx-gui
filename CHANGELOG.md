@@ -1,6 +1,7 @@
 
 # Unreleased
 
+- Add a RIP inventory to GUI Settings: every RIP parameter the driver exposes in /proc/rip is displayed
 - Fix firmware upgrades aborting on hidden modoverlay files, and persist the latest upgrade log outside the GUI log rotation path
 - Stop unused factory ISP hotspot/provisioning daemons and align parental filtering and DLNA auxiliary services with GUI settings, including native boot enable/disable and UI reactivation
 - Repair missing IPv6 ULA prefixes during GUI installation/update using the stock firmware generator, preserving existing prefixes and explicit ULA disable settings (issue #841)

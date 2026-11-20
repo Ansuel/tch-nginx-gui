@@ -1,4 +1,5 @@
 local modgui = require("modgui")
+local rip_index = dofile("/usr/share/transformer/scripts/rip_index.lua")
 local logger = modgui.getRightLoggerModule()
 local commitapply = commitapply
 
@@ -176,20 +177,76 @@ local SYSTEM_MODGUI_UTILITY_ = {
     maxEntries = 1,
     parameters = {
       rip_key_B = {access = "readOnly", type = "string"},
-      sendcmd = {access = "readWrite", type = "string"}
+      rip_index = {access = "readOnly", type = "string"},
+      rip_status = {access = "readOnly", type = "string"},
+      rip_values = {access = "readOnly", type = "string"},
+      rip_action = {access = "readWrite", type = "string"}
     }
   },
   get = {
+    rip_index = function()
+      -- Read partition metadata inside Transformer. The nginx worker has no MTD access.
+      local fields = {}
+      for id, encrypted in pairs(rip_index.read() or {}) do
+        fields[#fields + 1] = id .. (encrypted and "=1" or "=0")
+      end
+      table.sort(fields)
+      return table.concat(fields, ",")
+    end,
+    rip_status = function()
+      local module = rip_index.supported(gui_info_cache.CPUtype, gui_info_cache.KernelVersion)
+      return table.concat({
+        "arch=" .. tostring(gui_info_cache.CPUtype or "unknown"),
+        "release=" .. tostring(gui_info_cache.KernelVersion or "unknown"),
+        "eck=" .. (rip_index.secrets() and "1" or "0"),
+        "module=" .. (module and (module.url or module.local_path):match("[^/]+$") or ""),
+        "state=" .. rip_index.status()
+      }, ";")
+    end,
+    rip_values = function()
+      local fields = {}
+      for id, value in pairs(rip_index.values() or {}) do
+        fields[#fields + 1] = id .. "=" .. value
+      end
+      table.sort(fields)
+      return table.concat(fields, ",")
+    end,
     rip_key_B = function()
-      local content = io.open("/proc/rip/0108")
-      local result = content:read("*all")
+      local content = io.open("/proc/rip/0108", "rb")
+      if not content then return "" end
+      local result = content:read(64)
       content:close()
 
-      return str2hex(result:sub(1, 64))
+      return str2hex(result or "")
     end,
+    rip_action = "",
     sendcmd = ""
   },
   set = {
+    rip_action = function(mapping, paramName, paramValue)
+      if paramValue == "clear" then
+        rip_index.clear()
+        return
+      end
+      if paramValue ~= "extract" then
+        return nil, "Invalid action"
+      end
+      if not rip_index.supported(gui_info_cache.CPUtype, gui_info_cache.KernelVersion) then
+        return nil, "No temporary key module is available for this platform"
+      end
+      -- The module download must not block the RPC dispatcher, so the real
+      -- work runs as a background job publishing progress in the status file.
+      local state = rip_index.status()
+      local requested = state:match("^requested (%d+)")
+      if requested and os.time() - tonumber(requested) < 300 then
+        return nil, "Extraction is already running"
+      end
+      local marker = io.open(rip_index.status_file, "wb")
+      if not marker then return nil, "Cannot write the extraction status file" end
+      marker:write("requested " .. os.time())
+      marker:close()
+      async_exec({["start-stop-daemon -S -b -x /usr/share/transformer/scripts/ripKeysUtility.sh extract"] = true})
+    end,
     sendcmd = function(mapping, paramName, paramValue)
       local param = paramValue:gsub("_.*", "")
       local args = paramValue:gsub("^[A-z]+_", "")

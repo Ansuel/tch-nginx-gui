@@ -372,6 +372,32 @@ if ngx.req.get_method() == "POST" then
                 ngx.exit(ngx.HTTP_OK)
                 return
         end
+        if action == "rip_keys" or action == "rip_status" then
+                local dkjson = require("dkjson")
+                local role_ok, role = pcall(function() return ngx.ctx.session:getrole() end)
+                if not role_ok or (role ~= "admin" and role ~= "engineer") then
+                        ngx.header.content_type = "application/json"
+                        ngx.print('{"success":false,"error":"Insufficient privileges"}')
+                        return ngx.exit(ngx.HTTP_FORBIDDEN)
+                end
+                if action == "rip_status" then
+                        local result = proxy.get("rpc.system.modgui.utility.rip_status")
+                        local status = result and result[1] and string.untaint(result[1].value) or ""
+                        ngx.header.content_type = "application/json"
+                        ngx.print(dkjson.encode({ success = true, status = status }))
+                        return ngx.exit(ngx.HTTP_OK)
+                end
+                local command = post_args.command == "clear" and "clear" or "extract"
+                local ok, err = proxy.set("rpc.system.modgui.utility.rip_action", command)
+                if ok then ok, err = proxy.apply() end
+                ngx.header.content_type = "application/json"
+                if ok then
+                        ngx.print('{"success":true}')
+                        return ngx.exit(ngx.HTTP_OK)
+                end
+                ngx.print(dkjson.encode({ success = false, error = err or "RIP key action failed" }))
+                return ngx.exit(ngx.HTTP_CONFLICT)
+        end
         if action == "debug_report" then
 
                 local debuglog_path = "rpc.system.modgui.debuglog."
@@ -562,6 +588,7 @@ for _, card in ipairs(card_settings) do
         if visible ~= card.visible then visibility_changed = true end
 end
 
+ngx.header["Cache-Control"] = "no-store"
 ngx.print(ui_helper.createHeader(T"GUI Settings & Utility", false, false))
 ngx.print('\
 <div class="modal-body update">\
@@ -927,9 +954,11 @@ html[#html + 1] = '<legend>'.. T"Key Info" ..'</legend>'
 html[#html + 1] = ui_helper.createLabel(T"Config decrypt key", content["rip_key_B"] , basic)
 html[#html + 1] = '</form>'
 html[#html + 1] = '</fieldset>'
-html[#html + 1] = '</div>'
 
 ngx.print(html)
+lp.setpath("/www/snippets/")
+lp.include("modgui-rip.lp")
+ngx.print('</div>')
 
 ngx.print('\
 <script>\
