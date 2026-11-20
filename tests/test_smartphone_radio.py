@@ -50,6 +50,26 @@ class RadioParserTest(unittest.TestCase):
         self.assertEqual(self.parse(snapshot(snr=120), sdk=29)['SNR'], '12 dB')
         self.assertIn('scala Android non disponibile', self.parse(snapshot(), sdk=0)['SNR'])
 
+    def test_nsa_keeps_lte_and_nr_measurements_separate(self):
+        text = '''Phone Id=0
+mServiceState={mDataRegState=0(IN_SERVICE)}
+mSignalStrength=SignalStrength:{CellSignalStrengthLte: rssi=-63 rsrp=-95 rsrq=-9 rssnr=15,CellSignalStrengthNr:{ csiRsrp = 2147483647 ssRsrp = -83 ssRsrq = -11 ssSinr = 26 }}
+Phone Id=1
+mServiceState={mDataRegState=1(OUT_OF_SERVICE)}
+mSignalStrength=SignalStrength:{CellSignalStrengthNr:{ ssRsrp = -60 ssRsrq = -4 ssSinr = 30 }}
+'''
+        data = self.parse(text)
+        for key, expected in {'SIGNAL_RAW': '-95', 'RSRQ': '-9', 'SNR': '15 dB',
+                              'NR_RSRP': '-83', 'NR_RSRQ': '-11', 'NR_SINR': '26'}.items():
+            self.assertEqual(data[key], expected, key)
+
+    def test_nr_only_signal_and_unavailable_metrics(self):
+        data = self.parse('mSignalStrength=CellSignalStrengthNr:{ ssRsrp = -115 ssRsrq = 2147483647 ssSinr = 0 }')
+        self.assertEqual(data['SIGNAL_RAW'], 'N/A')
+        self.assertEqual(data['NR_RSRP'], '-115')
+        self.assertEqual(data['NR_RSRQ'], 'N/A')
+        self.assertEqual(data['NR_SINR'], '0')
+
     def test_zero_and_identity_boundaries(self):
         d = self.parse(snapshot(eci=0, pci=0, channel=0, snr=0))
         for key in ('ECI', 'ENB', 'SECTOR', 'PCI', 'EARFCN'):

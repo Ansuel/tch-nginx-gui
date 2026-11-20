@@ -1,477 +1,160 @@
 --pretranslated: do not change this file
- 
--- Localization
 gettext.textdomain('webui-core')
-local ok_em, em = pcall(require, "easymesh_helper")
-local ui_helper = require("web.ui_helper")
-if not (ok_em and em and em.is_supported and em.is_supported()) then
-  ngx.print(ui_helper.createHeader(T"EasyMesh", false, true))
-  ngx.print(ui_helper.createAlert({ class = "alert-warning" }, T"EasyMesh is not available on this device."))
-  ngx.print(ui_helper.createFooter())
+local mesh = require("easymesh_helper")
+local ui = require("web.ui_helper")
+if not mesh.is_supported() then
+  ngx.print(ui.createHeader(T"EasyMesh", false, true))
+  ngx.print(ui.createAlertBlock(T"EasyMesh is not available on this device."))
+  ngx.print(ui.createFooter())
   return
 end
-local untaint, match, upper, gsub = string.untaint, string.match, string.upper, string.gsub
+
+local topology = require("easymesh_topology")
+local plain, mac = topology.plain, topology.mac
+local escape = require("web.web").html_escape
 local proxy = require("datamodel")
-local content_helper = require("web.content_helper")
-local function get_objects(path)
-    local ok, result = pcall(proxy.get, path)
-    if not ok or type(result) ~= "table" then return {} end
-    local converted_ok, objects = pcall(content_helper.convertResultToObject, path, result)
-    return converted_ok and type(objects) == "table" and objects or {}
+local content = require("web.content_helper")
+local function text(value) return escape(plain(value)) end
+local function value(path)
+  local ok, rows = pcall(proxy.get, path)
+  return ok and rows and rows[1] and rows[1].value or ""
 end
-local format = string.format
-local message_helper = require("web.uimessage_helper")
-local post_helper = require("web.post_helper")
-local lp = require("web.lp")
-local has_variant, variant_helper = pcall(require, "variant_helper")
-local variantHelper = nil
-if has_variant and variant_helper then
-  variantHelper = post_helper.getVariant(variant_helper, "ExtenderPage", "extendertopology")
+local function objects(path)
+  local ok, rows = pcall(proxy.get, path)
+  if not ok or type(rows) ~= "table" then return {} end
+  local converted, result = pcall(content.convertResultToObject, path, rows)
+  return converted and type(result) == "table" and result or {}
 end
-local wifiDevicesFile = io.open("/www/docroot/modals/wifi-devices-info.lp", "r")
-local navigationLink = post_helper.getVariantValue(variantHelper, "navigationLink") and wifiDevicesFile ~= nil
-if wifiDevicesFile then wifiDevicesFile:close() end
-local extenderName = post_helper.getVariantValue(variantHelper, "extenderName")
-
-local sys_hostname = proxy.get("uci.system.system.@system[0].hostname")
-local mac_addr = proxy.get("uci.multiap.controller.macaddress")
-
-local devices = {
-    type = "gateway",
-    name = (sys_hostname and sys_hostname[1] and untaint(sys_hostname[1].value)) or "Gateway",
-    controllerMac = (mac_addr and mac_addr[1] and untaint(mac_addr[1].value)) or "",
-    -- bssid2g = string.upper(untaint(proxy.get("sys.class.net.@wl0.address")[1].value)),
-    -- bssid5g = string.upper(untaint(proxy.get("sys.class.net.@wl1.address")[1].value)),
-    hostNumber = 0,
-    extenderNumber = 0
-}
-
-local devices_columns = {
-    {
-        --[1]
-        param = "HostName",
-        type = "text"
-    },
-    {
-        --[2]
-        param = "Speed",
-        type = "text"
-    },
-    {
-        --[3]
-        param = "IPv4",
-        type = "text"
-    },
-    {
-        --[4]
-        param = "State",
-        type = "text"
-    },
-    {
-        --[5]
-        param = "InterfaceType",
-        type = "text"
-    },
-    {
-        --[6]
-        param = "L2Interface",
-        type = "text"
-    },
-    {
-        --[7]
-        param = "L3Interface",
-        type = "text"
-    },
-    {
-        --[8]
-        param = "MACAddress",
-        type = "text"
-    }
-}
-local hosts, indexes = content_helper.loadTableData("sys.hosts.host.", devices_columns)
-local hosts_MAC = {}
-for k, v in ipairs(hosts) do
-    if v[8] and v[8] ~= "" then
-        hosts_MAC[upper(untaint(v[8]))] = v
-    end
-end
-
-for _, ap in pairs({"ap0", "ap1", "ap2", "ap3"}) do
-    local staPath = "rpc.wireless.ap.@" .. ap .. ".station."
-    local stations = get_objects(staPath)
-    for _, s in ipairs(stations) do
-        if s.state ~= "Disconnected" and s.state ~= "Authenticated" and s.paramindex then
-            local mac = gsub(s.paramindex, "@", "")
-            mac = upper(mac)
-            local host = hosts_MAC[mac]
-            if host and host[4] == "1" then
-                local linkRate = tonumber(s.tx_phy_rate) and s.tx_phy_rate / 1000
-                devices[#devices + 1] = {
-                    type = "host",
-                    name = untaint(host[1]),
-                    speed = linkRate,
-                    ipAddress = untaint(host[3]),
-                    hostMacAddr = untaint(host[8])
-                }
-                devices.hostNumber = devices.hostNumber + 1
-                hosts_MAC[mac] = nil
-            end
-        end
-    end
-end
-
-local agents = {}
-local ok_count, count = pcall(proxy.get, "rpc.multiap.ExtenderNumberOfEntries")
-if not ok_count or type(count) ~= "table" or not count[1] then
-  ngx.print(ui_helper.createHeader(T"EasyMesh", false, true))
-  ngx.print(ui_helper.createAlert({ class = "alert-warning" }, T"EasyMesh service is not available."))
-  ngx.print(ui_helper.createFooter())
+local count = value("rpc.multiap.ExtenderNumberOfEntries")
+if count == "" then
+  ngx.print(ui.createHeader(T"EasyMesh", false, true))
+  ngx.print(ui.createAlertBlock(T"EasyMesh service is not available."))
+  ngx.print(ui.createFooter())
   return
 end
-local agent_count = count[1].value
-local path = "rpc.multiap.device."
-local data = get_objects(path)
-local staList = get_objects("rpc.multiap.sta.")
-for k, v in ipairs(data) do
-  if v.MACAddress ~= "" then
-    local agent = {
-      type = "extender",
-      name = untaint(v.serial_number),
-      parentAccessPoint = untaint(v.parent),
-      LEDColor = "",
-      hostNumber = 0,
-      extenderNumber = 0,
-      macAddr = untaint(v.al_mac),
-      connectionStatus = ""
-    }
+local model = plain(value("uci.env.var.prod_friendly_name"))
+local root = {type="gateway", model=model, name=plain(value("uci.system.system.@system[0].hostname")),
+  macAddr=plain(value("uci.multiap.controller.macaddress")), clients={}}
+local agentMAC = plain(value("uci.multiap.agent.macaddress"))
+local controller = value("uci.multiap.controller.enabled") == "1"
+if not controller then root.macAddr = agentMAC end
+if root.name == "" then root.name = model ~= "" and model or T"Gateway" end
+root.role = controller and T"Controller" or (value("uci.multiap.agent.enabled") == "1" and T"Agent" or T"Disabled")
 
-    if extenderName then
-      agent.name = untaint(v.device_name .. " - " .. v.serial_number)
-    end
-    agent.connectionType = untaint(v.backhaul_interface_type)
-    if v.backhaul_interface_type == "Ethernet" then
-      agent.connectionStatus = "Excellent"
-    elseif v.rssi ~= "" and tonumber(v.rssi) then
-      local signal_strength = tonumber(v.rssi)
-      if signal_strength <= -127 then
-        agent.connectionStatus = "No"
-      elseif signal_strength < -85 then
-        agent.connectionStatus = "Weak"
-      elseif signal_strength > -75 then
-        agent.connectionStatus = "Excellent"
-      else
-        agent.connectionStatus = "Good"
-      end
-    end
-    if agent_count and tonumber(agent_count) > 0 then
-      for param, value in pairs(v) do
-        if match(param, "^%S+.sta_list$") then
-          if value ~= "" then
-            for sta_i in string.gmatch(value, '([^%s]+)') do
-              local host = hosts_MAC[tostring(untaint(upper(sta_i)))]
-              local linkRate = 0
-              for _, val in pairs(staList) do
-                if val.mac == sta_i then
-                  linkRate = tostring(untaint(val.dl_mac_rate))
-                 end
-               end
-               agent[#agent + 1] = {
-                 type = "host",
-                 name = host and untaint(host[1]) or "UnknownName",
-                 speed = linkRate,
-                 ipAddress = host and untaint(host[3]) or "NA",
-                 hostMacAddr = host and untaint(host[8]) or "NA"
-               }
-               agent.hostNumber = agent.hostNumber + 1
-            end
-          end
-        end
-      end
-    end
-    agents[#agents + 1] = agent
+local hosts, infra, seen = {}, {}, {}
+infra[mac(root.macAddr)], infra[mac(agentMAC)] = true, true
+local columns = {}
+for _, name in ipairs({"HostName","Speed","IPv4","State","InterfaceType","L2Interface","L3Interface","MACAddress"}) do
+  columns[#columns + 1] = {param=name,type="text"}
+end
+local ok_hosts, rows = pcall(content.loadTableData, "sys.hosts.host.", columns)
+for _, host in ipairs(ok_hosts and rows or {}) do
+  if plain(host[8]) ~= "" then hosts[mac(host[8])] = host end
+end
+local agents = {}
+for _, node in ipairs(objects("rpc.multiap.device.")) do
+  local address = plain(node.al_mac)
+  if address ~= "" and mac(address) ~= mac(root.macAddr) and mac(address) ~= mac(agentMAC) then
+    local class = plain(node.productclass or node.product_class or node.model_name)
+    local name = plain(node.FriendlyName)
+    if name == "" then name = plain(node.device_name) end
+    if name == "" or name:match("^agent_") then name = class ~= "" and class or T"Extender" end
+    agents[#agents + 1] = {type="extender",name=name,model=class,macAddr=address,
+      parentAccessPoint=plain(node.parent),connectionType=plain(node.backhaul_interface_type),
+      status=plain(node.status),rssi=tonumber(node.rssi),clients={},native=node}
+    infra[mac(address)] = true
+    for alias in plain(node.local_interfaces):gmatch("%x%x:%x%x:%x%x:%x%x:%x%x:%x%x") do infra[mac(alias)] = true end
   end
 end
-
-local function listToTree(t)
-    local tree = {}
-    while (next(t)) do
-        local parent = {}
-        local key = {}
-        for k, v in pairs(t) do
-            if v.parentAccessPoint and v.parentAccessPoint ~= "" then
-                parent[v.parentAccessPoint] = true
-            end
-            if v.macAddr and v.macAddr ~= "" then
-             key[v.macAddr] = k
-            end
-        end
-        for k, v in pairs(t) do
-            if not (v.macAddr and parent[v.macAddr]) then
-                -- v is leaf node
-                local k_p = v.parentAccessPoint and key[v.parentAccessPoint]
-                if k_p then
-                    -- v 's parent is in table
-                    t[k_p][#t[k_p] + 1] = v
-                    t[k_p].extenderNumber = t[k_p].extenderNumber + 1
-                else
-                    -- v 's parent is root node
-                    tree[#tree + 1] = v
-                end
-                t[k] = nil
-            end
-        end
+local stations = {}
+for _, station in ipairs(objects("rpc.multiap.sta.")) do stations[mac(station.mac)] = station end
+local function add_client(parent, address, kind, station)
+  local key = mac(address)
+  if key == "" or infra[key] or seen[key] then return end
+  local host = hosts[key]
+  local name = host and plain(host[1]) or ""
+  local client = {type="host", name=name ~= "" and name or plain(address), macAddr=plain(address),
+    ipAddress=host and plain(host[3]) or "",connectionType=kind}
+  local rate = station and tonumber(station.tx_phy_rate or station.dl_mac_rate)
+  if rate then client.speed = rate / 1000 end
+  parent.clients[#parent.clients + 1], seen[key] = client, true
+end
+for _, agent in ipairs(agents) do
+  for parameter, list in pairs(agent.native) do
+    if type(parameter) == "string" and parameter:match("sta_list$") then
+      for address in plain(list):gmatch("%x%x:%x%x:%x%x:%x%x:%x%x:%x%x") do
+        local station = stations[mac(address)]
+        local owner = station and plain(station.assoc_agent_mac) or ""
+        if owner == "" or mac(owner) == mac(agent.macAddr) then add_client(agent,address,T"Wireless",station) end
+      end
     end
-    return tree
+  end
+  for address in plain(agent.native.eth_clients):gmatch("%x%x:%x%x:%x%x:%x%x:%x%x:%x%x") do
+    add_client(agent,address,T"Ethernet")
+  end
+  agent.native = nil
 end
-
-local agentsTree = listToTree(agents)
-
-for k, v in ipairs(agentsTree) do
-    devices[#devices + 1] = v
-    devices.extenderNumber = devices.extenderNumber + 1
+-- Newer native mappings expose locally attached Ethernet clients separately.
+-- Older firmware can omit this object without hiding the rest of the topology.
+for _, client in ipairs(objects("rpc.multiap.eth.")) do
+  add_client(root,client.MacAddress,T"Ethernet")
 end
+local ok_aps, aps = pcall(proxy.getPN,"rpc.wireless.ap.",true)
+for _, ap in ipairs(ok_aps and aps or {}) do
+  for _, station in ipairs(objects(ap.path .. "station.")) do
+    if station.state ~= "Disconnected" and station.state ~= "Authenticated" then
+      local address = plain(station.paramindex):gsub("^@", "")
+      add_client(root,address,T"Wireless",station)
+    end
+  end
+end
+root.children = topology.forest(agents)
 
-local html = {}
-
-local icons = {
-    gateway = "gateway.png",
-    host = "wifi_all.png",
-    extenderRed = "ap_booster_red.png",
-    extenderOrange = "ap_booster_orange.png",
-    extenderBlue = "extender.png"
-}
-
-local link = {
-    gateway = "modals/easy-mesh-configuration.lp",
-    host = "modals/wifi-devices-info.lp",
-}
-
-local type_convert = {
-    WiFi5G = "5GHz",
-    WiFi2G = "2.4GHz"
-}
-
+ngx.print(ui.createHeader(T"EasyMesh Topology",false,true))
+ngx.print('<form class="form-horizontal" action="/modals/wifi-extender-status.lp"><div class="modal-body update">')
+local lp = require("web.lp")
 lp.setpath("/www/snippets/")
-ngx.print(ui_helper.createHeader(T"EasyMesh", false, true))
-  ngx.print('\
-<form class="form-horizontal" method="post" action="/modals/wifi-extender-status.lp">\
-    <div class="modal-body update">\
-        ');  lp.include("tabs-easyMesh.lp")  ngx.print('\
-        <style type="text/css">\
-            .table3 td {\
-                border-top: none;\
-                border-color: #004D9D;\
-                padding-top: 0px;\
-                padding-bottom: 0px;\
-                width: 35px;\
-            }\
-\
-            .table3 td .info {\
-                font-size: 0.938em;\
-                text-align: left;\
-            }\
-        </style>\
-\
-        <div class="container">\
-            <div class="row">\
-                <br />\
-                <div id="boosterstatus" class="networkmap span12">\
-                    <table align="center" class="table3">\
-                        <tbody>\
-                            ');  
-                            local function printNode(n)
-                                local icon
-                                if n.type == "extender" then
-                                    icon = n.LEDColor and icons[n.type .. n.LEDColor] or icons["extenderBlue"]
-                                    link["extender"] = "modals/agent-list.lp?iface=" .. string.lower(n.macAddr)
-                                else
-                                    icon = icons[n.type]
-                                end
-                                local hrefLink = "#"
-                                if n.type == "host" then
-                                    hrefLink = hrefLink .. n.hostMacAddr
-                                end
-                                local node = [=[ <td class="nav" rowspan="2" colspan="2">
-                                                   <div class="device">
-                                             ]=]
-                                local nodeLink = [=[ <img class="devicepicture" src="img/]=] .. (icon or "") .. [=["/> ]=]
-                                local nodeGen = [=[ <a href=]=] .. hrefLink .. [=[ data-remote=]=] .. (link[n.type] or "") .. [=[>
-                                                     <img class="devicepicture" src="img/]=] .. (icon or "") .. [=["/>
-                                                    </a>
-                                                 ]=]
-                                local nodeEnd = [=[ </div>
-                                          </td>
-                                          ]=]
-                                if navigationLink and n.type ~= "extender" then
-                                  node = node..nodeGen..nodeEnd
-                                else
-                                  node = node..nodeLink..nodeEnd
-                                end
-                                return node or ""
-                            end
-                            local function printNodeInfo(n)
-                                local info
-                                if n.type == "gateway" then
-                                    info = [=[
-                                        <td colspan="8">
-                                            <div class="info">]=] .. n.controllerMac .. [=[</div>
-                                        </td>
-                                    ]=]
-                                elseif n.type == "host" then
-                                    if n.name == "" then
-                                        n.name = "unknown host"
-                                    end
-                                    info = [=[
-                                        <td rowspan="2" colspan="8">
-                                            <div class="info">]=] .. (n.name) .. "(" .. (n.speed and (n.speed .. "Mbps") or "no link rate") .. ")" .. [=[
-                                                <br />]=] .. (n.ipAddress and n.ipAddress or "no ip address") .. [=[
-                                            </div>
-                                        </td>
-                                        <td>&nbsp;</td>
-                                    ]=]
-                                elseif n.type == "extender" then
-                                    info = [=[
-                                        <td colspan="8">
-                                            <div class="info"> ]=]
-                                               local infoName = [=[ <br />]=] .. (n.name or "unknown name") .. [=[ ]=]
-                                               local infoType = [=[ <br />]=] .. (n.connectionType and (type_convert[n.connectionType] or n.connectionType) or "unknown connection type") .. [=[ ]=]
-                                               local infoStatus = [=[ <br />]=] .. (n.connectionStatus and (n.connectionStatus .. " Connection") or "unknown connection status") .. [=[ ]=]
-                                           local infoEnd = [=[ </div>
-                                        </td> ]=]
-                                     if navigationLink then
-                                       info = info..infoName..infoType..infoStatus..infoEnd
-                                     else
-                                       info = info..infoName..infoStatus..infoEnd
-                                     end
-                                end
-                                return info or ""
-                            end
-                            local nextNode = [=[
-                                <td style="border-right-style:solid">&nbsp;</td>
-                                <td>&nbsp;</td>
-                            ]=]
-                            local bottomNode = [=[
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                            ]=]
-                            local prefixNode = [=[
-                                <td style="border-right-style:solid">&nbsp;</td>
-                                <td style="border-bottom-style:solid">&nbsp;</td>
-                            ]=]
-                            local function topologicalGraph(t, space)
-                                space = space or ""
-                                if type(t) == "table" then
-                                    html[#html + 1] = printNode(t)
-                                    table.sort(t, function(a,b) return tostring(a.name) < tostring(b.name) end)
-                                    local host = 0
-                                    for k,v in ipairs(t) do
-                                        if type(v) == "table" then
-                                            if v.type == "host" then
-                                                host = host + 1
-                                                local str_h
-                                                if host < t.hostNumber then
-                                                    -- str_h = "...|..."
-                                                    str_h = nextNode
-                                                else
-                                                    -- str_h = "......."
-                                                    str_h = bottomNode
-                                                end
-                                                if host == 1 then
-                                                    -- html = html .. "___.___" .. v.name .. "\n"
-                                                    -- html = html .. space .. "xxxxxxx" .. str_h .. "\n"
-                                                    html[#html + 1] = [=[
-                                                        <td style="border-bottom-style:solid" align="center" valign="bottom">]=] .. t.hostNumber .. [=[</td>
-                                                        <td style="border-bottom-style:solid">&nbsp;</td>
-                                                    ]=] .. printNode(v) .. printNodeInfo(v) .. [=[
-                                                        </tr>
-                                                        <tr>
-                                                    ]=] .. space .. str_h .. [=[
-                                                        </tr>
-                                                    ]=]
-                                                else
-                                                    local str_e
-                                                    if t.extenderNumber > 0 then
-                                                        -- str_e = "...|..."
-                                                        str_e = nextNode
-                                                    else
-                                                        -- str_e = "......."
-                                                        str_e = bottomNode
-                                                    end
-                                                    -- html = html .. space .. str_e .. "...|___" .. v.name .. "\n"
-                                                    -- html = html .. space .. str_e .. str_h .. "\n"
-                                                    html[#html + 1] = [=[
-                                                        <tr>
-                                                    ]=] .. space .. str_e .. prefixNode .. printNode(v) .. printNodeInfo(v) .. [=[
-                                                        </tr>
-                                                        <tr>
-                                                    ]=] .. space .. str_e .. str_h .. [=[
-                                                        </tr>
-                                                    ]=]
-                                                end
-                                            end
-                                        end
-                                    end
-                                    if host == 0 then
-                                        -- html = html .. "\n"
-                                        -- html = html .. space .. "xxxxxxx" .."\n"
-                                        html[#html + 1] = [=[
-                                            </tr>
-                                            <tr>
-                                        ]=] .. space .. [=[
-                                            <td>&nbsp;</td>
-                                            </tr>
-                                        ]=]
-                                    end
-                                    local extender = 0
-                                    for k,v in ipairs(t) do
-                                        if type(v) == "table" then
-                                            if v.type == "extender" then
-                                                extender = extender + 1
-                                                local str
-                                                if extender < t.extenderNumber then
-                                                    -- str = "...|..."
-                                                    str = nextNode
-                                                else
-                                                    -- str = "......."
-                                                    str = bottomNode
-                                                end
-                                                -- html = html .. space .. "...|___"
-                                                html[#html + 1] = [=[
-                                                    <tr>
-                                                ]=] .. space .. nextNode .. printNodeInfo(v) .. [=[
-                                                    </tr>
-                                                    <tr>
-                                                ]=] .. space .. prefixNode
-                                                topologicalGraph(v, space .. str)
-                                            end
-                                        end
-                                    end
-                                end
-                            end
-                            html[#html + 1] = [=[
-                                <tr>
-                            ]=] .. printNodeInfo(devices) .. [=[
-                                </tr>
-                                <tr>
-                            ]=]
-                            topologicalGraph(devices)
-                            html[#html + 1] = [=[
-                                <tr>
-                                    <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
-                                    <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
-                                </tr>
-                                <tr>
-                                    <td>&nbsp;</td>
-                                </tr>
-                            ]=]
-                            ngx.print(html)
-                              ngx.print('\
-                        </tbody>\
-                    </table>\
-                </div>\
-            </div>\
-        </div>\
-    </div>\
-</form>\
-');  ngx.print( ui_helper.createFooter() ); ngx.print('\
-');
+lp.include("tabs-easyMesh.lp")
+ngx.print([=[<style>
+.mesh-topology {max-width:100%;overflow-x:auto;padding:12px 2px;box-sizing:border-box}
+.mesh-topology .mesh-tree {display:table;min-width:100%;margin:0;padding:0}
+.mesh-topology ul {margin:0 0 0 24px;padding:12px 0 0 16px;border-left:1px solid #b9c8d2}
+.mesh-topology li {list-style:none;position:relative;margin:0 0 12px;padding:0}
+.mesh-topology li:before {content:"";position:absolute;left:-16px;top:42px;width:16px;border-top:1px solid #b9c8d2}
+.mesh-topology .mesh-tree>li:before {display:none}
+.mesh-topology .mesh-node {display:flex;align-items:center;gap:12px;box-sizing:border-box;width:280px;max-width:100%;padding:12px;border:1px solid #d7dfe4;border-radius:6px;background:#fff}
+.mesh-topology .mesh-picture {width:76px;height:80px;object-fit:contain;flex-shrink:0}
+.mesh-topology .mesh-details {min-width:0;overflow-wrap:anywhere;word-wrap:break-word}
+.mesh-topology .mesh-details strong,.mesh-topology .mesh-details small {display:block}
+.mesh-topology .mesh-details small {font-size:11px;line-height:1.5}
+.mesh-topology .mesh-meta {margin-top:4px}
+@media(max-width:480px){.mesh-topology .mesh-node{width:248px}.mesh-topology ul{margin-left:12px;padding-left:12px}.mesh-topology li:before{left:-12px;width:12px}}
+</style><div class="mesh-topology"><ul class="mesh-tree">]=])
+local function render(node)
+  local image = node.type == "host" and "wifi_all.png" or topology.image(node.model,node.type)
+  ngx.print('<li><article class="mesh-node"><img class="mesh-picture" src="/img/',text(image),'" alt="',text(node.model ~= "" and node.model or node.type),'">')
+  ngx.print('<div class="mesh-details"><strong>',text(node.name),'</strong>')
+  if node.model and node.model ~= "" and node.model ~= node.name then ngx.print('<small class="muted">',text(node.model),'</small>') end
+  ngx.print('<small>',text(node.macAddr),'</small><div class="mesh-meta">')
+  if node.role then ngx.print('<span class="label">',text(node.role),'</span> ') end
+  if node.connectionType and node.connectionType ~= "" then ngx.print('<span class="label label-info">',text(node.connectionType),'</span> ') end
+  if node.ipAddress and node.ipAddress ~= "" then ngx.print('<small>',text(node.ipAddress),'</small>') end
+  if node.rssi and node.connectionType ~= "Ethernet" then ngx.print('<small>RSSI: ',text(node.rssi),' dBm</small>') end
+  if node.speed then ngx.print('<small>',text(node.speed),' Mbps</small>') end
+  if node.status and node.status ~= "" then ngx.print('<small>',text(node.status),'</small>') end
+  ngx.print('</div></div></article>')
+  local children = {}
+  for _, child in ipairs(node.children or {}) do children[#children + 1] = child end
+  for _, client in ipairs(node.clients or {}) do children[#children + 1] = client end
+  table.sort(children,function(a,b) return plain(a.name):lower() < plain(b.name):lower() end)
+  if #children > 0 then
+    ngx.print('<ul>')
+    for _, child in ipairs(children) do render(child) end
+    ngx.print('</ul>')
+  end
+  ngx.print('</li>')
+end
+render(root)
+ngx.print('</ul></div>')
+if #agents == 0 then ngx.print('<p class="muted">',text(controller and T"No extenders connected" or T"Extender topology is available on the controller."),'</p>') end
+ngx.print('</div></form>',ui.createFooter())

@@ -71,6 +71,16 @@ assert(cursors == 1 and scans == 2 and unloads == 1)
 assert(entries[1].card == '001_alpha.lp' and entries[1].modal == 'alpha')
 ''')
 
+    def test_modal_queries_refresh_the_original_authorized_card(self):
+        self.run_cards(r'''
+ngx.ctx = context({['/alpha.lp'] = true})
+assert(cards.get_card_from_modal('/alpha.lp?setup=1') == '001_alpha.lp')
+assert(cards.get_card_from_modal('/alpha.lp?radio=radio_5G&iface=wl1') == '001_alpha.lp')
+assert(not cards.get_card_from_modal('/unknown.lp?setup=1'))
+ngx.ctx = context({})
+assert(not cards.get_card_from_modal('/alpha.lp?setup=1'))
+''')
+
     def test_existing_hide_semantics_and_limiter_are_preserved(self):
         self.run_cards(r'''
 cards.setpath('/cards')

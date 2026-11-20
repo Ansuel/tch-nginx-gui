@@ -15,7 +15,9 @@ end
 
 local data= {}
 
-if datatype and datatype== "xdsl" then
+if datatype == "wanstats" then
+	data = require("internethelper").getWanStats()
+elseif datatype == "xdsl" then
 	local sub, format, floor = string.sub, string.format, math.floor
 
 	data = {

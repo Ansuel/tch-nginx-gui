@@ -37,7 +37,7 @@ function M.get_limit_info()
 	local hasEasyMesh = false
 	local ok_em, em = pcall(require, "easymesh_helper")
 	if ok_em and em and em.is_supported then
-		hasEasyMesh = em.is_supported()
+		hasEasyMesh = em.is_available and em.is_available() or em.is_supported()
 	end
 
 	return {

@@ -24,6 +24,7 @@ end
 local modules = {
     gateway = {uri = "/ajax/cpuload.lua"},
     wan = {uri = "/ajax/internet.lua"},
+    wanstats = {uri = "/ajax/internet.lua", datatype = "wanstats"},
     xdsl = {uri = "/ajax/internet.lua", datatype = "xdsl"},
     devices = {uri = "/ajax/connected_device.lua"},
     ports = {uri = "/ajax/port_status.lua"},

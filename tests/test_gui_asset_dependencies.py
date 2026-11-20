@@ -15,7 +15,9 @@ class GuiAssetDependencies(unittest.TestCase):
             filename = f'easymesh-{name}-modal-newEM.lp'
             source = (WWW / 'docroot/modals' / filename).read_text()
             self.assertIn('/modals/' + filename, installer)
-            self.assertIn('mesh.use_new_layout()', source)
+            self.assertIn('mesh.is_supported()', source)
+            if name != 'devices-info':
+                self.assertIn('mesh.use_new_layout()', source)
             for image in re.findall(r'[\w-]+\.png', source):
                 self.assertTrue((WWW / 'docroot/img' / image).is_file(), image)
             for script in re.findall(r'src="/js/([^\"]+)"', source):

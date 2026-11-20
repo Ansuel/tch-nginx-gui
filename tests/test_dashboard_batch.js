@@ -24,7 +24,7 @@ function setup() {
   vm.runInNewContext(fs.readFileSync('decompressed/gui_file/www/docroot/js/dashboard-polling.js', 'utf8'), {window, jQuery: $});
   return {requests, send: window.modguiDashboardRequest, flush() {const batch = timers; timers = []; batch.forEach(fn => fn());}};
 }
-const options = (path, success, token = 'test') => ({url: '/ajax/' + path + '?auto_update=true', type: 'POST', dataType: 'json',
+const options = (path, success, token = 'test') => ({url: '/ajax/' + path + (path.includes('?') ? '&' : '?') + 'auto_update=true', type: 'POST', dataType: 'json',
   timeout: 8000, data: [{name: 'CSRFtoken', value: token}], success});
 {
   const s = setup(), results = [];
@@ -75,6 +75,19 @@ const options = (path, success, token = 'test') => ({url: '/ajax/' + path + '?au
   s.send(options('internet.lua?extra=1')); assert.strictEqual(s.requests.length, 4);
 }
 console.log('dashboard batching lifecycle OK');
+{
+  const s = setup(); let wan, stats;
+  s.send(options('internet.lua', data => wan = data));
+  s.send(options('internet.lua?datatype=wanstats', data => stats = data));
+  s.flush();
+  assert.strictEqual(s.requests[0].options.data[1].value, 'wan,wanstats');
+  s.requests[0].resolve({modules: {
+    wan: {status: 200, data: {status: 'dhcp'}},
+    wanstats: {status: 200, data: {connection: 'DHCP'}},
+  }});
+  assert.deepStrictEqual(wan, {status: 'dhcp'});
+  assert.deepStrictEqual(stats, {connection: 'DHCP'});
+}
 {
   const s = setup(); let updated = false;
   s.send(options('internet.lua?datatype=xdsl'));

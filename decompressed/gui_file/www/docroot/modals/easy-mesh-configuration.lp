@@ -71,9 +71,17 @@
   end
 
   local ok_em, em_helper = pcall(require, "easymesh_helper")
+  if ok_em and em_helper and ((ngx.req.get_uri_args and ngx.req.get_uri_args().setup == "1") or
+    (em_helper.is_available and em_helper.is_available() and not em_helper.is_supported())) then
+    local lp = require("web.lp")
+    lp.setpath("/www/snippets/")
+    lp.include("easymesh-setup.lp")
+    return
+  end
   if not (ok_em and em_helper and em_helper.is_supported and em_helper.is_supported()) then
     ngx.print(ui_helper.createHeader(T"EasyMesh", false, true))
-    ngx.print(ui_helper.createAlert({ class = "alert-warning" }, T"EasyMesh is not supported on this device."))
+    ngx.print(ui_helper.createAlertBlock(T"EasyMesh is not supported on this device.", {alert={class="alert-warning"}}))
+    ngx.print(ui_helper.createFooter())
     return
   end
   if em_helper.handle_card_toggle() then return end
@@ -269,7 +277,7 @@
 ')
   lp.include("tabs-easyMesh.lp")
   ngx.print('\
-<form class="form-horizontal" method="post" action="modals/easy-mesh-configuration.lp">\
+<form class="form-horizontal" method="post" action="/modals/easy-mesh-configuration.lp">\
   <div class="alert alert-info" style="margin-bottom: 20px;">\
     <i class="icon-sitemap" style="margin-right: 6px;"></i>\
     <strong>EasyMesh:</strong> ')

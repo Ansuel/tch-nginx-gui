@@ -42,7 +42,7 @@ if content["friendly_product_name"] and content["friendly_product_name"] == "AGH
 end
 
 if not ( content.friendly_product_name == "" ) and not ( content.friendly_product_name == content.product_name ) then
-	content.product_name = format("%s ( %s )",content.product_name,content.friendly_product_name)
+	content.product_name = format("%s (%s)",content.product_name,content.friendly_product_name)
 end
 
 content["uptime"] = content_helper.readfile("/proc/uptime","number",floor)
@@ -75,7 +75,9 @@ content["system_time"] = os.date("%d/%m/%Y %Hh:%Mm:%Ss",os.time())
 	local html = {}
 	
 	basic.span["data-bind"] = nil
-	html[#html + 1] = ui_helper.createLabel(T"Product Name", content["product_name"], basic)
+	html[#html + 1] = ui_helper.createLabel(T"Product Name", content["product_name"], {
+	    span = {style = "width:auto;overflow-wrap:break-word"},
+	})
 	html[#html + 1] = ui_helper.createLabel(T"Software Version", format("%s %s",content["software_version"],content["software_name"]), basic)
 	html[#html + 1] = ui_helper.createLabel(T"GUI Version", content["gui_version"], basic)
 	html[#html + 1] = '<div class="control-group">'

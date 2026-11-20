@@ -83,6 +83,84 @@ assert(html:find('id="btn_screen_capture"', 1, true))
 assert(not html:find('onclick="sendAdb(\'screen\')"', 1, true))
 ''', rooted)
 
+    def test_modal_hides_missing_telemetry_and_shows_diagnostic_status(self):
+        self.run_lua(r'''
+local output = {}
+string.untaint = function(v) return v end
+gettext = {textdomain = function() end}
+ngx = {
+    ctx = {session = {getCSRFtoken = function() return "fixture-token" end}},
+    req = {get_method = function() return "GET" end}, HTTP_OK = 200,
+    exit = function() end,
+    print = function(...) for _, value in ipairs({...}) do output[#output+1] = value end end,
+}
+package.loaded.datamodel = {get = function() return {{value = [[
+DEV|Example
+HOST_IF|usb0
+HOST_ADMIN|up
+HOST_CARRIER|1
+HOST_RNDIS|1
+HOST_NCM_BLOCKED|1
+UPLINK_PHONE_HEALTH|offline
+NR_RSRP|N/A
+ECI|0
+]]}} end}
+package.loaded["web.ui_helper"] = {
+    createHeader = function() return "" end, createFooter = function() return "" end,
+    createLabel = function(label, value) return label .. value end,
+}
+package.loaded["web.web"] = {html_escape = function(v) return v end}
+package.loaded["web.lp"] = {}
+package.loaded.dkjson = {}
+assert(loadfile(arg[1] .. "/www/docroot/modals/smartphone-modal.lp"))()
+local html = table.concat(output)
+local function contains(markup) assert(html:find(markup, 1, true), markup) end
+contains('<fieldset class="phone-stat-section" style="display:none"><legend>Batteria e Salute')
+contains('<div class="phone-stat" style="display:none">5G NR SS-RSRP:<span id="live_nr_rsrp"></span>')
+contains('ECI (LTE):<span id="live_eci">0</span>')
+contains('class="icon-ok icon-large green"></i> <span id="host_link">Attivo</span>')
+contains('class="icon-ban-circle icon-large red"></i> <span id="uplink-phone-health">Non raggiungibile</span>')
+contains('<option value="ncm" disabled>')
+contains('<p id="phone-usb-ncm-note">')
+''')
+
+    @unittest.skipUnless(shutil.which('node'), 'Node.js required')
+    def test_modal_updates_rows_when_telemetry_changes(self):
+        result = subprocess.run(['node', '-', str(APP / 'www/docroot/modals/smartphone-modal.lp')],
+                                input=r'''
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const source = fs.readFileSync(process.argv[2], 'utf8');
+const script = source.slice(source.indexOf('    var statusIcons='), source.indexOf('    function update(){'));
+const rows = new Map();
+const context = vm.createContext({
+    $: selector => {
+        if (!rows.has(selector)) rows.set(selector, {});
+        const row = rows.get(selector);
+        return {
+            closest: () => ({toggle: value => {row.visible = value;}}),
+            text: value => {row.text = value;},
+            siblings: () => ({attr: (_, value) => {row.icon = value;}}),
+        };
+    },
+});
+vm.runInContext(script, context);
+context.showRow('nr_rsrp', context.withUnit('N/A', ' dBm'));
+assert.deepEqual(rows.get('#nr_rsrp'), {text: '', visible: false});
+context.showRow('nr_rsrp', context.withUnit('-83', ' dBm'));
+assert.deepEqual(rows.get('#nr_rsrp'), {text: '-83 dBm', visible: true});
+context.showRow('nr_rsrp', undefined);
+assert.deepEqual(rows.get('#nr_rsrp'), {text: '', visible: false});
+context.showHealth('phone', 'online');
+assert.equal(rows.get('#phone').icon, 'icon-ok icon-large green');
+context.showHealth('phone', 'offline');
+assert.equal(rows.get('#phone').icon, 'icon-ban-circle icon-large red');
+context.showHealth('phone');
+assert.equal(rows.get('#phone').visible, false);
+''', capture_output=True, text=True, timeout=5)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_image_endpoint_streams_png_without_caching_or_user_paths(self):
         for present in ('0', '1'):
             self.run_lua(r'''

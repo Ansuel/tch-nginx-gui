@@ -29,6 +29,14 @@ function metric(line, priority, value, segment) {
         rssnr = value; sn_priority = priority
     }
 }
+function nr_metric(line, segment, field, value) {
+    if (!match(line, /CellSignalStrengthNr:[^}]*/)) return
+    segment = substr(line, RSTART, RLENGTH)
+    for (field in nr_low) {
+        value = number(segment, field)
+        if (valid(value, nr_low[field], nr_high[field])) nr[field] = value
+    }
+}
 function identity(line, priority, segment, list, count, array, i, value) {
     if (priority <= identity_priority || !match(line, /CellIdentityLte:[^}]*/)) return
     segment = substr(line, RSTART, RLENGTH)
@@ -51,6 +59,9 @@ function identity(line, priority, segment, list, count, array, i, value) {
 }
 BEGIN {
     phone = "0"; slots[phone] = 1
+    nr_low["ssRsrp"] = -156; nr_high["ssRsrp"] = -31
+    nr_low["ssRsrq"] = -43; nr_high["ssRsrq"] = 20
+    nr_low["ssSinr"] = -23; nr_high["ssSinr"] = 40
     band_range(1, 0, 599); band_range(2, 600, 1199); band_range(3, 1200, 1949)
     band_range(4, 1950, 2399); band_range(5, 2400, 2649); band_range(6, 2650, 2749)
     band_range(7, 2750, 3449); band_range(8, 3450, 3799); band_range(9, 3800, 4149)
@@ -82,9 +93,11 @@ historical { next }
 /^[[:space:]]*Phone Id=/ {
     phone = $0; sub(/^.*Phone Id=/, "", phone); sub(/[^0-9].*$/, "", phone)
     slots[phone] = 1
+    reported_slot[phone] = 1
 }
 {
     snapshot[phone] = snapshot[phone] $0 "\n"
+    if ($0 ~ /^[[:space:]]*m(SignalStrength|ServiceState|CellIdentity)=/) reported_slot[phone] = 1
     if ($0 ~ /mDataConnectionState[[:space:]]*=[[:space:]]*2([^0-9]|$)/) score[phone] += 100
     if ($0 ~ /mDataRegState[[:space:]]*=[[:space:]]*0\(/) score[phone] += 20
     if ($0 ~ /mCellIdentity=CellIdentity(Lte|Nr)/) score[phone] += 10
@@ -100,7 +113,7 @@ END {
     count = split(snapshot[selected], rows, /\n/)
     for (i = 1; i <= count; i++) {
         line = rows[i]
-        if (line ~ /^[[:space:]]*mSignalStrength=/) metric(line, 100)
+        if (line ~ /^[[:space:]]*mSignalStrength=/) { metric(line, 100); nr_metric(line) }
         if (line ~ /^[[:space:]]*mCellIdentity=CellIdentityLte/) identity(line, 100)
         if (line ~ /^[[:space:]]*mCellIdentity=CellIdentityNr/) primary_nr = 1
         if (line ~ /^[[:space:]]*mCellInfo=/ && line ~ /mRegistered=YES/) {
@@ -146,7 +159,8 @@ END {
         else snr = rssnr " (scala Android non disponibile)"
     }
     report("SIGNAL_RAW", rsrp); report("RSRQ", rsrq); report("SNR", snr)
+    report("NR_RSRP", nr["ssRsrp"]); report("NR_RSRQ", nr["ssRsrq"]); report("NR_SINR", nr["ssSinr"])
     report("PCI", pci); report("BAND", band); report("BAND_SOURCE", band_source)
     report("EARFCN", channel); report("ECI", eci); report("ENB", enb); report("SECTOR", sector)
-    report("ECGI", ecgi); report("TAC", tac); report("SIM_SLOT", selected + 1)
+    report("ECGI", ecgi); report("TAC", tac); report("SIM_SLOT", reported_slot[selected] ? selected + 1 : "")
 }

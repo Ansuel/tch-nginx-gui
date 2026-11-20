@@ -19,7 +19,7 @@ class EasyMeshCard(unittest.TestCase):
 
     def test_card_header_targets_configuration_and_respects_access(self):
         self.run_lua(r'''
-local agent,controller,newLayout,configAccess,viewAccess,defaultUser
+local agent,controller,newLayout,configAccess,viewAccess,defaultUser,bridged
 local header, output
 T=function(s) return s end
 N=function(one,many,n) local s=n==1 and one or many;return (s:gsub('%%[12]%$','%%')) end
@@ -29,7 +29,7 @@ package.preload.datamodel=function() return {} end
 package.preload.variant_helper=function() return {} end
 package.preload['web.post_helper']=function() return {getVariant=function() return {} end} end
 package.preload.easymesh_helper=function() return {is_supported=function() return true end,
- use_new_layout=function() return newLayout end} end
+ use_new_layout=function() return newLayout end, requires_role_selection=function() return bridged end} end
 package.preload['web.content_helper']=function() return {getExactContent=function(c)
  c.agentState,c.controllerState,c.count=agent,controller,'0';return true
 end} end
@@ -49,6 +49,12 @@ for _,layout in ipairs({false,true}) do
   assert(header.value==((agent=='1' or controller=='1') and '1' or '0'))
  end
 end
+bridged=true;configAccess=true;viewAccess=true
+for _,states in ipairs({{'0','0'},{'1','0'},{'1','1'}}) do
+ agent,controller=states[1],states[2];header=nil;output='';assert(loadfile(card))()
+ assert(header.path=='/modals/easy-mesh-configuration.lp?setup=1' and header.name==nil)
+end
+bridged=false
 newLayout=true;agent='1';controller='0';configAccess=false;viewAccess=true
 header=nil;output='';assert(loadfile(card))()
 assert(header.path=='/modals/easymesh-topology-modal-newEM.lp' and header.name==nil)
@@ -65,13 +71,15 @@ defaultUser=true;header=nil;output='';assert(loadfile(card))();assert(header.pat
         set_object = content[content.index('function M.setObject('):content.index('\nlocal function extractSubPaths', content.index('function M.setObject('))]
         script = r'''
 local M, content_helper = {}, {}
-local method,args,db,exited,messages,applies,agentOnly,conductor
+local method,args,db,exited,messages,applies,agentOnly,conductor,roleSelection
 local pairs,match,next= pairs,string.match,next
 T=function(s) return s end
 local setlanguage=function() end
 local function errorsFound() return false end
 local message_helper={pushMessage=function(s,level) messages[#messages+1]=level end}
-local proxy={get=function() return conductor and {{value='1'}} or nil end,
+local proxy={get=function(path)
+ if roleSelection and path=='uci.network.interface.@wan.ifname' then return {{value='br-lan'}} end
+ return conductor and {{value='1'}} or nil end,
  set=function(values) for path,value in pairs(values) do
   assert(path=='uci.multiap.agent.enabled' or path=='uci.multiap.controller.enabled' or path=='uci.wifi_conductor.global.multiap_enabled')
   db[path]=value
@@ -85,7 +93,8 @@ package.preload.uci=function() return {} end
 package.preload.datamodel=function() return proxy end
 package.preload.variant_helper=function() return {} end
 package.preload['web.uimessage_helper']=function() return {popMessages=function() return messages end} end
-package.preload['web.ui_helper']=function() return {createMessages=function() return '' end} end
+package.preload['web.ui_helper']=function() return {createMessages=function() return '' end,
+ createAlertBlock=function() return 'Choose an explicit role' end} end
 '''
         script += boolean + handle + '\nlocal post=M\n'
         script += "post.getVariant=function() return {} end\npost.getVariantValue=function() return not agentOnly end\n"
@@ -95,7 +104,7 @@ package.preload['web.ui_helper']=function() return {createMessages=function() re
         script += r'''
 local function reset()
  method='POST';args={action='SAVE',easyMeshCardEnable='0'};exited=nil;messages={};applies=0
- agentOnly=false;conductor=false
+ agentOnly=false;conductor=false;roleSelection=false
  db={['uci.multiap.agent.enabled']='1',['uci.multiap.controller.enabled']='1',
  ['uci.wifi_conductor.global.multiap_enabled']='1',credential='unchanged'}
 end
@@ -109,6 +118,10 @@ for _,optional in ipairs({false,true}) do
  assert(db['uci.multiap.agent.enabled']=='1' and db['uci.multiap.controller.enabled']=='1')
 end
 reset();agentOnly=true;args.easyMeshCardEnable='1';assert(mesh.handle_card_toggle())
+assert(db['uci.multiap.agent.enabled']=='1' and db['uci.multiap.controller.enabled']=='0')
+-- Stale card posts on a bridged booster cannot create a second controller.
+reset();roleSelection=true;args.easyMeshCardEnable='1';db['uci.multiap.controller.enabled']='0'
+assert(mesh.handle_card_toggle() and applies==0)
 assert(db['uci.multiap.agent.enabled']=='1' and db['uci.multiap.controller.enabled']=='0')
 for _,value in ipairs({'2','invalid',{}}) do
  reset();args.easyMeshCardEnable=value;assert(mesh.handle_card_toggle())

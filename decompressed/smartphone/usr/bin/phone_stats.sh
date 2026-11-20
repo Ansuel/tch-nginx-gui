@@ -1,6 +1,7 @@
 #!/bin/sh
 # Run by Transformer as root; the web worker never needs USB or shell access.
 CMD=${1:-get_stats}
+USB_SWITCH_LOCK=/var/run/modgui-smartphone-usb-switch
 if [ "$CMD" = watch_adb ]; then
     watch_child=""
     trap '[ -z "$watch_child" ] || { kill "$watch_child" 2>/dev/null; wait "$watch_child" 2>/dev/null; }; exit 0' HUP INT TERM
@@ -25,6 +26,9 @@ error() {
 usb_diagnostics() {
     for usb in /sys/bus/usb/devices/*; do
         [ -f "$usb/idVendor" ] || continue
+        if [ -n "${1:-}" ]; then
+            [ "$(cat "$usb/serial" 2>/dev/null)" = "$1" ] || continue
+        fi
         candidate=0
         usb_adb=0
         usb_network=0
@@ -50,6 +54,10 @@ usb_diagnostics() {
             iface=${net##*/}
             case "$iface" in ''|*[!a-zA-Z0-9_.-]*) continue ;; esac
             printf 'HOST_IF|%s\n' "$iface"
+            driver=$(readlink "$net/device/driver" 2>/dev/null)
+            case "${driver##*/}" in ''|*[!a-zA-Z0-9_-]*) ;; *) printf 'HOST_DRIVER|%s\n' "${driver##*/}" ;; esac
+            # Mode changes only need the USB identity and bound driver.
+            [ -z "${1:-}" ] || continue
             flags=$(cat "$net/flags" 2>/dev/null)
             case "$flags" in
                 0x[0-9a-fA-F]*) if [ "$((flags & 1))" -eq 1 ]; then echo 'HOST_ADMIN|up'; else echo 'HOST_ADMIN|down'; fi ;;
@@ -69,11 +77,22 @@ usb_info=$(usb_diagnostics)
 if [ "$CMD" = check_adb ]; then
     printf '%s\n' "$usb_info" | grep -q '^USB_ADB|1$' || exit 0
 fi
+ncm_switch_supported() {
+    [ -d /sys/bus/usb/drivers/cdc_ncm ] || return 1
+    # Live switching on this legacy Homeware kernel can wedge USB teardown
+    # and block netifd, even when Android reverts the gadget mode itself.
+    case "$(uname -r)" in 4.1.38|4.1.38-*) return 1 ;; esac
+    return 0
+}
 host_diagnostics() {
     modules=""
     for module in usbnet cdc_ether rndis_host cdc_ncm; do
         [ ! -d "/sys/module/$module" ] || modules="${modules:+$modules, }$module"
     done
+    if [ -d /sys/bus/usb/drivers/cdc_ncm ]; then
+        if ncm_switch_supported; then echo 'HOST_NCM|1'; else echo 'HOST_NCM_BLOCKED|1'; fi
+    fi
+    [ ! -d /sys/bus/usb/drivers/rndis_host ] || echo 'HOST_RNDIS|1'
     [ -z "$modules" ] || printf 'HOST_MODULES|%s\n' "$modules"
     if [ -f /etc/modgui-smartphone-drivers.status ]; then
         printf 'HOST_DRIVER_STATUS|'
@@ -158,7 +177,8 @@ timed 5 "$ADB_BIN" start-server >/dev/null 2>&1 || error "Unable to start the AD
 devices=$(adb devices 2>/dev/null) || error "Unable to query ADB devices." adb_error
 states=$(printf '%s\n' "$devices" | awk 'NF >= 2 && $1 != "List" && $1 !~ /^\*/ {print $2}')
 count=$(printf '%s\n' "$states" | awk 'NF {n++} END {print n+0}')
-if { [ "$CMD" = get_stats ] || [ "$CMD" = check_adb ]; } && [ "$count" -eq 0 ] && printf '%s\n' "$usb_info" | grep -q '^USB_ADB|1$'; then
+if { [ "$CMD" = get_stats ] || [ "$CMD" = check_adb ]; } && [ "$count" -eq 0 ] &&
+    [ ! -d "$USB_SWITCH_LOCK" ] && printf '%s\n' "$usb_info" | grep -q '^USB_ADB|1$'; then
     if recovered=$(recover_adb_usb); then
         devices=$recovered
         states=$(printf '%s\n' "$devices" | awk 'NF >= 2 && $1 != "List" && $1 !~ /^\*/ {print $2}')
@@ -190,6 +210,52 @@ android_shell() {
 android_root() { android_shell "su -c '$1'" "${2:-2}"; }
 has_root() { [ "$(android_root "id -u" 2>/dev/null | tr -d '\r')" = 0 ]; }
 
+switch_usb_transport() (
+    mode=$1
+    case "$mode" in ncm) driver=cdc_ncm ;; rndis) driver=rndis_host ;; esac
+    [ -d "/sys/bus/usb/drivers/$driver" ] ||
+        error "Il driver $driver non è disponibile sul router."
+    if [ "$mode" = ncm ] && ! ncm_switch_supported; then
+        error "Il cambio a CDC NCM è disabilitato su questo kernel: può bloccare la rete del router."
+    fi
+    serial=$(printf '%s\n' "$devices" | awk '$2 == "device" {print $1; exit}')
+    [ -n "$serial" ] && usb_diagnostics "$serial" | grep -q '^USB_ADB|1$' ||
+        error "Collega lo smartphone via USB con debug ADB autorizzato."
+
+    (umask 077; mkdir "$USB_SWITCH_LOCK" 2>/dev/null) || error "Cambio modalità USB già in corso."
+    trap 'rmdir "$USB_SWITCH_LOCK"' EXIT
+    trap 'exit 1' HUP INT TERM
+
+    previous=$(adb -s "$serial" shell svc usb getFunctions 2>/dev/null | tr -d '\r')
+    case "$previous" in
+        *rndis*) previous=rndis ;;
+        *ncm*) previous=ncm ;;
+        mtp|ptp|midi|none|adb|mtp,adb|ptp,adb|midi,adb) previous="" ;;
+        *) error "Android non espone il controllo delle funzioni USB tramite ADB." ;;
+    esac
+    if [ "$previous" = "$mode" ] && usb_diagnostics "$serial" | grep -qx "HOST_DRIVER|$driver"; then exit 0; fi
+    if [ "$previous" = ncm ] && ! ncm_switch_supported; then
+        error "Scollega il telefono e seleziona RNDIS sul telefono prima di ricollegarlo."
+    fi
+
+    # USB can disconnect before Android returns a shell status. Check the
+    # Linux driver and Android mode again once the same device reappears.
+    adb -s "$serial" shell svc usb setFunctions "$mode" >/dev/null 2>&1
+    for attempt in 1 2 3 4 5 6 7; do
+        sleep 1
+        if usb_diagnostics "$serial" | grep -qx "HOST_DRIVER|$driver" &&
+           adb -s "$serial" shell svc usb getFunctions 2>/dev/null | tr -d '\r' |
+               grep -Eq "(^|,)$mode(,|$)"; then
+            exit 0
+        fi
+    done
+    if [ -n "$previous" ] && [ "$previous" != "$mode" ] &&
+       [ "$(adb -s "$serial" get-state 2>/dev/null | tr -d '\r')" = device ]; then
+        adb -s "$serial" shell svc usb setFunctions "$previous" >/dev/null 2>&1
+    fi
+    error "Il telefono non ha confermato la modalità $mode con il driver $driver. Controlla il tethering USB sul telefono."
+)
+
 capture_screen() {
     screen_dir=/var/run/modgui-smartphone-screen
     remote_image=/data/local/tmp/tch-screen-$$.png
@@ -214,6 +280,7 @@ capture_screen() {
 }
 
 case "$CMD" in
+    usb_ncm|usb_rndis) switch_usb_transport "${CMD#usb_}"; exit $? ;;
     screen_wake) android_shell "input keyevent 224" >/dev/null 2>&1 || error "Unable to wake the display."; exit 0 ;;
     screen_sleep) android_shell "input keyevent 223" >/dev/null 2>&1 || error "Unable to turn off the display."; exit 0 ;;
     capture_screen) capture_screen; exit 0 ;;
@@ -303,10 +370,9 @@ STATUS=$(echo "$BATTERY" | grep -E "^ *status:" | awk '{print $2}' | tr -d '\r')
 HEALTH=$(echo "$BATTERY" | grep -E "^ *health:" | awk '{print $2}' | tr -d '\r')
 
 TEMP_C=$(printf '%s\n' "$TEMP_RAW" | awk '/^-?[0-9]+$/ {print $1 / 10}')
-[ -n "$TEMP_C" ] || TEMP_C="N/A"
 
-case "$STATUS" in 2) BATT_STAT="In Carica" ;; 3) BATT_STAT="In Uso" ;; 4) BATT_STAT="Non in carica" ;; 5) BATT_STAT="Carica (100%)" ;; *) BATT_STAT="Sconosciuto" ;; esac
-case "$HEALTH" in 2) BATT_HEALTH="Buona" ;; 3) BATT_HEALTH="Surriscaldata" ;; 4) BATT_HEALTH="Morta" ;; 5) BATT_HEALTH="Sovratensione" ;; 7) BATT_HEALTH="Fredda" ;; *) BATT_HEALTH="Sconosciuta" ;; esac
+case "$STATUS" in 2) BATT_STAT="In Carica" ;; 3) BATT_STAT="In Uso" ;; 4) BATT_STAT="Non in carica" ;; 5) BATT_STAT="Carica (100%)" ;; esac
+case "$HEALTH" in 2) BATT_HEALTH="Buona" ;; 3) BATT_HEALTH="Surriscaldata" ;; 4) BATT_HEALTH="Morta" ;; 5) BATT_HEALTH="Sovratensione" ;; 7) BATT_HEALTH="Fredda" ;; esac
 
 # Parse Telephony Data
 RADIO_AWK=/usr/share/modgui-smartphone/radio.awk
@@ -319,6 +385,7 @@ radio_value() {
     printf '%s\n' "$RADIO" | awk -F '|' -v key="$1" '$1 == key {print $2; exit}'
 }
 SIGNAL=$(radio_value SIGNAL_RAW)
+NR_SIGNAL=$(radio_value NR_RSRP)
 
 TECH=$(printf '%s\n' "$TEL" | awk '
     { while (match($0, /getRilDataRadioTechnology=[0-9]*/)) {
@@ -328,7 +395,13 @@ TECH=$(printf '%s\n' "$TEL" | awk '
     } }
     END { print value }')
 IS_5G=$(echo "$TEL" | grep -iE "nrState=CONNECTED")
-if echo "$TEL" | grep -q "mDataConnectionState=2"; then DATA_ST="1"; else DATA_ST="0"; fi
+DATA_ST=$(printf '%s\n' "$TEL" | awk '
+    /^[[:space:]]*mDataConnectionState=/ {
+        sub(/^[^=]*=[[:space:]]*/, "")
+        if ($0 ~ /^2([^[:digit:]]|$)/) print 1
+        else if ($0 ~ /^[0134]([^[:digit:]]|$)/) print 0
+        exit
+    }')
 
 NET_OVERRIDE=$(printf '%s\n' "$TEL" | awk '
     /TelephonyDisplayInfo/ {
@@ -366,8 +439,8 @@ fi
 OPER=$(echo "$OPER" | xargs)
 
 if [ -z "$OPER" ] || [ "$OPER" = "" ]; then
-    OPER="No SIM"
-    if [ "$SIGNAL" = "N/A" ] || [ -z "$SIGNAL" ]; then NET="N/A"; fi
+    if { [ "$SIGNAL" = "N/A" ] || [ -z "$SIGNAL" ]; } &&
+       { [ "$NR_SIGNAL" = "N/A" ] || [ -z "$NR_SIGNAL" ]; }; then NET="N/A"; fi
 fi
 
 LED_LOG="Managed by router"
@@ -430,16 +503,22 @@ fi
 # Print final payload
 [ -z "$usb_info" ] || printf '%s\n' "$usb_info"
 [ -z "$host_info" ] || printf '%s\n' "$host_info"
-echo "DEV|$MANUF $MODEL"
+printf 'DEV|%s\n' "${MANUF:+$MANUF }${MODEL}"
 echo "OS|Android $OS"
-echo "BATT|$LEVEL%"
+case "$LEVEL" in ''|*[!0-9]*) ;; *) [ "$LEVEL" -gt 100 ] || echo "BATT|$LEVEL%" ;; esac
 echo "BATT_STAT|$BATT_STAT"
 echo "BATT_HEALTH|$BATT_HEALTH"
-echo "VOLT|${VOLT} mV"
-echo "TEMP|$TEMP_C C"
+case "$VOLT" in ''|0|*[!0-9]*) ;; *) echo "VOLT|${VOLT} mV" ;; esac
+[ -z "$TEMP_C" ] || echo "TEMP|$TEMP_C C"
 echo "OPER|$OPER"
 echo "NET|$NET"
-if [ -n "$SIGNAL" ] && [ "$SIGNAL" != "N/A" ]; then echo "SIG|$SIGNAL dBm"; else echo "SIG|N/A"; fi
+if [ -n "$SIGNAL" ] && [ "$SIGNAL" != "N/A" ]; then
+    echo "SIG|$SIGNAL dBm (LTE)"
+elif [ -n "$NR_SIGNAL" ] && [ "$NR_SIGNAL" != "N/A" ]; then
+    echo "SIG|$NR_SIGNAL dBm (5G NR)"
+else
+    echo "SIG|N/A"
+fi
 echo "DATA_ST|$DATA_ST"
 printf '%s\n' "$RADIO"
 echo "LOAD|$LOADAVG"

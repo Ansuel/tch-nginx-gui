@@ -5,12 +5,26 @@ local data = {valid = false}
 
 if ngx.req.get_method() == "POST" then
     local args = ngx.req.get_uri_args()
-    local sample, reason = netrate.sample(args.interface)
+    local sample, reason, interface
+    local previous_interface = args.interface
+    if args.source == "wan" then
+        sample, reason, interface = require("internethelper").sampleWanTraffic()
+        if string.untaint and previous_interface and type(previous_interface) ~= "table" then
+            previous_interface = string.untaint(previous_interface)
+        end
+    else
+        sample, reason = netrate.sample(previous_interface)
+    end
     if sample then
         local rate
-        rate, reason = netrate.rate({rx = args.oldrx, tx = args.oldtx, time = args.oldtime}, sample)
+        if interface and interface ~= previous_interface then
+            reason = "interface_changed"
+        else
+            rate, reason = netrate.rate({rx = args.oldrx, tx = args.oldtx, time = args.oldtime}, sample)
+        end
         data = {
             valid = true,
+            interface = interface,
             old_rx_traffic = args.oldrx or "1000",
             old_tx_traffic = args.oldtx or "1000",
             rx_traffic = string.format("%.0f", sample.rx),

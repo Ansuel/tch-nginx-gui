@@ -1,10 +1,11 @@
 --pretranslated: do not change this file
 local mesh = require("easymesh_helper")
+local topology = require("easymesh_topology")
 if not mesh.is_supported() or not mesh.use_new_layout() then
   local ui = require("web.ui_helper")
   gettext.textdomain('webui-core')
   ngx.print(ui.createHeader(T"EasyMesh", false, true))
-  ngx.print(ui.createAlert({class = "alert-warning"}, T"EasyMesh is not supported on this device."))
+  ngx.print(ui.createAlertBlock(T"EasyMesh is not supported on this device.", {alert={class="alert-warning"}}))
   ngx.print(ui.createFooter())
   return
 end
@@ -410,9 +411,10 @@ local owaExtender = false
 if post_helper.getVariantValue(variantHelper, "ExtenderImage") then
   icons["gateway"] = "gateway.png"
 end
+icons.gateway = topology.local_image()
 
 local link = {
-  gateway = "modals/easy-mesh-configuration.lp",
+  gateway = "/modals/easymesh-configuration-modal-newEM.lp",
   host = "modals/wifi-devices-info.lp",
 }
 local level = { ["threshold_weak"]=-90, ["threshold_avg"]=-75, ["threshold_good"]=-60, ["threshold_excel"]=-50 }
@@ -432,6 +434,7 @@ local lenX, lenY = 120, 0
 local associatedDevices = 0
 local heightChange = false
 local function SVG(device)
+  local icon
   local height = 0
   local wifiGeneration = ""
   local radio_tech = ""
@@ -458,6 +461,8 @@ local function SVG(device)
       owaExtender = true
     end
     icon = device.LEDColor and icons[device.type .. device.LEDColor] or icons["extenderBlue"]
+    local modelImage, knownModel = topology.image(device.productClass, "extender")
+    if knownModel then icon = modelImage end
     if device.status == "Onboarding success" then
       onboard_status = icons["ethernet"]
       lineColor = "green"
@@ -587,7 +592,7 @@ local function SVG(device)
                   </div>
                 </foreignObject>
                 <foreignObject x=%s y=%s width="17%%" height="45%%" class="nav">
-                  <a href="#%s" data-remote="modals/easymesh-devices-info-modal-newEM.lp"> <img src="/img/%s"/ style="width:%s;"></a>
+                  <a href="#%s" data-remote="/modals/easymesh-devices-info-modal-newEM.lp"> <img src="/img/%s"/ style="width:%s;"></a>
                 </foreignObject>
                 <foreignobject x="120" y="0" width="20%%" height="25%%">
                   <p id="%s-error" class="hide" style="color:red">Invalid Input</p>
@@ -623,7 +628,7 @@ local function SVG(device)
                 <line x1="0" y1=%s x2="0" y2=%s style="stroke:grey;stroke-width:2;stroke-dasharray: 12 8" />
                   <line x1="0" y1="100" x2=%s y2="100" style="stroke:%s;stroke-width:4;" />
                   <foreignObject x=%s y=%s width="17%%" height="45%%" class="nav">
-                    <a href="#%s" data-remote="modals/easymesh-devices-info-modal-newEM.lp"> <img src="/img/%s"/ style="width:%s;"></a>
+                    <a href="#%s" data-remote="/modals/easymesh-devices-info-modal-newEM.lp"> <img src="/img/%s"/ style="width:%s;"></a>
                   </foreignObject>
                   <foreignobject x="120" y="0" width="20%%" height="25%%">
                     <p id="%s-error" class="hide" style="color:red">Invalid Input</p>
@@ -658,7 +663,7 @@ local function SVG(device)
                   <foreignObject x=%s y="80" width="25%%" height="20%%" style="overflow:visible!important">
                   <div class="easymesh_popover nav">
                     <text class="host_name tooltip-on" data-placement = "top" data-html="true" data-original-title = "%s%s%s" style="font-weight:bold;text-overflow:ellipsis;word-break: break-word;display:block;width:126%%;overflow:hidden;white-space:nowrap;">
-                      <a href="#%s" data-remote="modals/easymesh-devices-info-modal-newEM.lp">%s</a>
+                      <a href="#%s" data-remote="/modals/easymesh-devices-info-modal-newEM.lp">%s</a>
                     </text>
                   </div>
                   </foreignObject>
@@ -678,7 +683,7 @@ local function SVG(device)
                   <foreignObject x=%s y="80" width="25%%" height="20%%" style="overflow:visible!important">
                   <div class="easymesh_popover nav">
                     <text class="host_name tooltip-on" data-placement = "top" data-html="true" data-original-title = "%s%s%s" style="font-weight:bold;text-overflow:ellipsis;word-break: break-word;display:block;width:126%%;overflow:hidden;white-space:nowrap;">
-                      <a href="#%s" data-remote="modals/easymesh-devices-info-modal-newEM.lp">%s</a>
+                      <a href="#%s" data-remote="/modals/easymesh-devices-info-modal-newEM.lp">%s</a>
                     </text>
                   </div>
                   </foreignObject>
@@ -794,7 +799,7 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
           ngx.print(ui_helper.createAlertBlock(T"EasyMesh onboarding yet to complete, please refresh.", easymesh_ready))
         end
       end  ngx.print('\
-      <div class="row" style="padding-left:10%">\
+<div class="mesh-topology-scroll" style="max-width:100%;overflow-x:auto;padding:12px 0">\
        <div id="boosterstatus">\
          <svg id="topo_view" style="overflow:visible !important" height= ');  ngx.print(topologyHeight); ngx.print(' width= ');  ngx.print(topologyWidth); ngx.print(' >\
             ');  SVGFor(devices)
@@ -806,7 +811,7 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
             end
             html[#html+1] = format([[
                                 <foreignObject x=20 y=50 height="100" width="95" style="overflow:visible!important">
-                                <div>%s<img src="/img/%s" style="max-width:85%% !important"/></div>
+                                <div>%s<img src="/img/%s" style="width:80px;height:80px;object-fit:contain"/></div>
                                 </foreignObject>
                                 <circle cx="85" cy="80" r="10" stroke="black" stroke-width="2" fill="white" />
                                 <text x="85" y="85" text-anchor="middle" font-weight="bold" fill="black">%s</text>

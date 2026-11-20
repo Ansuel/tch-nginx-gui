@@ -5,6 +5,13 @@ gettext.textdomain('webui-core')
 
 local ok_em, easymesh_helper = pcall(require, "easymesh_helper")
 if not (ok_em and easymesh_helper and easymesh_helper.is_supported and easymesh_helper.is_supported()) then
+    if ok_em and easymesh_helper.is_available and easymesh_helper.is_available() then
+      local ui = require("web.ui_helper")
+      local path = "/modals/easy-mesh-configuration.lp"
+      if not ngx.ctx.session:hasAccess("/modals/easy-mesh-configuration.lp") then return end
+      ngx.print('<div class="span3"><div class="smallcard">', ui.createCardHeader(T"EasyMesh", path),
+        '<div class="content">', ui.createSimpleLight("0", T"Native setup available"), '</div></div></div>')
+    end
     return
 end
 
@@ -59,6 +66,11 @@ elseif session:hasAccess(selectedModal) then
   modalPath = selectedModal
 elseif not session:isdefaultuser() then
   return
+end
+if session:hasAccess("/modals/easy-mesh-configuration.lp") and easymesh_helper.requires_role_selection
+    and easymesh_helper.requires_role_selection() then
+  modalPath = "/modals/easy-mesh-configuration.lp?setup=1"
+  switchName = nil
 end
   ngx.print('\
 \
