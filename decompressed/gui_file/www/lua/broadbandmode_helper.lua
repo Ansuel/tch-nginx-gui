@@ -5,38 +5,41 @@ gettext.textdomain('webui-core')
 --NG-102545 GUI broadband is showing SFP Broadband GUI page when Ethernet 4 is connected
 local proxy = require("datamodel")
 local bridge = require("bridgehelper")
-local ui_helper = require("web.ui_helper")
-local content_helper = require("web.content_helper")
-local message_helper = require("web.uimessage_helper")
-local post_helper = require("web.post_helper")
-format, match = string.format, string.match
+local hasXdsl = bridge.hasXdsl()
+local integratedGpon = bridge.hasIntegratedGpon()
 
-local ok_sfp, sfp_module = pcall(require, "transformer.shared.sfp")
-local sfp
-if ok_sfp and sfp_module and type(sfp_module.readSFPFlag) == "function" then
-    local ok_flag, flag = pcall(sfp_module.readSFPFlag)
-    if ok_flag then sfp = flag end
-end
-if sfp == nil then
-    local ok_flag, flag = pcall(proxy.get, "uci.env.rip.sfp")
-    sfp = (ok_flag and flag and flag[1] and flag[1].value == "1") and 1 or 0
-end
+local sfp, ethname
+if not integratedGpon then
+    local ok_sfp, sfp_module = pcall(require, "transformer.shared.sfp")
+    if ok_sfp and sfp_module and type(sfp_module.readSFPFlag) == "function" then
+        local ok_flag, flag = pcall(sfp_module.readSFPFlag)
+        if ok_flag then sfp = flag end
+    end
+    if sfp == nil then
+        local ok_flag, flag = pcall(proxy.get, "uci.env.rip.sfp")
+        sfp = (ok_flag and flag and flag[1] and flag[1].value == "1") and 1 or 0
+    end
 
---Support ethernet mode for devices with no eth4 port
-local ethname = proxy.get("sys.eth.port.@eth4.status")
-if ethname and ethname[1].value then
-    ethname =  "eth4"
-else
-    ethname =  "eth3"
+    local eth4 = proxy.get("sys.eth.port.@eth4.status")
+    ethname = eth4 and eth4[1] and eth4[1].value and "eth4" or "eth3"
 end
 
 local function selected(kind, uplink)
+    local parent
+    if integratedGpon then
+        parent = bridge.vlanContext(uplink).connection
+        -- The configured WAN device distinguishes Ethernet from the integrated ONT.
+        if bridge.isGponInterface(parent) then return kind == "gpon" end
+        if parent == "eth3" then return kind == "ethernet" end
+    end
     if not uplink and bridge.get("uci.wansensing.global.enable") == "1" then
         local l2 = bridge.get("uci.wansensing.global.l2type") or ""
-        if kind == "gpon" then return l2 == "SFP" or l2 == "FIBER" end
-        return l2 == ({adsl = "ADSL", vdsl = "VDSL", ethernet = "ETH"})[kind]
+        if kind == "gpon" then return l2 == "SFP" or l2 == "FIBER" or l2 == "GPON" end
+        if kind == "ethernet" then return l2 == "ETH" or l2 == "GBE" end
+        return l2 == (kind == "adsl" and "ADSL" or "VDSL")
     end
-    local parent = bridge.vlanContext(uplink).connection
+    if integratedGpon then return false end
+    parent = bridge.vlanContext(uplink).connection
     if kind == "adsl" then return bridge.isDslInterface(parent, "atm") end
     if kind == "vdsl" then return bridge.isDslInterface(parent, "ptm") end
     if parent ~= bridge.ethernetPort(ethname) then return false end
@@ -46,6 +49,10 @@ local function selected(kind, uplink)
 end
 
 local function selectInterface(kind)
+    if integratedGpon then
+        if selected(kind) then return true end
+        return false, T"Enable WanSensing to switch between Ethernet and integrated GPON."
+    end
     local ethname = bridge.ethernetPort(ethname)
     local ifname, err = bridge.broadbandUplink(kind, ethname)
     if not ifname then return false, err end
@@ -72,11 +79,13 @@ local function selectInterface(kind)
 end
 
 local definitions = {
-    {"adsl", "ADSL2+", "broadband-adsl-advanced.lp", "002_broadband_xdsl.lp"},
-    {"vdsl", "VDSL2", "broadband-vdsl-advanced.lp", "002_broadband_xdsl.lp"},
     {"ethernet", "Ethernet", "broadband-ethernet-advanced.lp", "002_broadband_ethernet.lp"},
 }
-if sfp == 1 then
+if hasXdsl then
+    table.insert(definitions, 1, {"vdsl", "VDSL2", "broadband-vdsl-advanced.lp", "002_broadband_xdsl.lp"})
+    table.insert(definitions, 1, {"adsl", "ADSL2+", "broadband-adsl-advanced.lp", "002_broadband_xdsl.lp"})
+end
+if integratedGpon or sfp == 1 then
     definitions[#definitions + 1] = {"gpon", "GPON", "broadband-gpon-advanced.lp", "002_broadband_gpon.lp"}
 end
 local modes = {}
@@ -84,7 +93,7 @@ for _, definition in ipairs(definitions) do
     local kind = definition[1]
     modes[#modes + 1] = {
         name = kind,
-        default = kind == "vdsl",
+        default = kind == (hasXdsl and "vdsl" or "ethernet"),
         description = definition[2],
         view = definition[3],
         card = definition[4],

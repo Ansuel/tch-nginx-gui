@@ -8,6 +8,7 @@ local proxy = require("datamodel")
 local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 local model_helper = require("model_helper")
+local lfs = require("lfs")
 
 local content = {
 	version = "uci.version.version.@version[0].marketing_version",
@@ -16,7 +17,12 @@ local content = {
 }
 
 content_helper.getExactContent(content)
-content.model = model_helper[string.untaint(content.model)] or content.model
+local model = string.untaint(content.model)
+local imageDir = "/www/docroot/img/"
+local image = model:match("^[%w _-]+$") and ("gateway_" .. (model_helper[model] or model))
+local png = image and lfs.attributes(imageDir .. image .. ".png", "mode") == "file" and image or "gateway"
+local webp = image and lfs.attributes(imageDir .. image .. ".webp", "mode") == "file" and image
+local imageUrl = "/img/" .. ngx.escape_uri(png) .. ".png"
 
 local modalPath = nil
 local switchName = nil
@@ -42,9 +48,11 @@ ngx.print('\
 					</strong></span>\
       <div data-remote="/modals/gateway-modal.lp" data-id="gateway-modal" style="text-align: center;">\
 	    <picture>\
-		    <source srcset="/img/gateway_'); ngx.print(content.model); ngx.print('.webp" type="image/webp">\
-		    <source srcset="/img/gateway_'); ngx.print(content.model); ngx.print('.png" type="image/png">\
-        <img class="someInfos" href="#" rel="tooltip" data-placement="top" data-original-title="');  ngx.print( T"Your Gateway" ); ngx.print('" src="/img/gateway_'); ngx.print(content.model); ngx.print('.png" alt="'); ngx.print(content.model); ngx.print('">\
+        ')
+        if webp then ngx.print('<source srcset="/img/', ngx.escape_uri(webp), '.webp" type="image/webp">') end
+        ngx.print('<img class="someInfos" href="#" rel="tooltip" data-placement="top" data-original-title="',
+            T"Your Gateway", '" src="', imageUrl, '" alt="', content.model, '">')
+        ngx.print('\
 		</picture>\
 		</div>\
       </div>\

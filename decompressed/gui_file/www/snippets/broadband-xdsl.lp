@@ -5,6 +5,8 @@
 -- NG-88797 WAN statistics is not automatically getting updates as LAN statistics
 gettext.textdomain('webui-core')
 
+if not require("bridgehelper").hasXdsl() then return end
+
 local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
 local message_helper = require("web.uimessage_helper")

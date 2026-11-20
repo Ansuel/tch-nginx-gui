@@ -16,6 +16,7 @@ local proxy = require("datamodel")
 local bridge = require("bridgehelper")
 
 local bmh = require("broadbandmode_helper")
+local integratedGpon = bridge.hasIntegratedGpon()
 local tabdata = dyntab_helper.process(bmh)
 
 local mode_current = tabdata.current.name
@@ -86,13 +87,15 @@ if not tabdata.current.ajax then
 		}
 	}
 	
-	html[#html + 1] = ui_helper.createAlertBlock(T"WanSensing sets the connection mode automatically.<br/>Disable this to set the connection mode manually.<br/>After saving the changes the connection options will be shown.", info_box)
+    local sensingInfo = integratedGpon and T"Enable WanSensing to switch between Ethernet and integrated GPON."
+        or T"WanSensing sets the connection mode automatically.<br/>Disable this to set the connection mode manually.<br/>After saving the changes the connection options will be shown."
+    html[#html + 1] = ui_helper.createAlertBlock(sensingInfo, info_box)
 	if bridge.isBridged() then
 		html[#html + 1] = ui_helper.createAlertBlock(T"Bridge mode uses the selected WAN interface with WanSensing disabled. Enabling WanSensing exits bridge mode and restores the routed connection.", info_box)
 	end
 	html[#html+1] = ui_helper.createSwitch(T"WanSensing State", "wsens", content["wsens"],nil)
 	
-	if ( content["wsens"] == "0" ) then
+    if content.wsens == "0" and not integratedGpon then
 		html[#html+1] = ui_helper.createInputRadio(T"Mode", "newmode", mode_options, mode_current, mode_attributes)
 		html[#html+1] = ui_helper.createButton("", T"Switch connection mode", "icon-cog", mode_button)
 	end

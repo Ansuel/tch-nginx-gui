@@ -3,6 +3,7 @@
 -- Enable localization
 gettext.textdomain('webui-core')
 
+local bridge = require("bridgehelper")
 local lfs = require("lfs")
 local ui_helper = require("web.ui_helper")
 local proxy = require("datamodel")
@@ -10,7 +11,7 @@ local format = string.format
 local tinsert = table.insert
 local session = ngx.ctx.session
 
-local dsl_enabled = proxy.get("uci.xdsl.xdsl.@dsl0.enabled")
+local dsl_enabled = bridge.hasXdsl() and proxy.get("uci.xdsl.xdsl.@dsl0.enabled")
 
 local function genIcon(id,text,icons,tooltip_pos)
 	
@@ -35,7 +36,7 @@ local icons = {
 	{"diagnostics-tcpdump-modal","TCPDump","fa fa-download"},
 }
 
-if lfs.attributes("/etc/config/xdsl", "mode") == "file" and dsl_enabled and dsl_enabled[1].value == "1" then
+if dsl_enabled and dsl_enabled[1] and dsl_enabled[1].value == "1" then
   tinsert(icons,1,{"diagnostics-xdsl-modal","xDSL","fas fa-list-ul"})
   tinsert(icons,2,{"diagnostics-xdsl-graphics-modal","xDSL Graphics","fas fa-chart-line"})
 end

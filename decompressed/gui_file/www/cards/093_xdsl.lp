@@ -9,7 +9,7 @@ local content_helper = require("web.content_helper")
 local session = ngx.ctx.session
 local modalPath = "/modals/xdsl-low-modal.lp"
 local untaint = string.untaint
-local lfs = require"lfs"
+if not session:hasAccess(modalPath) or not require("bridgehelper").hasXdsl() then return end
 
 local content = {
       dsl0_enabled = "uci.xdsl.xdsl.@dsl0.enabled",
@@ -31,7 +31,7 @@ if not content.dslam_chipset then
 	content.dslam_version = " "
 end
 
-if session:hasAccess(modalPath) and lfs.attributes("/etc/config/xdsl", "mode") == "file" then
+do
 
   local state_map_DSL = {
       ["0"] = T"xDSL Disabled",

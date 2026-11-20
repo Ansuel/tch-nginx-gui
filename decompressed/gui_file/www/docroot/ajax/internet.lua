@@ -17,7 +17,7 @@ local data= {}
 
 if datatype == "wanstats" then
 	data = require("internethelper").getWanStats()
-elseif datatype == "xdsl" then
+elseif datatype == "xdsl" and require("bridgehelper").hasXdsl() then
 	local sub, format, floor = string.sub, string.format, math.floor
 
 	data = {
@@ -112,7 +112,7 @@ elseif datatype == "xdsl" then
 			end
 		end
 	end
-else
+elseif datatype ~= "xdsl" then
 	local ppp_status, ppp_light, ppp_state, ipv6_light, ipv6_state
 
 	local table = table

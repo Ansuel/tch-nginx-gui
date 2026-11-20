@@ -3,6 +3,8 @@ return {
  ["DGA4132"] = "AGTHP",
  ["MediaAccess DGA4331"] = "AGTHF",
  ["MediaAccess DGA4131FWB"] = "DGA4131FWB",
+ ["FGA221DFWB"] = "NeXXt One",
+ ["Technicolor FGA221DFWB"] = "NeXXt One",
  ["MediaAccess TG589vac"] = "TG799vac",
  ["Technicolor TG799vac"] = "TG799vac",
  ["Technicolor TG800vac"] = "TG800vac",

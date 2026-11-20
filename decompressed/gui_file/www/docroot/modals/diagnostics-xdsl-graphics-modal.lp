@@ -3,6 +3,8 @@
 -- Enable localization
 gettext.textdomain('webui-core')
 
+if not require("bridgehelper").hasXdsl() then return end
+
 --
 --
 --	 Custom Gui for Technicolor Modem: utility script and modified gui for the Technicolor Modem

@@ -10,6 +10,8 @@ local ui_helper = require("web.ui_helper")
 
 local find, sub, format, floor = string.find, string.sub, string.format, math.floor
 
+if not require("bridgehelper").hasXdsl() then return end
+
 local content = {
   status = "sys.class.xdsl.@line0.LinkStatus",
   version = "rpc.xdsl.dslversion",
@@ -36,17 +38,7 @@ local content = {
 
 content_helper.getExactContent(content)
 
--- xDSL is not available on this device (fibre/gpon): skip the card instead of crashing the stats page
-local xdslAvailable = false
-for _, value in pairs(content) do
-	if value ~= nil and value ~= "" then
-		xdslAvailable = true
-		break
-	end
-end
-if not xdslAvailable then
-	return
-end
+if not content.status or content.status == "" or content.status == "Exact path not found!" then return end
 
 local function formatRate(rate)
 	local value = tonumber(rate)

@@ -3,6 +3,8 @@
 -- Enable localization
 gettext.textdomain('webui-core')
 
+if not require("bridgehelper").hasXdsl() then return end
+
 local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
 local post_helper = require("web.post_helper")

@@ -12,6 +12,23 @@ local tonumber = tonumber
 local iconUp = "<i class=\"icon-upload icon-large gray\"></i> "
 local iconDown = "<i class=\"icon-download icon-large gray\"></i> "
 local ajax_helper = require("web.ajax_helper")
+local bridge = require("bridgehelper")
+
+if bridge.hasIntegratedGpon() then
+    local content = {
+        status = "rpc.gpon.ploam.state",
+        rx = "rpc.gpon.trsv.info.status.DS_Rx_RSSI",
+        tx = "rpc.gpon.trsv.info.status.US_TX_Power",
+    }
+    require("internethelper").getOptionalContent(content)
+    ngx.print("<fieldset><legend>", T"Physical link status", "</legend>")
+    ngx.print(ui_helper.createLabel(T"GPON Status", content.status ~= "" and content.status or T"Unavailable"))
+    local rx, tx = tonumber(content.rx), tonumber(content.tx)
+    if rx then ngx.print(ui_helper.createLabel(T"OpticalSignalLevel", format("%.2f dBm", rx))) end
+    if tx then ngx.print(ui_helper.createLabel(T"TransmitOpticalLevel", format("%.2f dBm", tx))) end
+    ngx.print("</fieldset>")
+    return
+end
 local ajax_attr = {
     span = {
         ["data-ajaxrefresh"] = "5",

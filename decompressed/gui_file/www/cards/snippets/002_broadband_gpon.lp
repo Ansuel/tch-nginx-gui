@@ -3,27 +3,14 @@
 -- Enable localization
 gettext.textdomain('webui-core')
 
-local format, match = string.format, string.match
-local floor = math.floor
-local tonumber = tonumber
-
 local ui_helper = require("web.ui_helper")
-local content_helper = require("web.content_helper")
-
-local ui_helper = require("web.ui_helper")
-local post_helper = require("web.post_helper")
-
-local mapParams = {
-      gpon_state = "rpc.optical.Interface.1.Status",
-      optical_signal_level = "rpc.optical.Interface.1.OpticalSignalLevel",
+local integrated = require("bridgehelper").hasIntegratedGpon()
+local content = {
+    gpon_state = integrated and "rpc.gpon.ploam.state" or "rpc.optical.Interface.1.Status",
+    optical_signal_level = integrated and "rpc.gpon.trsv.info.status.DS_Rx_RSSI"
+        or "rpc.optical.Interface.1.OpticalSignalLevel",
 }
-local mapValid = {
-    gpon_state = function(value, object, key)
-     return true
-   end,
-}
-
-local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
+require("internethelper").getOptionalContent(content)
 
 local gpon_state_map = {
     connected = T"Up",
@@ -31,7 +18,7 @@ local gpon_state_map = {
 }
 
 local gpon_status = "connecting"
-if content.gpon_state == "Up" then
+if content.gpon_state == "Up" or content.gpon_state == "OPERATION (O5)" then
     gpon_status = "connected"
 end
 
@@ -53,9 +40,14 @@ end
 <div class="divtable">\
 ');
     local html = {}
-      html[#html + 1] = format("<strong>%s</strong><br/>",T"GPON Status")
-      html[#html + 1] = ui_helper.createSimpleLight(nil, gpon_state_map[gpon_status], { light = { class = gpon_light_map[gpon_status] } })
-      html[#html + 1] = format('<p id="Line_Rate_Down" class="subinfos">&emsp; <i class="fas fa-certificate"></i>%.2f dBm</p>', tonumber(content["optical_signal_level"])/1000)
+html[#html + 1] = string.format("<strong>%s</strong><br/>",T"GPON Status")
+local status = content.gpon_state ~= "" and gpon_state_map[gpon_status] or T"Unavailable"
+html[#html + 1] = ui_helper.createSimpleLight(nil, status, { light = { class = gpon_light_map[gpon_status] } })
+local signal = tonumber(content.optical_signal_level)
+if signal then
+    html[#html + 1] = string.format('<p id="Line_Rate_Down" class="subinfos">&emsp; <i class="fas fa-certificate"></i>%.2f dBm</p>',
+        integrated and signal or signal / 1000)
+end
     ngx.print(html)
 
 ngx.print('\
