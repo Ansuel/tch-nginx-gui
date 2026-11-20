@@ -72,13 +72,18 @@ var data_usage = ');  ngx.print(datausage_enabled); ngx.print(';\
 \
 function updatelink(){\
   $.post("/ajax/datausage.lua",params, function(datausage) {\
-    $("#downloadlink").text(get_bitrate(datausage.split(",")[0]));\
-    $("#uploadlink").text(get_bitrate(datausage.split(",")[1]));\
+    var parts = String(datausage).trim().split(",");\
+    if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) {\
+      return;\
+    }\
+    $("#downloadlink").text(get_bitrate(parts[0]));\
+    $("#uploadlink").text(get_bitrate(parts[1]));\
   });\
 }\
 \
 if (data_usage){\
-  var stopUpdateLink = setInterval(updatelink, 3000);\
+  updatelink();\
+  var stopUpdateLink = setInterval(updatelink, 300);\
 }\
 </script>\
 ');

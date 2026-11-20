@@ -8,6 +8,7 @@ case "$branch_name" in
   stable) type=STABLE ;;
   preview) type=PREVIEW ;;
   master) type=DEV ;;
+  personal_edit) type=DEV ;;
   *) type="$branch_name" ;;
 esac
 printf '%s\n' "$type" > "$HOME/gui_build/data/type"

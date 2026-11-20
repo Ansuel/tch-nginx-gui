@@ -31,6 +31,15 @@ local function get_wan_interfaces()
       end
     end
   end
+  -- se il firewall non marca nessuna zona come "wan", provo le interfacce standard
+  if #ifnames == 0 then
+    for _, name in ipairs({ "wan", "wwan" }) do
+      local ok, interface_data = pcall(proxy.get, "uci.network.interface.@" .. name .. ".")
+      if ok and interface_data then
+        table.insert(ifnames, {name, name})
+      end
+    end
+  end
   return ifnames
 end
 
@@ -120,7 +129,7 @@ local interfaces = args and args["selected_interface"] and untaint(args["selecte
 local validate_interface = post_helper.getValidateInEnumSelect(page.wan_interfaces)
 
 if interfaces and validate_interface(interfaces) then
-  proxy.set("rpc.datausage_notifier.web_selected_interface", interfaces)
+  pcall(proxy.set, "rpc.datausage_notifier.web_selected_interface", interfaces)
 else
   local selected = proxy.get("rpc.datausage_notifier.web_selected_interface")
   interfaces = selected and selected[1] and untaint(selected[1].value)

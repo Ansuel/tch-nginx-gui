@@ -359,9 +359,6 @@ msgstr "App Blacklist"
 msgid "Block"
 msgstr "Blocca"
 
-msgid "Blue"
-msgstr "Blu"
-
 msgid "Bootloader OID"
 msgstr "OID bootloader"
 
@@ -1102,9 +1099,6 @@ msgstr "Informazioni generali"
 
 msgid "Graph"
 msgstr "Grafico"
-
-msgid "Green"
-msgstr "Verde"
 
 msgid "Guest"
 msgstr "Ospite"
@@ -2353,9 +2347,6 @@ msgstr "Mar."
 
 msgid "Turning on Eco features can cause major latency."
 msgstr "L'attivazione delle funzionalità di risparmio energetico ethernet può causare una latenza aggiuntiva."
-
-msgid "Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status."
-msgstr "Se tutti i servizi sono attivi e funzionanti spegne tutti led eccetto 'Info'. Premi il pulsante “Info” / “Wifi” per visualizzare lo stato attuale dei led."
 
 msgid "Tx Errors"
 msgstr "Errori Tx"
@@ -4619,6 +4610,27 @@ msgstr "Voipblock per Asterisk"
 msgid "This will install Voipblock for asterisk"
 msgstr "Installa Voipblock per Asterisk."
 
+msgid "Memory"
+msgstr "Memoria"
+
+msgid "Free"
+msgstr "Libera"
+
+msgid "Available"
+msgstr "Disponibile"
+
+msgid "Cache"
+msgstr "Cache"
+
+msgid "Memory details"
+msgstr "Dettaglio memoria"
+
+msgid "Item"
+msgstr "Voce"
+
+msgid "/proc/meminfo is not readable"
+msgstr "/proc/meminfo non leggibile"
+
 msgid "Data Usage"
 msgstr "Utilizzo dati"
 
@@ -4684,3 +4696,39 @@ msgstr "* L'utilizzo dati è solo indicativo. Per i consumi effettivi fai riferi
 
 msgid "No WAN interface is available for data usage monitoring."
 msgstr "Nessuna interfaccia WAN disponibile per il monitoraggio dell'utilizzo dati."
+
+msgid "Turn off all LEDs if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status."
+msgstr "Se tutti i servizi sono attivi e funzionanti spegne tutti led. Premi il pulsante “Info” / “Wifi” per visualizzare lo stato attuale dei led."
+
+msgid "Color of the Power LED when the gateway is up and running."
+msgstr "Colore del LED di alimentazione quando il gateway è attivo e funzionante."
+
+msgid "Power LED color"
+msgstr "Colore led info/power"
+
+msgid "Green"
+msgstr "Verde"
+
+msgid "Blue"
+msgstr "Blu"
+
+msgid "Orange"
+msgstr "Arancione"
+
+msgid "Red"
+msgstr "Rosso"
+
+msgid "Cyan"
+msgstr "Ciano"
+
+msgid "White"
+msgstr "Bianco"
+
+msgid "Hidden network"
+msgstr "Rete Nascosta"
+
+msgid "Unable to identify the existing bridge WAN interface; restore its physical uplink first"
+msgstr "Impossibile identificare l'interfaccia WAN del bridge esistente; ripristinare prima il suo uplink fisico"
+
+msgid "Bridge mode uses the selected WAN interface with WanSensing disabled. Enabling WanSensing exits bridge mode and restores the routed connection."
+msgstr "La modalità bridge utilizza l'interfaccia WAN selezionata con WanSensing disattivato. L'attivazione di WanSensing fa uscire dalla modalità bridge e ripristina la connessione instradata."
