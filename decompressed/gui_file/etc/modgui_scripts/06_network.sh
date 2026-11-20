@@ -2,6 +2,16 @@
 
 . /etc/init.d/rootdevice
 
+has_dsl_hardware() {
+  [ -f /etc/config/xdsl ] || command -v xdslctl >/dev/null || command -v adslctl >/dev/null
+}
+
+has_integrated_gpon() {
+  [ -f /rom/etc/init.d/gpon-uni ] &&
+    [ -f /rom/usr/share/transformer/mappings/rpc/gpon.ploam.map ] &&
+    ! has_dsl_hardware
+}
+
 add_ipoe() {
   if [ ! "$(uci -q get network.ipoe)" ]; then
     logecho "Adding ipoe in network config..."
@@ -31,7 +41,7 @@ setup_network() {
   sed -i -e 's/option pppoerelay/list pppoerelay/g' /etc/config/network
 
   #Set a waneth4 interface if not found (fix wizard on UNO)
-  if [ ! "$(uci -q get network.waneth4)" ]; then
+  if ! has_integrated_gpon && [ ! "$(uci -q get network.waneth4)" ]; then
     uci -q add network device >/dev/null
     uci -q rename network.@device[-1]=waneth4
     uci -q set network.waneth4.enabled=1
@@ -39,10 +49,10 @@ setup_network() {
     uci -q set network.waneth4.name=waneth4
     uci -q set network.waneth4.vid=835
   fi
-  [ ! "$(uci -q get network.waneth4.vid)" ] && uci -q set network.waneth4.vid=835
+  ! has_integrated_gpon && [ ! "$(uci -q get network.waneth4.vid)" ] && uci -q set network.waneth4.vid=835
 
   #Set a wanptm0 interface if not found (fix wizard on UNO)
-  if [ ! "$(uci -q get network.wanptm0)" ]; then
+  if has_dsl_hardware && [ ! "$(uci -q get network.wanptm0)" ]; then
     uci -q add network device >/dev/null
     uci -q rename network.@device[-1]=wanptm0
     uci -q set network.wanptm0.enabled=1
@@ -53,8 +63,8 @@ setup_network() {
     #workaround to avoid who already setup the MST device vlan_wan on VLAN 835
     [ "$(uci -q get network.vlan_wan.vid)" = "835" ] && uci -q set network.wanptm0.vid=836
   fi
-  [ ! "$(uci -q get network.wanptm0.vid)" ] && uci -q set network.wanptm0.vid=835
-  [ ! "$(uci -q get network.wanptm0.ifname)" ] && uci -q set network.wanptm0.ifname=ptm0
+  has_dsl_hardware && [ ! "$(uci -q get network.wanptm0.vid)" ] && uci -q set network.wanptm0.vid=835
+  has_dsl_hardware && [ ! "$(uci -q get network.wanptm0.ifname)" ] && uci -q set network.wanptm0.ifname=ptm0
 
   #Set a SSH_wan firewall rule if not found (fix SSH Wan not working)
   if [ ! "$(uci -q get firewall.SSH_wan)" ]; then
@@ -189,6 +199,16 @@ update_dhcp_config() {
 }
 
 wan_sensing_clean() {
+  if has_integrated_gpon; then
+    # Use the firmware's GBE/GPON state machine and matching helpers.
+    local path
+    for path in /etc/wansensing/L2Main.lua /usr/lib/lua/wansensingfw/scripthelpers.lua; do
+      if [ -f "/rom$path" ]; then
+        cp "/rom$path" "$path" || logecho "Could not restore native WAN sensing file $path"
+      fi
+    done
+    return
+  fi
   logecho "Attempt to clean the wansensing script from hardcoded interfaces..."
   #This will try to clean every hardcoded setting from isp config
   if [ -f /etc/wansensing/L2EntryExit.lua ]; then
@@ -263,6 +283,7 @@ disable_tcp_Sack() {
 }
 
 check_xtm_atmwan() {
+  has_dsl_hardware && [ -f /etc/config/xtm ] || return 0
   logecho "Checking atmdevice interface naming..."
   if [ -z "$(uci -q get xtm.atmwan)" ]; then
     uci set xtm.atmwan=atmdevice

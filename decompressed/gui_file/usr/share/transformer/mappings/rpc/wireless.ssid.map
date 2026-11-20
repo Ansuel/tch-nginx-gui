@@ -75,14 +75,18 @@ local function nilToEmptyString(st)
 end
 
 local function getDataForIface(iface)
-    local result = ssidDataCache or conn:call("wireless.ssid", "get", { name = iface })
-    result[iface]["stb"] = uci_helper.get_from_uci({ config = "wireless", sectionname = iface, option = "stb", extended = true})
-    result[iface]["ap_display_name"] = uci_helper.get_from_uci({ config = "wireless", sectionname = iface, option = "ap_display_name", extended = true})
-    if result == nil then
-        log:error("Cannot retrieve ssid info for iface " .. iface)
-        return {}
+    local data = ssidDataCache and ssidDataCache[iface]
+    if not data then
+        local result = conn:call("wireless.ssid", "get", { name = iface })
+        data = result and result[iface]
     end
-    return result[iface]
+    if not data then
+        log:error("Cannot retrieve ssid info for iface " .. iface)
+        data = {}
+    end
+    data.stb = uci_helper.get_from_uci({ config = "wireless", sectionname = iface, option = "stb", extended = true})
+    data.ap_display_name = uci_helper.get_from_uci({ config = "wireless", sectionname = iface, option = "ap_display_name", extended = true})
+    return data
 end
 
 local function entriesWirelessSSID()
@@ -97,6 +101,7 @@ local function entriesWirelessSSID()
 end
 
 local function getLANStateForIface(ssidData, iface)
+    if not ssidData.radio then return "0" end
     local lan = nwcommon.findLanWanInterfaces(false)
     local radioData = network.getRadioInfo(ssidData.radio)
     local lanmap = {}
@@ -113,7 +118,7 @@ local function getLANStateForIface(ssidData, iface)
         end
     end
 
-    if radioData.remotely_managed == 1 then
+    if radioData and radioData.remotely_managed == 1 then
         local wirelessNetwork = uci_helper.get_from_uci({ config = "wireless", sectionname = iface, option = "network", extended = true})
         if wirelessNetwork and lanmap[wirelessNetwork] then
             return "1"

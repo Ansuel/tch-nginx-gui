@@ -347,13 +347,10 @@ local content = {
   software_name = "uci.version.version.@version[0].marketing_name",
   software_version = "uci.version.version.@version[0].marketing_version",
   firmware_version = "uci.env.var.friendly_sw_version_activebank",
-  firmware_oid = "uci.version.version.@version[0].oid",
   bootloader_version = "uci.env.var.bootloader_version",
-  bootloader_oid = "uci.env.var.bootloader_oid",
   hardware_version = "uci.env.var.hardware_version",
   serial_number = "uci.env.var.serial",
   mac_address = "uci.env.rip.eth_mac",
-  -- dsl_firmware = "sys.class.xdsl.@line0.FirmwareVersion",
   fwversion_prefix = "uci.versioncusto.override.fwversion_prefix",
   fwversion_suffix = "uci.versioncusto.override.fwversion_suffix",
   fwversion_override = "uci.versioncusto.override.fwversion_override_real",
@@ -361,6 +358,15 @@ local content = {
 }
 
 content_helper.getExactContent(content)
+
+local optionalVersions = {
+  firmware_oid = "uci.version.version.@version[0].oid",
+  bootloader_oid = "uci.env.var.bootloader_oid",
+}
+if require("bridgehelper").hasXdsl() then
+  optionalVersions.dsl_firmware = "sys.class.xdsl.@line0.FirmwareVersion"
+end
+require("internethelper").getOptionalContent(optionalVersions)
 
 if content["friendly_product_name"] and content["friendly_product_name"] == "AGHP" then
 	content["friendly_product_name"] = "AGTHP" --Wrong product name by telecom!
@@ -765,10 +771,16 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	html[#html + 1] = ui_helper.createLabel(T"Hostname", system_data["system_hostname"], advancedshow )
 	html[#html + 1] = ui_helper.createInputText(T"Hostname", "system_hostname", system_data["system_hostname"], advanced , system_helpmsg["system_hostname"] )
     --html[#html + 1] = ui_helper.createLabel(T"Firmware Version", content["firmware_version"], basic)
-	-- html[#html + 1] = ui_helper.createLabel(T"Datapump Version", content["dsl_firmware"], basic)
-    html[#html + 1] = ui_helper.createLabel(T"Firmware OID", content["firmware_oid"], basic)
+    if optionalVersions.dsl_firmware and optionalVersions.dsl_firmware ~= "" then
+        html[#html + 1] = ui_helper.createLabel(T"Datapump Version", optionalVersions.dsl_firmware, basic)
+    end
+    if optionalVersions.firmware_oid ~= "" then
+        html[#html + 1] = ui_helper.createLabel(T"Firmware OID", optionalVersions.firmware_oid, basic)
+    end
     html[#html + 1] = ui_helper.createLabel(T"Bootloader Version", content["bootloader_version"], long_basic)
-    html[#html + 1] = ui_helper.createLabel(T"Bootloader OID", content["bootloader_oid"], basic)
+    if optionalVersions.bootloader_oid ~= "" then
+        html[#html + 1] = ui_helper.createLabel(T"Bootloader OID", optionalVersions.bootloader_oid, basic)
+    end
     html[#html + 1] = ui_helper.createLabel(T"Hardware Version", content["hardware_version"], basic)
     html[#html + 1] = ui_helper.createLabel(T"Serial Number", content["serial_number"], basic)
     html[#html + 1] = ui_helper.createLabel(T"MAC Address", content["mac_address"], basic)

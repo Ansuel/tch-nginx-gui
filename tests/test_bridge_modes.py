@@ -211,6 +211,21 @@ T = function(s) return s end
 gettext = {textdomain = function() end}
 local values, names, events = {}, {{path = 'uci.wansensing.L2State.@L2Sense.'}}, {}
 local failSet, failApply, stopStatus = false, false, 0
+local hasXdsl, integratedGpon, dslControl = true, false, false
+local open = io.open
+io.open = function(path, ...)
+    local present
+    if path == '/etc/config/xdsl' then
+        present = hasXdsl
+    elseif path:match('/[ax]dslctl$') then
+        present = path == dslControl
+    elseif path == '/rom/etc/init.d/gpon-uni' or path == '/rom/usr/share/transformer/mappings/rpc/gpon.ploam.map' then
+        present = integratedGpon
+    else
+        return open(path, ...)
+    end
+    return present and {close = function() end} or nil
+end
 local wan = 'uci.network.interface.@wan.'
 local cfg = 'uci.network.config.'
 local lan = 'uci.network.interface.@lan.ifname'
@@ -757,6 +772,89 @@ assert(values[wan .. 'ifname'] == 'carrier_vlan')
 assert(bridge.enter() and values[cfg .. 'bridge_ifname'] == 'carrier_vlan')
 assert(bridge.leave('dhcp') and values[wan .. 'ifname'] == 'carrier_vlan')
 ''')
+
+    def test_integrated_gpon_selects_real_uplink_and_never_offers_xdsl(self):
+        self.run_lua('''
+hasXdsl, integratedGpon = false, true
+local l2 = 'uci.wansensing.global.l2type'
+values[l2] = 'GBE'
+values[wan .. 'ifname'] = '@vlan_wan_eth3'
+values['uci.network.interface.@vlan_wan_eth3.ifname'] = 'eth3.835'
+values['uci.ethernet.port.@veip0.wan'] = '1'
+names[#names + 1] = {path = 'uci.ethernet.port.@veip0.'}
+local modes = require('broadbandmode_helper')
+assert(#modes == 2 and modes[1].name == 'ethernet' and modes[2].name == 'gpon')
+local ethernet, gpon = modes[1], modes[2]
+assert(ethernet.default and ethernet.check() and not gpon.check())
+assert(bridge.ethernetPort() == 'eth3')
+assert(not gpon.operations() and #events == 0)
+values[wan .. 'ifname'] = 'veip0_1'
+assert(not ethernet.check() and gpon.check() and gpon.check('veip0'))
+values[wan .. 'ifname'], values[l2] = '', 'GPON'
+assert(not ethernet.check() and gpon.check())
+values[l2] = 'GBE'
+assert(ethernet.check() and not gpon.check())
+''')
+
+    def test_legacy_dsl_driver_exposes_vdsl_before_uci_is_generated(self):
+        self.run_lua('''
+hasXdsl, dslControl = false, '/usr/sbin/xdslctl'
+values['uci.wansensing.global.l2type'] = 'VDSL'
+local modes = require('broadbandmode_helper')
+assert(#modes == 3 and modes[2].name == 'vdsl' and modes[2].default and modes[2].check())
+''')
+
+    def test_bridge_uplink_is_detected_when_wan_mode_is_still_pppoe(self):
+        self.run_lua('''
+values[cfg .. 'wan_mode'], values[wan .. 'ifname'], values[sensing] = 'pppoe', 'br-lan', '0'
+values[lan] = values[lan] .. ' eth4'
+names[#names + 1] = {path = 'uci.ethernet.port.@eth4.'}
+values['uci.ethernet.port.@eth4.wan'] = '1'
+values['sys.class.net.@eth4.operstate'] = 'up'
+values['sys.class.net.@eth4.carrier'] = '1'
+for _, mode in ipairs(require('broadbandmode_helper')) do
+    assert(mode.check() == (mode.name == 'ethernet'))
+end
+assert(bridge.vlanContext().connection == 'eth4')
+assert(bridge.ethernetLink().carrier == '1')
+assert(#events == 0 and values[cfg .. 'wan_mode'] == 'pppoe')
+''')
+
+    def test_integrated_gpon_wizard_preserves_the_firmware_uplink(self):
+        wizard = ROOT / 'www/wizard-cards/001_broadband.lp'
+        self.run_lua('''
+hasXdsl, integratedGpon = false, true
+values[wan .. 'ifname'] = 'veip0_1'
+ngx = {print = function() end, req = {get_method = function() return 'GET' end},
+       ctx = {session = {store = function() end}}}
+package.preload['web.content_helper'] = function() return {} end
+package.preload['web.uimessage_helper'] = function() return {popMessages = function() end} end
+package.preload['web.taint'] = function() return {} end
+package.preload['web.ui_helper'] = function()
+  return setmetatable({
+    createLabel = function(label, value)
+      if label == 'WAN Interfaces' or label == 'WAN Interfaces:' then assert(value == 'GPON') end
+    end,
+  }, {__index = function() return function() end end})
+end
+package.preload['web.post_helper'] = function() return {getValidateInEnumSelect = function(options)
+  assert(#options == 1 and options[1][1] == 'gpon')
+  return function(value)
+    if value == 'gpon' then return true end
+  end
+end} end
+package.preload.wizard = function() return {handleQuery = function(paths, validators)
+  assert(paths.wan_ifname == wan .. 'ifname')
+  assert(paths.id_vlan_vdsl == nil and paths.id_vlan_eth == nil and paths.wan_ppp_vpi_number_if == nil)
+  assert(validators.wan_type('gpon') and not validators.wan_type('vdsl'))
+  local posted = {wan_ifname = 'ptm0', wan_type = 'gpon'}
+  assert(validators.wan_ifname(posted.wan_ifname, posted, 'wan_ifname'))
+  assert(posted.wan_ifname == nil)
+  return {wan_ifname = values[wan .. 'ifname'], wan_proto = 'dhcp'}, {}
+end} end
+dofile(WIZARD)
+assert(#events == 0)
+'''.replace('WIZARD', repr(str(wizard))))
 
     def test_stop_check_handles_legacy_exit_codes_and_async_shutdown(self):
         source = (ROOT / 'www/lua/bridgehelper.lua').read_text()

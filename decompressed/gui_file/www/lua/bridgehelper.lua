@@ -6,6 +6,30 @@ local lan = "uci.network.interface.@lan.ifname"
 local config = "uci.network.config."
 local sensing = "uci.wansensing.global.enable"
 
+local function exists(path)
+    local file = io.open(path, "r")
+    if not file then return false end
+    file:close()
+    return true
+end
+
+function M.hasXdsl()
+    -- Older firmware can expose DSL before its UCI configuration is generated.
+    return exists("/etc/config/xdsl")
+        or exists("/usr/bin/xdslctl") or exists("/bin/xdslctl") or exists("/usr/sbin/xdslctl") or exists("/sbin/xdslctl")
+        or exists("/usr/bin/adslctl") or exists("/bin/adslctl") or exists("/usr/sbin/adslctl") or exists("/sbin/adslctl")
+end
+
+function M.hasIntegratedGpon()
+    return exists("/rom/etc/init.d/gpon-uni")
+        and exists("/rom/usr/share/transformer/mappings/rpc/gpon.ploam.map")
+        and not M.hasXdsl()
+end
+
+function M.isGponInterface(ifname)
+    return ifname:match("^veip%d+$") ~= nil or ifname:match("^veip%d+_%d+$") ~= nil
+end
+
 local function get(path)
     local value = proxy.get(path)
     return value and value[1] and value[1].value
@@ -104,7 +128,12 @@ function M.resolveUplink(value)
 end
 
 function M.vlanContext(uplink)
-    local ifname = M.resolveUplink(uplink or M.getUplink()) or ""
+    if not uplink then
+        uplink = M.getUplink()
+        -- An existing LAN bridge can still have the old routed mode saved in UCI.
+        if uplink == "br-lan" then uplink = M.getUplink(true) end
+    end
+    local ifname = M.resolveUplink(uplink) or ""
     local device
     for _, entry in ipairs(proxy.getPN("uci.network.device.", true) or {}) do
         local kind = get(entry.path .. "type")
@@ -145,6 +174,7 @@ function M.isDslInterface(ifname, kind)
 end
 
 function M.ethernetPort(fallback)
+    if M.hasIntegratedGpon() then return "eth3" end
     local current = M.vlanContext().connection
     if current ~= "" and get("uci.ethernet.port.@" .. current .. ".wan") == "1" then return current end
     local chosen

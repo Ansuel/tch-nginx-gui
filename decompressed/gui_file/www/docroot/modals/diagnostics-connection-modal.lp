@@ -8,41 +8,34 @@ local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
 local post_helper = require("web.post_helper")
 local content_helper = require("web.content_helper")
-local lfs = require("lfs")
-local checkgpon = require("checkgponboard_helper")
-local gponboard = checkgpon.isGPONBoard()
+local bridge = require("bridgehelper")
+local integratedGpon = bridge.hasIntegratedGpon()
+local gponboard
+if integratedGpon then
+  for _, mode in ipairs(require("broadbandmode_helper")) do
+    if mode.name == "gpon" then gponboard = mode.check() end
+  end
+else
+  gponboard = require("checkgponboard_helper").isGPONBoard()
+end
 local pairs, table = pairs, table
 local format = string.format
 local numOfPings = "2"
 local refresh = 2
 local restarted = false
-local xtmintf = proxy.getPN("uci.wanatmf5loopback.",true)
-local find = string.find
+local xdsl_exist = bridge.hasXdsl()
+local xtmintf = xdsl_exist and proxy.getPN("uci.wanatmf5loopback.", true) or {}
+local internet = require("internethelper")
+local is_gpon = not integratedGpon and internet.getValue("uci.env.rip.sfp") == "1"
+
+local xdsl_params = {}
 local is_adsl = false
-local xdsl_exist = false
-if lfs.attributes("/etc/config/xdsl", "mode") == "file" then
-  xdsl_exist = true
-end
-local is_gpon = false
-local gpon_params = {
-  sfp_enabled = "uci.env.rip.sfp",
-}
-
-content_helper.getExactContent(gpon_params)
-if gpon_params["sfp_enabled"] == "1" then
-   is_gpon = true
-end
-
-local xdsl_params = {
-  dsl_status = "sys.class.xdsl.@line0.Status",
-  dsl_type   = "sys.class.xdsl.@line0.ModulationType"
-}
-
-content_helper.getExactContent(xdsl_params)
-
-local dsl_type = xdsl_params["dsl_type"] or ""
-if find(dsl_type, "ADSL") == 1 or find(dsl_type, "ADLS") == 1 then
-  is_adsl = true
+if xdsl_exist then
+  xdsl_params.dsl_status = "sys.class.xdsl.@line0.Status"
+  xdsl_params.dsl_type = "sys.class.xdsl.@line0.ModulationType"
+  content_helper.getExactContent(xdsl_params)
+  local dsl_type = xdsl_params.dsl_type or ""
+  is_adsl = dsl_type:match("^ADSL") or dsl_type:match("^ADLS")
 end
 local content_rpc_gpon = {}
 
@@ -54,7 +47,7 @@ if gponboard then
 	content_rpc_gpon["gpon_status"] = "rpc.gpon.ploam.state"
 end
 
-content_helper.getExactContent(content_rpc_gpon)
+internet.getOptionalContent(content_rpc_gpon)
 
 
 local content_uci = {
@@ -93,7 +86,7 @@ local content_rpc_wan6 = {}
 
 local intf6
 
-for i,v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
+for i,v in ipairs(proxy.getPN("rpc.network.interface.", true) or {}) do
     local intf = string.match(v.path, "rpc%.network%.interface%.@([^%.]+)%.")
     if intf then
          if intf == "6rd" then
@@ -127,7 +120,9 @@ if content_rpc_wan6["dns_servers_ipv6"] and content_rpc_wan6["dns_servers_ipv6"]
   num_servers_ipv6 = tonumber(select(2, string.gsub(content_rpc_wan6["dns_servers_ipv6"], ",",","))) + 1
 end
 
-proxy.get("uci.xtm.") ---workaround problem in transformer DE3058
+if xdsl_exist then
+  proxy.get("uci.xtm.") -- Work around Transformer DE3058.
+end
 
 local function restartTest()
   if is_adsl then
@@ -327,7 +322,7 @@ local attributes = {
     }
 }
 
-if string.match(content_uci["wan_devices"],"eth%d") ~= nil or not xdsl_exist then
+if not xdsl_exist or (content_uci.wan_devices or ""):match("eth%d") then
     if proxy.getPL("rpc.docsis.status") ~= nil then
         if content_rpc_wan["wan_up"] == "1" then
             html[#html+1] = ui_helper.createLabel(T"DOCSIS WAN Enable", format("%s %s","<i class=\"icon-ok icon-large green\"></i> ",T"Interface Enabled"), attributes)
@@ -408,15 +403,18 @@ else
     end
 end
 if gponboard or is_gpon then
+    local statusIconGpon
 	if content_rpc_gpon["gpon_status"] == "OPERATION (O5)" or content_rpc_gpon["gpon_status"] == "Up" then
         statusIconGpon = "<i class=\"icon-ok icon-large green\"></i> "
     else
 	    statusIconGpon = "<i class=\"icon-ban-circle icon-large red\"></i> "
     end
-	html[#html+1] = ui_helper.createLabel(T"GPON Status",format("%s %s",statusIconGpon,content_rpc_gpon["gpon_status"]), attributes)
+    local status = content_rpc_gpon.gpon_status
+    html[#html+1] = ui_helper.createLabel(T"GPON Status", format("%s %s", statusIconGpon,
+        status ~= "" and status or T"Unavailable"), attributes)
 end
 -- Show PPP status if relevant
-if find(content_uci["wan_proto"], "ppp") == 1 then
+if (content_uci.wan_proto or ""):match("^ppp") then
     if ppp_status == "connected" then
         html[#html+1] = ui_helper.createLabel(T"PPP status", format("%s %s","<i class=\"icon-ok icon-large green\"></i> ", ppp_text_status), attributes)
     else

@@ -90,7 +90,7 @@ local function getAcsData(cradio, delay)
     local step = 0
     while step <= 10 do
       bsslistData = proxy.get("rpc.wireless.bssid.@" .. cradio .. ".bsslist.")
-      if next(bsslistData) then
+      if bsslistData and next(bsslistData) then
         break
       end
       ngx.sleep(3)
@@ -138,7 +138,8 @@ ajax_helper.handleAjaxQuery({
     phy_rate = "rpc.wireless.radio.@" .. curradio .. ".phy_rate",
     channel = "rpc.wireless.radio.@" .. curradio .. ".channel",
     }, function(content)
-        content["phy_rate"] = content["phy_rate"] / 1000 .. "Mbps"
+        local rate = tonumber(content.phy_rate)
+        content.phy_rate = rate and (rate / 1000 .. "Mbps") or ""
     end)
 
 local ap_paths={true}
@@ -161,7 +162,7 @@ local cur_ssid
 for i,v in ipairs(wl_list) do
   local path = "rpc.wireless.ssid.@" .. v.value
   local values = proxy.get(path .. ".radio" , path .. ".ssid",path .. ".stb", path .. ".ap_display_name")
-  if values ~= nil then
+  if values and values[1] and values[2] and values[3] and values[4] then
     wls[#wls+1] = {
             radio = values[1].value,
             ssid = values[2].value,
@@ -172,7 +173,8 @@ for i,v in ipairs(wl_list) do
     if (v.value == getiface) or (not getiface and v.value == curiface) then
         curiface = v.value
         curap = match(v.path, "rpc%.wireless%.ap%.@([^%.]+)%.")
-        isguest = proxy.get(v.path .. "ap_isolation")[1].value
+        local isolation = proxy.get(v.path .. "ap_isolation")
+        isguest = isolation and isolation[1] and isolation[1].value or "0"
         cur_ssid = values[2].value
     end
  end

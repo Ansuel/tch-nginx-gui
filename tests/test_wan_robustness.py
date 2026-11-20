@@ -269,6 +269,8 @@ assert(#writes == 0)
     def test_idle_dsl_skips_blocking_dslam_queries(self):
         self.run_lua('''
 local output, dslam_reads = nil, 0
+local hasXdsl = false
+package.preload.bridgehelper = function() return {hasXdsl = function() return hasXdsl end} end
 gettext = {textdomain = function() end}
 ngx = {HTTP_OK = 200, req = {get_method = function() return 'POST' end,
   get_uri_args = function() return {datatype = 'xdsl'} end}, say = function() end, exit = function() end}
@@ -286,12 +288,15 @@ package.preload['web.content_helper'] = function() return {getExactContent = fun
   end
 end} end
 dofile(%s)
+assert(next(output) == nil and dslam_reads == 0)
+hasXdsl = true
+dofile(%s)
 assert(output.status == 'Idle' and output.dsl_profile == 'N/A' and dslam_reads == 0)
 status, rate = 'Showtime', '12000'
 dofile(%s)
 assert(output.status == 'Connected' and tonumber(output.dsl_linerate_down:match('^(%%S+)')) == 12)
 assert(dslam_reads == 6 and output.dslam_chipset == 'Broadcom ( BDCM )')
-''' % ((repr(str(ROOT / 'www/docroot/ajax/internet.lua')), ) * 2))
+''' % ((repr(str(ROOT / 'www/docroot/ajax/internet.lua')), ) * 3))
 
     def test_card_file_checks_close_descriptors(self):
         source = (ROOT / 'usr/lib/lua/web/content_helper.lua').read_text()

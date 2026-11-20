@@ -450,6 +450,7 @@ new_wol_implementation() {
 }
 
 add_xdsl_option() {
+  [ -f /etc/config/xdsl ] || return 0
   if [ ! "$(uci get -q xdsl.dsl0.sra)" ]; then
     uci set xdsl.dsl0.sra=1
   fi

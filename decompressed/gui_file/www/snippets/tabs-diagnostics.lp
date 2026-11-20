@@ -15,10 +15,10 @@ local items = {
     {"diagnostics-tcpdump-modal.lp", T"Tcpdump"},
 }
 
-if require("lfs").attributes("/etc/config/xdsl", "mode") == "file" then
+if require("bridgehelper").hasXdsl() then
     local dsl_status = getProxy("sys.class.xdsl.@line0.Enable")
 
-    if dsl_status and dsl_status[1].value == "1" then
+    if dsl_status and dsl_status[1] and dsl_status[1].value == "1" then
         tinsert(items, 1, {"diagnostics-xdsl-modal.lp", T"xDSL"} )
 		tinsert(items, 2, {"diagnostics-xdsl-graphics-modal.lp", T"xDSL Graphics"} )
     end

@@ -48,7 +48,8 @@ local intf_state = "disabled"
 if wan_bridge then
 	local operstate = proxy.get("sys.class.net.@"..wan_bridge..".operstate")
 	if operstate and operstate[1].value == "up" then
-	    if proxy.get("sys.class.net.@"..wan_bridge..".carrier")[1].value ~= "0" then
+	    local carrier = proxy.get("sys.class.net.@"..wan_bridge..".carrier")
+	    if carrier and carrier[1] and carrier[1].value == "1" then
 	        intf_state = "connected"
 	    else
 	        intf_state = "connecting"
@@ -58,21 +59,24 @@ if wan_bridge then
 	end
 end
 
--- xdsl data
+local bridge = require("bridgehelper")
+local show_dsl = wan_bridge and bridge.hasXdsl()
+  and (bridge.isDslInterface(wan_bridge, "atm") or bridge.isDslInterface(wan_bridge, "ptm"))
 local xdsl_data = {
   dsl_enable = "sys.class.xdsl.@line0.Enable",
   dsl_status = "sys.class.xdsl.@line0.Status",
   dsl_linerate_up = "sys.class.xdsl.@line0.UpstreamCurrRate",
   dsl_linerate_down = "sys.class.xdsl.@line0.DownstreamCurrRate",
 }
-content_helper.getExactContent(xdsl_data)
-
 local other_line_xdsl_data = {
   dsl_status = "sys.class.xdsl.@line1.Status",
   dsl_linerate_up = "sys.class.xdsl.@line1.UpstreamCurrRate",
   dsl_linerate_down = "sys.class.xdsl.@line1.DownstreamCurrRate",
 }
-content_helper.getExactContent(other_line_xdsl_data)
+if show_dsl then
+  content_helper.getExactContent(xdsl_data)
+  content_helper.getExactContent(other_line_xdsl_data)
+end
 
 
 local session = ngx.ctx.session
@@ -97,7 +101,7 @@ end
       '<p class="subinfos">',
       "",
       '</p>')
-	if wan_bridge and wan_bridge:match("tm") and xdsl_data["dsl_enable"] == "1" then
+	if show_dsl and xdsl_data.dsl_enable == "1" then
 		local iconUp = '<i class="icon-upload icon-small gray"></i> '
 		local iconDown = '<i class="icon-download icon-small gray"></i> '
 		

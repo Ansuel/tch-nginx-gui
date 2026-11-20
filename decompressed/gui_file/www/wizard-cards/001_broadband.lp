@@ -18,6 +18,9 @@ local vIPv4MSK = post_helper.validateIPv4Netmask
 local gmatch, format, lower = string.gmatch, string.format, string.lower
 local untaint_mt = require("web.taint").untaint_mt
 local setmetatable = setmetatable
+local bridge = require("bridgehelper")
+local hasXdsl = bridge.hasXdsl()
+local integratedGpon = bridge.hasIntegratedGpon()
 
 local wan_interface_options = {
     {"adsl", T"ADSL"},
@@ -39,11 +42,11 @@ local ifname2wantype = setmetatable({
 }, untaint_mt)
 
 local atmpath
-
-for i,v in ipairs(proxy.getPN("uci.xtm.atmdevice.", true) or {}) do
-	if v.path:match("@atm") then
-		atmpath = v.path
-	end
+for _, v in ipairs(hasXdsl and proxy.getPN("uci.xtm.atmdevice.", true) or {}) do
+    if v.path:match("@atm") then atmpath = v.path end
+end
+if not hasXdsl then
+    table.remove(wan_interface_options, 2)
 end
 
 local wan_atm_uci_path = atmpath
@@ -56,6 +59,13 @@ if not atmpath then
     table.remove(wan_proto_options, 2)
 end
 
+local integratedWanType
+if integratedGpon then
+    local isGpon = bridge.isGponInterface(bridge.vlanContext().connection)
+    integratedWanType = isGpon and "gpon" or "eth"
+    wan_interface_options = {{integratedWanType, isGpon and T"GPON" or T"Ethernet"}}
+end
+
 local wan_interface_path = "uci.network.interface.@wan."
 
 local mapParams = {
@@ -64,8 +74,8 @@ local mapParams = {
     wan_proto = wan_interface_path .. "proto",
     wan_ppp_user_name = wan_interface_path .. "username",
     wan_ppp_password = wan_interface_path .. "password",
-    wan_ppp_vpi_number_if = wan_interface_path .. "vpi",
-    wan_ppp_vci_number_if = wan_interface_path .. "vci",
+    wan_ppp_vpi_number_if = atmpath and wan_interface_path .. "vpi",
+    wan_ppp_vci_number_if = atmpath and wan_interface_path .. "vci",
     wan_ppp_keepalive = wan_interface_path .. "keepalive",
     wan_static_ipaddr = wan_interface_path .. "ipaddr",
     wan_static_submsk = wan_interface_path .. "netmask",
@@ -75,8 +85,8 @@ local mapParams = {
     wan_dhcp_neighreachabletime = wan_interface_path .. "neighreachabletime",
     wan_dhcp_neighgcstaletime = wan_interface_path .. "neighgcstaletime",
     wan_peerdns = wan_interface_path .. "peerdns",
-    id_vlan_vdsl = "uci.network.device.@wanptm0.vid",
-    id_vlan_eth = "uci.network.device.@waneth4.vid",
+    id_vlan_vdsl = hasXdsl and "uci.network.device.@wanptm0.vid" or nil,
+    id_vlan_eth = not integratedGpon and "uci.network.device.@waneth4.vid" or nil,
 }
 
 if atmpath then
@@ -118,6 +128,11 @@ local function validateVlanID(value, object, key)
 end
 
 local function validateWanIfName(value, object, key)
+    if integratedGpon then
+        -- Preserve the port and any VLAN or netifd alias selected by the firmware.
+        object[key] = nil
+        return true
+    end
     if (object["wan_type"] == "adsl") then
         if ("pppoe" == object["wan_proto"]) or ("pppoa" == object["wan_proto"]) then
             object["wan_ifname"] = "atmwan"
@@ -149,6 +164,7 @@ local function validateWanIfName(value, object, key)
 end
 
 local function validateWanIfProto(value, object, key)
+    if value == "pppoa" and not atmpath then return nil, T"Invalid value." end
     if (object["wan_type"] == "adsl") then
         if (object["wan_proto"] == "pppoe") then
             object["wan_ppp_ulp"] = "eth"
@@ -268,6 +284,8 @@ local function validateWansensing(value, object, key)
 end
 
 local function getWanType(content, content_wans)
+    if integratedGpon then return integratedWanType end
+    if not hasXdsl then return "eth" end
     local wansensing_l2type = lower(content_wans["wansensing_l2type"] or "")
     local wansensing2wantype = {
         atm = "adsl",
@@ -283,6 +301,7 @@ local function getWanType(content, content_wans)
 end
 
 local mapValid = {
+    wan_type = gVIES(wan_interface_options),
     wan_ifname = validateWanIfName,
     wan_proto = validateWanIfProto,
     wan_ppp_user_name = validateWanPPPUsername,
@@ -302,7 +321,7 @@ local mapValid_wans = {
     wansensing_enable = validateWansensing,
 }
 
-local content_wans, helpmsg_wans = wizard_helper.handleQuery(mapParams_wans, mapValid_wans)
+local content_wans = not integratedGpon and wizard_helper.handleQuery(mapParams_wans, mapValid_wans) or {}
 
 local content, helpmsg = wizard_helper.handleQuery(mapParams, mapValid)
 local vlan_is_on = content["vlan_enabled"]
@@ -326,6 +345,7 @@ local wan_interface_options_confirm = setmetatable({
     ["adsl"] = "ADSL",
     ["eth"] = "Ethernet",
     ["vdsl"] = "VDSL",
+    ["gpon"] = "GPON",
 }, untaint_mt)
 
 local wan_proto_options_confirm = setmetatable({
@@ -345,14 +365,15 @@ ngx.print('\
         html[#html+1] =  "<legend></legend>"
 		html[#html+1] = ui_helper.createMessages(message_helper.popMessages())
 
-		html[#html+1] = ui_helper.createSwitch(T"Wansensing Enabled","wansensing_enable", content_wans["wansensing_enable"])
+        if integratedGpon then
+            html[#html+1] = ui_helper.createLabel(T"WAN Interfaces", wan_interface_options[1][2])
+            html[#html+1] = '<input type="hidden" name="wan_type" value="' .. integratedWanType .. '">'
+        else
+            html[#html+1] = ui_helper.createSwitch(T"Wansensing Enabled","wansensing_enable", content_wans["wansensing_enable"])
 		
-        local wan_type_class = {
-            select = {
-                class = "monitor-changes",
-            },
-        }
-        html[#html+1] = ui_helper.createInputSelect(T"WAN Interfaces", "wan_type", wan_interface_options, wan_type, wan_type_class)
+            local wan_type_class = { select = { class = "monitor-changes" } }
+            html[#html+1] = ui_helper.createInputSelect(T"WAN Interfaces", "wan_type", wan_interface_options, wan_type, wan_type_class)
+        end
 
         local wan_proto_class = {
             select = {
@@ -370,11 +391,15 @@ ngx.print('\
                 class = "monitor-changes",
             },
         }
-        html[#html+1] = ui_helper.createSwitch(T"VLAN Enabled","vlan_enabled", vlan_is_on, wan_vlan_class)
-        wan_vlan_class.group.class = "monitor-vlan_enabled monitor-1 monitor-wan_proto monitor-pppoe monitor-wan_type monitor-vdsl"
-        html[#html+1] = ui_helper.createInputText(T"VLAN ID", "id_vlan_vdsl", content["id_vlan_vdsl"], wan_vlan_class, helpmsg["id_vlan_vdsl"])
-        wan_vlan_class.group.class = "monitor-vlan_enabled monitor-1 monitor-wan_proto monitor-pppoe monitor-wan_type monitor-eth"
-        html[#html+1] = ui_helper.createInputText(T"VLAN ID", "id_vlan_eth", content["id_vlan_eth"], wan_vlan_class, helpmsg["id_vlan_eth"])
+        if not integratedGpon then
+            html[#html+1] = ui_helper.createSwitch(T"VLAN Enabled","vlan_enabled", vlan_is_on, wan_vlan_class)
+            if hasXdsl then
+                wan_vlan_class.group.class = "monitor-vlan_enabled monitor-1 monitor-wan_proto monitor-pppoe monitor-wan_type monitor-vdsl"
+                html[#html+1] = ui_helper.createInputText(T"VLAN ID", "id_vlan_vdsl", content["id_vlan_vdsl"], wan_vlan_class, helpmsg["id_vlan_vdsl"])
+            end
+            wan_vlan_class.group.class = "monitor-vlan_enabled monitor-1 monitor-wan_proto monitor-pppoe monitor-wan_type monitor-eth"
+            html[#html+1] = ui_helper.createInputText(T"VLAN ID", "id_vlan_eth", content["id_vlan_eth"], wan_vlan_class, helpmsg["id_vlan_eth"])
+        end
         local wan_pppoa_class = {
             group = {
                 class = "monitor-wan_type monitor-adsl monitor-wan_proto monitor-pppoe monitor-pppoa",
