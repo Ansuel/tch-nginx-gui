@@ -14,6 +14,98 @@ class EasyMeshTopology(unittest.TestCase):
                                 text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_history_uses_native_fastweb_records_and_escapes_event_text(self):
+        self.run_lua(r'''
+local root = arg[1]
+local records, recorded, output
+local nativePath = 'uci.fastweb.topology_events.@topology_events.back_up_events.'
+package.preload['web.content_helper'] = function() return {
+  addListContent = function(content, paths)
+    assert(paths.events == nativePath)
+    content.events = records
+  end,
+} end
+local data = {
+  first = {time='2025-01-09 09:00:00', topology_msg='Extender connected'},
+  second = {time='2025-01-09 09:00:12', topology_msg='<b>Backhaul changed</b>'},
+  invalid = {time='2025-01-09 09:00:32'},
+}
+package.preload.dkjson = function() return {decode=function(value) return data[value] end} end
+package.preload.topology_history = function() return {read=function() return recorded end} end
+package.preload['web.web'] = function() return {html_escape=function(value)
+  return (value:gsub('<', '&lt;'):gsub('>', '&gt;'))
+end} end
+T = function(text) return text end
+ngx = {print=function(...) for _, value in ipairs({...}) do output[#output+1] = value end end}
+local page = assert(loadfile(root .. '/www/snippets/easymesh-history.lp'))
+local function render(values)
+  records, output = values, {}
+  page()
+  return table.concat(output)
+end
+assert(render(nil) == '')
+assert(render({}):find('No topology changes recorded.', 1, true))
+local html = render({'first', 'invalid', 'malformed', 'second'})
+local first = assert(html:find('Extender connected', 1, true))
+local second = assert(html:find('&lt;b&gt;Backhaul changed&lt;/b&gt;', 1, true))
+assert(first < second and not html:find('<b>Backhaul changed</b>', 1, true))
+assert(not html:find('09:00:32', 1, true))
+recorded = {{
+  kind='changed', time=1736413212, address='00:11:22:33:44:55',
+  before={link='Ethernet', parent=''}, after={link='5GHz', parent='AA:BB:CC:DD:EE:FF'},
+}}
+html = render(nil)
+assert(html:find('00:11:22:33:44:55 · Backhaul changed · Ethernet → 5GHz (AA:BB:CC:DD:EE:FF)', 1, true))
+assert(render({}):find('Ethernet → 5GHz', 1, true))
+assert(not render({'first'}):find('Ethernet → 5GHz', 1, true))
+''')
+
+    def test_history_polls_only_topology_fields_and_skips_partial_snapshots(self):
+        self.run_lua(r'''
+local history = dofile(arg[1] .. '/usr/lib/lua/topology_history.lua')
+local events, sample, callback
+history.read = function() return {} end
+history.write = function(value) events = value; return true end
+package.preload.topology_history = function() return history end
+local path = 'rpc.multiap.device.@1.'
+local function topologyRows(link)
+  return {
+    {path=path, param='al_mac', value='00:11:22:33:44:55'},
+    {path=path, param='backhaul_interface_type', value=link},
+  }
+end
+package.preload.datamodel = function() return {
+  getPN = function(query, nextLevel)
+    assert(query == 'rpc.multiap.device.' and nextLevel and sample ~= 1)
+    if sample == 3 then return {{path=path}, {path='rpc.multiap.device.@2.'}} end
+    return {{path=path}}
+  end,
+  get = function(query, abort)
+    if query == 'uci.multiap.controller.enabled' then return {{value=sample == 1 and '0' or '1'}} end
+    assert(abort == false and #query == (sample == 3 and 8 or 4))
+    assert(query[1] == path .. 'al_mac' and query[3] == path .. 'backhaul_interface_type')
+    return topologyRows(sample == 2 and 'Ethernet' or '5GHz')
+  end,
+} end
+package.preload.uloop = function() return {
+  init = function() end,
+  timer = function(run)
+    callback = run
+    return {set=function(_, delay) assert(delay == ({[0]=1000, 60000, 15000, 15000, 15000})[sample]) end}
+  end,
+  run = function()
+    for index=1,4 do
+      sample=index
+      callback()
+      if index < 4 then assert(events == nil) end
+    end
+  end,
+} end
+sample = 0
+dofile(arg[1] .. '/usr/bin/topology_chg.lua')
+assert(#events == 1 and events[1].before.link == 'Ethernet' and events[1].after.link == '5GHz')
+''')
+
     def test_assets_and_parent_cycles(self):
         self.run_lua(r'''
 local root = arg[1]

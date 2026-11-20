@@ -1,0 +1,22 @@
+#!/bin/sh /etc/rc.common
+
+# The GUI archive may be extracted over a firmware that already has this service.
+if [ -x /rom/etc/init.d/topologychg ]; then
+	. /rom/etc/init.d/topologychg
+	return
+fi
+
+START=99
+USE_PROCD=1
+
+start_service() {
+	[ ! -e /rom/usr/bin/topology_chg.lua ] || return 0
+	[ -x /usr/bin/lua ] || return 0
+	[ -x /usr/bin/multiap_controller ] || return 0
+	/usr/bin/lua -e 'require("uloop"); require("dkjson"); require("datamodel")' >/dev/null 2>&1 || return 0
+
+	procd_open_instance
+	procd_set_param command /usr/bin/lua /usr/bin/topology_chg.lua
+	procd_set_param respawn
+	procd_close_instance
+}

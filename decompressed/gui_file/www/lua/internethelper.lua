@@ -112,25 +112,58 @@ function M.getOptionalContent(content)
 end
 
 function M.getIpv6Content()
-
 	local content = {}
-	local function selectInterface(intf)
-		for key, parameter in pairs({ip6addr = "ip6addr", ip6prefix = "ip6prefix", dnsv6 = "dnsservers"}) do
-			content[key] = nil
-			local path = "rpc.network.interface.@" .. intf .. "." .. parameter
-			local result = proxy.get(path)
-			-- Do not put unsupported paths in the modal's AJAX request map.
-			if result and result[1] and (key ~= "dnsv6" or intf ~= "wan") then content[key] = path end
+	local base = "rpc.network.interface.@"
+	local supported = {wan = true, wan6 = true, wan_6 = true, ["6rd"] = true}
+	local available = {}
+	local selected = "wan"
+	local wanAddr
+	local interfaces = proxy.getPN("rpc.network.interface.", true)
+	for _, entry in ipairs(interfaces or {}) do
+		local intf = string.match(entry.path or "", "rpc%.network%.interface%.@([^%.]+)%.")
+		if supported[intf] and not available[intf] then
+			available[intf] = true
+			if not content.ip6addr then
+				local path = base .. intf .. ".ip6addr"
+				local result = proxy.get(path)
+				if intf == "wan" then wanAddr = result and result[1] end
+				if result and result[1] and result[1].value ~= "" then
+					selected = intf
+					content.ip6addr = path
+				end
+			end
 		end
 	end
-	selectInterface("wan")
 
-	local supported = {wan = true, wan6 = true, wan_6 = true, ["6rd"] = true}
-	for _, entry in ipairs(proxy.getPN("rpc.network.interface.", true) or {}) do
-		local intf = string.match(entry.path or "", "rpc%.network%.interface%.@([^%.]+)%.")
-		if supported[intf] and M.getValue("rpc.network.interface.@" .. intf .. ".ip6addr") ~= "" then
-			selectInterface(intf)
-			break
+	-- Keep supported paths in the modal's AJAX request map even when empty.
+	if not content.ip6addr then
+		local path = base .. "wan.ip6addr"
+		if not available.wan then
+			local result = proxy.get(path)
+			wanAddr = result and result[1]
+		end
+		if wanAddr then content.ip6addr = path end
+	end
+	available.wan = true
+	if selected ~= "wan" then
+		local path = base .. selected .. ".dnsservers"
+		local result = proxy.get(path)
+		if result and result[1] then content.dnsv6 = path end
+	end
+	local prefixPath = base .. selected .. ".ip6prefix"
+	local prefix = proxy.get(prefixPath)
+	if prefix and prefix[1] then content.ip6prefix = prefixPath end
+
+	-- DHCPv6-PD can succeed without assigning a global address to the WAN.
+	if not prefix or not prefix[1] or prefix[1].value == "" then
+		for _, intf in ipairs({"wan6", "wan_6", "6rd", "wan"}) do
+			if intf ~= selected and (available[intf] or not interfaces) then
+				local path = base .. intf .. ".ip6prefix"
+				if M.getValue(path) ~= "" then
+					content.ip6prefix = path
+					break
+				end
+			end
 		end
 	end
 
@@ -186,14 +219,18 @@ function M.getWanStats()
 		uptime = path .. "uptime",
 	}
 	if ppp then content.concentrator = path .. "ppp.access_concentrator_name" end
-	if not phone then content.ipv6 = M.getIpv6Content().ip6addr end
+	if not phone then
+		local ipv6 = M.getIpv6Content()
+		content.ipv6 = ipv6.ip6addr
+		content.delegated_prefix = ipv6.ip6prefix
+	end
 	M.getOptionalContent(content)
 
 	if link.up == "1" or link.up == "0" then
 		stats.connected = link.up == "1"
 		stats.status = stats.connected and T"Connected" or T"Disconnected"
 	end
-	for _, name in ipairs({"ipv4", "ipv6", "concentrator", "gateway", "dns"}) do
+	for _, name in ipairs({"ipv4", "ipv6", "delegated_prefix", "concentrator", "gateway", "dns"}) do
 		local value = content[name]
 		if value and value:match("%S") and value ~= "N/A" and value ~= "0.0.0.0" and value ~= "::" then
 			stats[name] = value

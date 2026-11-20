@@ -5,45 +5,47 @@ if flag ~= "gpon" and flag ~= "gpon_sfp" then
 end
 
 local register, tostring = register, tostring;
-local log = require("transformer.logger")
-
 local conn = mapper("ubus").connect()
+local fallbackNames = {
+  BIPerror = "BIP_error",
+  FECcorrectedcodewords = "FEC_corrected_codewords",
+  FECuncorrectablecodewords = "FEC_uncorrectable_codewords",
+  TotalreceivedDSFECcodewords = "Total_received_DS_FEC_codewords",
+  FECcorrectionseconds = "FEC_correction_seconds",
+}
 
-local function nilToEmptyString(st)
-    if st == nil then
-        return ""
-    else
-        return tostring(st)
+local function readFec(param)
+  local result = conn and conn:call("gpon.stat.gtc.fec", "get", {})
+  local values = {}
+  if result and type(result.fec) == "table" then
+    for key, value in pairs(result.fec) do
+      values[key:gsub(" ", "_")] = tostring(value)
     end
-end
-
-local function get(idx, paramName)
-    local result = conn:call("gpon.stat.gtc.fec", "get", { })
-    if result == nil then
-        log:error(string.format("Cannot retrieve info %s", idx))
-        return ""
+  end
+  -- Integrated GPON firmware may provide counters only through the driver.
+  -- Keep the ubus backend for legacy boards and SFP modules.
+  local needsDriver = false
+  for _, name in pairs(fallbackNames) do
+    if (not param or name == param) and (not values[name] or values[name] == "") then
+      needsDriver = true
+      break
     end
-    local data = result[idx]
-    local name = ""
-    name = string.gsub (paramName, "_", " ")
-    return nilToEmptyString(data[name])
-end
-
-local function getAll (idx)
-    local result = conn:call("gpon.stat.gtc.fec", "get", { })
-    if result == nil then
-        log:error(string.format ("Cannot retrieve  gpon.stat.gtc.fec info %s", idx))
-        return ""
+  end
+  if flag == "gpon" and needsDriver then
+    local binary = io.open("/bin/gponctl", "r")
+    if not binary then return values end
+    binary:close()
+    local pipe = require("modgui").popen("/bin/gponctl getGtcCounters")
+    if pipe then
+      for line in pipe:lines() do
+        local key, value = line:match("^%s*([^:]+):%s*(%d+)%s*$")
+        local name = key and fallbackNames[(key:gsub("%s+", ""))]
+        if name and (not values[name] or values[name] == "") then values[name] = value end
+      end
+      pipe:close()
     end
-    local data = result[idx]
-    local res_data = {}
-    local key, val = "", ""
-    for key, val in pairs (data) do
-        local name = ""
-        name = string.gsub (key, " ", "_")
-        res_data[name] = nilToEmptyString(val)
-    end
-    return res_data
+  end
+  return values
 end
 
 local gpon_stat_gtc = {
@@ -111,13 +113,11 @@ local gpon_stat_gtc_fec = {
 }
 
 local function getFec(mapping, paramName, key)
-      local data = get("fec", paramName)
-      return data
+  return readFec(paramName)[paramName] or ""
 end
 
 local function getAllFec (mapping)
-    local data = getAll ("fec")
-    return data
+  return readFec()
 end
 
 gpon_stat_gtc_fec.get = getFec

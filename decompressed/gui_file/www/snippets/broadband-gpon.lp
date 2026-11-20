@@ -15,17 +15,44 @@ local ajax_helper = require("web.ajax_helper")
 local bridge = require("bridgehelper")
 
 if bridge.hasIntegratedGpon() then
+    local stats = "sys.class.net.@gpondef.statistics."
     local content = {
         status = "rpc.gpon.ploam.state",
         rx = "rpc.gpon.trsv.info.status.DS_Rx_RSSI",
         tx = "rpc.gpon.trsv.info.status.US_TX_Power",
+        rx_bytes = stats .. "rx_bytes",
+        tx_bytes = stats .. "tx_bytes",
+        rx_packets = stats .. "rx_packets",
+        tx_packets = stats .. "tx_packets",
+        rx_errors = stats .. "rx_errors",
+        tx_errors = stats .. "tx_errors",
     }
     require("internethelper").getOptionalContent(content)
+    for _, entry in ipairs(require("datamodel").get("rpc.gpon.stat.gtc.fec.") or {}) do
+        content[entry.param] = entry.value
+    end
     ngx.print("<fieldset><legend>", T"Physical link status", "</legend>")
     ngx.print(ui_helper.createLabel(T"GPON Status", content.status ~= "" and content.status or T"Unavailable"))
     local rx, tx = tonumber(content.rx), tonumber(content.tx)
     if rx then ngx.print(ui_helper.createLabel(T"OpticalSignalLevel", format("%.2f dBm", rx))) end
     if tx then ngx.print(ui_helper.createLabel(T"TransmitOpticalLevel", format("%.2f dBm", tx))) end
+    ngx.print("</fieldset>")
+    ngx.print("<fieldset><legend>", T"Network Statistics", "</legend>")
+    local available = false
+    for _, field in ipairs({
+        {"rx_bytes", T"Rx Bytes"}, {"tx_bytes", T"Tx Bytes"},
+        {"rx_packets", T"Rx Packets"}, {"tx_packets", T"Tx Packets"},
+        {"rx_errors", T"Rx Errors"}, {"tx_errors", T"Tx Errors"},
+        {"BIP_error", T"BIP errors"}, {"FEC_corrected_codewords", T"Corrected FEC codewords"},
+        {"FEC_uncorrectable_codewords", T"Uncorrectable FEC codewords"},
+    }) do
+        local value = content[field[1]]
+        if value and value:match("^%d+$") then
+            ngx.print(ui_helper.createLabel(field[2], value))
+            available = true
+        end
+    end
+    if not available then ngx.print('<p class="muted">', T"Unavailable", '</p>') end
     ngx.print("</fieldset>")
     return
 end

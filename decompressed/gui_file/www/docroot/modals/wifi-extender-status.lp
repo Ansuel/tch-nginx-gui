@@ -157,4 +157,5 @@ end
 render(root)
 ngx.print('</ul></div>')
 if #agents == 0 then ngx.print('<p class="muted">',text(controller and T"No extenders connected" or T"Extender topology is available on the controller."),'</p>') end
+lp.include("easymesh-history.lp")
 ngx.print('</div></form>',ui.createFooter())

@@ -1969,6 +1969,11 @@ if #wls > 1 then
 end
   ngx.print('\
 </form>\
+');
+  local lp = require("web.lp")
+  lp.setpath("/www/snippets/")
+  lp.include("easymesh-history.lp")
+  ngx.print('\
 </div>\
 \
 ');  ngx.print(ui_helper.createFooter())   ngx.print('\

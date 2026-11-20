@@ -102,6 +102,27 @@ helper.getOptionalContent({})
 assert(#writes == 0)
 ''')
 
+    def test_delegated_prefix_without_a_wan_ipv6_address(self):
+        self.run_lua('''
+package.preload.internetmode_helper = function() return {{name = 'dhcp', description = 'DHCP'}} end
+names = {{path = 'rpc.network.interface.@wan6.'}}
+values['rpc.network.interface.@wan6.ip6addr'] = ''
+values['rpc.network.interface.@wan6.ip6prefix'] = '2001:db8:1::/56'
+local stats = helper.getWanStats()
+assert(stats.ipv6 == nil)
+assert(stats.delegated_prefix == '2001:db8:1::/56')
+values['rpc.network.interface.@wan6.ip6prefix'] = ''
+assert(helper.getWanStats().delegated_prefix == nil)
+names = {{path = 'rpc.network.interface.@wan.'}}
+values['rpc.network.interface.@wan.ip6addr'] = ''
+values['rpc.network.interface.@wan.ip6prefix'] = ''
+reads = 0
+local ipv6 = helper.getIpv6Content()
+assert(ipv6.ip6addr == 'rpc.network.interface.@wan.ip6addr')
+assert(ipv6.ip6prefix == 'rpc.network.interface.@wan.ip6prefix')
+assert(reads == 2)
+''')
+
     def test_ipv6_detection_survives_missing_interfaces_and_empty_candidates(self):
         self.run_lua('''
 local result = helper.getIpv6Content()

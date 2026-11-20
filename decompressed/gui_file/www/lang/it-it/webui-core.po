@@ -4684,3 +4684,27 @@ msgstr "* L'utilizzo dati è solo indicativo. Per i consumi effettivi fai riferi
 
 msgid "No WAN interface is available for data usage monitoring."
 msgstr "Nessuna interfaccia WAN disponibile per il monitoraggio dell'utilizzo dati."
+
+msgid "Delegated IPv6 prefix"
+msgstr "Prefisso IPv6 delegato"
+
+msgid "BIP errors"
+msgstr "Errori BIP"
+
+msgid "Corrected FEC codewords"
+msgstr "Parole di codice FEC corrette"
+
+msgid "Uncorrectable FEC codewords"
+msgstr "Parole di codice FEC non correggibili"
+
+msgid "EasyMesh topology history"
+msgstr "Cronologia della topologia EasyMesh"
+
+msgid "No topology changes recorded."
+msgstr "Nessun cambio di topologia registrato."
+
+msgid "Event"
+msgstr "Evento"
+
+msgid "Backhaul changed"
+msgstr "Backhaul cambiato"
