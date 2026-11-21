@@ -1,4 +1,5 @@
 """Wireless modal regressions, based on AGTHF 1.3.6 radio values."""
+import json
 from pathlib import Path
 import shutil
 import subprocess
@@ -139,6 +140,63 @@ assert(has(powers, '-6') and has(powers, '+1') and has(powers, '+2'))
 local validate = gVIES(powers)
 assert(validate('0') and validate('+2') and validate('-3'))
 ''')
+
+
+@unittest.skipUnless(LUA, 'Lua required')
+class WirelessClientMonitor(unittest.TestCase):
+    def test_ajax_clears_capabilities_when_monitored_client_disconnects(self):
+        modal = GUI / 'www/docroot/modals/wireless-client-modal.lp'
+        source = modal.read_text()
+        ajax = source[source.index('local TIMERJS'):source.index('local args =')]
+        script = r'''
+local mac = '00:11:22:33:44:55'
+local ap_path = 'rpc.wireless.ap.'
+local station_path = ap_path .. '@ap0.station.'
+local target = {paramindex = '@' .. mac, flags = 'active', rssi = '-45',
+                capabilities = '802.11n', assoc_time = '60'}
+local other = {paramindex = '@00:11:22:33:44:66', flags = 'active', rssi = '-50',
+               capabilities = '802.11ac'}
+local data = {[ap_path] = {{paramindex = '@ap0', ssid = 'wl0'}},
+              [station_path] = {target, other}}
+local ssid_reads = 0
+local proxy = {get = function(path) return data[path] end}
+local content_helper = {
+  convertResultToObject = function(_, result) return result or {} end,
+  getExactContent = function(content)
+    ssid_reads = ssid_reads + 1
+    assert(content.ssid == 'rpc.wireless.ssid.@wl0.ssid')
+    content.ssid, content.radio = 'Test WiFi', 'radio_2G'
+  end,
+}
+local match, format, floor = string.match, string.format, math.floor
+local T = function(s) return s end
+local ngx = {print = function(parts) print(table.concat(parts)) end}
+''' + ajax + r'''
+local requested = {untaint = function() return mac end}
+AJAX(requested)
+target.flags, target.rssi = '', '0'
+AJAX(requested)
+data[station_path] = {other}
+AJAX(requested)
+data[station_path] = {}
+AJAX(requested)
+target.flags, target.rssi, target.capabilities = 'active', '-42', '802.11ax'
+data[station_path] = {target, other}
+AJAX(requested)
+assert(ssid_reads == 2)
+'''
+        result = subprocess.run([LUA, '-'], input=script, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        connected, stale, absent, empty, reconnected = map(json.loads, result.stdout.splitlines())
+        self.assertEqual(connected['capabilities'], '802.11n')
+        self.assertEqual(connected['ssid'], 'Test WiFi')
+        self.assertEqual(connected['freq'], '2.4GHz')
+        for response in (stale, absent, empty):
+            self.assertEqual(response['capabilities'], '')
+            self.assertEqual(response['ssid'], '')
+            self.assertEqual(response['freq'], '')
+            self.assertEqual(response['rssi'], '-100')
+        self.assertEqual(reconnected['capabilities'], '802.11ax')
 
 
 class ModalJavascript(unittest.TestCase):
