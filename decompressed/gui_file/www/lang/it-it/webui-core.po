@@ -4708,3 +4708,12 @@ msgstr "Evento"
 
 msgid "Backhaul changed"
 msgstr "Backhaul cambiato"
+
+msgid "Chart style"
+msgstr "Stile del grafico"
+
+msgid "Points"
+msgstr "Punti"
+
+msgid "Line"
+msgstr "Linea"

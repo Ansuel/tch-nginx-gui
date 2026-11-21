@@ -4534,3 +4534,12 @@ msgstr "Abgeschlossen"
 
 msgid "Login Required"
 msgstr "Anmeldung erforderlich"
+
+msgid "Chart style"
+msgstr "Diagrammstil"
+
+msgid "Points"
+msgstr "Punkte"
+
+msgid "Line"
+msgstr "Linie"
