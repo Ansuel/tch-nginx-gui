@@ -176,6 +176,7 @@ local SYSTEM_MODGUI_UTILITY_ = {
     minEntries = 1,
     maxEntries = 1,
     parameters = {
+      sendcmd = {access = "readWrite", type = "string"},
       rip_key_B = {access = "readOnly", type = "string"},
       rip_index = {access = "readOnly", type = "string"},
       rip_status = {access = "readOnly", type = "string"},
@@ -236,9 +237,7 @@ local SYSTEM_MODGUI_UTILITY_ = {
       end
       -- The module download must not block the RPC dispatcher, so the real
       -- work runs as a background job publishing progress in the status file.
-      local state = rip_index.status()
-      local requested = state:match("^requested (%d+)")
-      if requested and os.time() - tonumber(requested) < 300 then
+      if rip_index.status():match("^requested %d+$") then
         return nil, "Extraction is already running"
       end
       local marker = io.open(rip_index.status_file, "wb")

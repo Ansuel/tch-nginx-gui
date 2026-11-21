@@ -6,6 +6,7 @@ gettext.textdomain('webui-core')
 local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
+local internet = require("internethelper")
 local ipairs = ipairs
 local match, format, lower = string.match, string.format, string.lower
 
@@ -35,7 +36,8 @@ local clear_network_stats = {
 
 local isEth4Included = false
 local sfp_enabled = getValue("uci.env.rip.sfp") == "1"
-local has_gpon = hasPath("rpc.optical.Interface.1.Status") or hasPath("rpc.gpon.ploam.state")
+local integrated_gpon = require("bridgehelper").hasIntegratedGpon()
+local has_gpon = integrated_gpon or hasPath("rpc.optical.Interface.1.Status") or hasPath("rpc.gpon.ploam.state")
 if not sfp_enabled then
   local eth4 = proxy.getPN("sys.class.net.@eth4.", true)
   if eth4 and next(eth4) then
@@ -56,16 +58,23 @@ end
 local eth = {}
 for k,v in ipairs(ports) do
   if v == "gpon" then
-    local base_path = "rpc.optical.Interface.1."
-    eth["op" .. v] = base_path .. "Status"
-    eth["sp" .. v] = base_path .. "OpticalSignalLevel"
+    if integrated_gpon then
+      eth.opgpon = "rpc.gpon.ploam.state"
+    else
+      eth.opgpon = "rpc.optical.Interface.1.Status"
+      eth.spgpon = "rpc.optical.Interface.1.OpticalSignalLevel"
+    end
   else
     local base_path = "sys.class.net.@" .. v
     eth["op" .. v] = base_path .. ".operstate"
     eth["sp" .. v] = base_path .. ".speed"
   end
 end
-content_helper.getExactContent(eth)
+internet.getOptionalContent(eth)
+local gpon_status = eth.opgpon
+if integrated_gpon and gpon_status then
+  if gpon_status == "OPERATION" or gpon_status == "O5" then eth.opgpon = "up" end
+end
 
 local ports_speed = {}
 local speed = proxy.get("sys.eth.port.") or {}
@@ -120,8 +129,10 @@ local portAttr = {
               <p class="socket-legend" id = "');  ngx.print(v); ngx.print('">');  ngx.print( T"Connected-SFP" ); ngx.print('<p>\
               ');  if(ports_speed[v]) then  ngx.print('\
                 <p class="socket-legend">(');  ngx.print( format(T"%s Mbps", ports_speed[v]) ); ngx.print(')</legend>\
-              ');  end   ngx.print('\
-            ');  else   ngx.print('\
+            ');  end   ngx.print('\
+            ');  elseif v == "gpon" and integrated_gpon and gpon_status == "" then
+              ngx.print('<p class="socket-legend grayLight">', T"Unavailable", '</p>')
+            else   ngx.print('\
               <p class="socket-legend grayLight" id = "');  ngx.print(v); ngx.print('">');  ngx.print( T"Not connected" ); ngx.print('<p>\
             ');  end   ngx.print('\
           </div>\
@@ -141,74 +152,50 @@ local portAttr = {
 		first_column_txt[#first_column_txt+1] = (v.ssid or v.paramindex) .. band_label
       end
 
-local post_content
-if ngx.var.request_method == "POST" then
-  post_content = ngx.req.get_post_args()
-  local base_path
-  if post_content["stats_reset"] == "RESET" then
-    for _,v in ipairs(ports) do
-    if string.match(v, "wl") then
-      base_path = "rpc.wireless.ssid.@"..v..".stats.reset"
-    elseif match(v, "gpon") then
-      base_path = "rpc.optical.Interface.1.Stats.reset"
-    else
-      base_path = "sys.class.net.@"..v..".statistics.reset"
-    end
-    proxy.set(base_path, "true")
+local function statsPath(port)
+  if match(port, "wl") then return "rpc.wireless.ssid.@" .. port .. ".stats." end
+  if port == "gpon" then
+    return integrated_gpon and "sys.class.net.@gpondef.statistics." or "rpc.optical.Interface.1.Stats."
   end
-end
-local action = ngx.req.get_post_args().action
-  for i,v in ipairs(ports) do
-    if action == v and string.match(v,"eth") then
-      local success = proxy.set("sys.class.net.@"..v..".statistics.reset", "1")
-    elseif action == v and string.match(v,"wl") then
-      local success = proxy.set("rpc.wireless.ssid.@"..v..".stats.reset", "1")
-    elseif action == v and string.match(v,"gpon") then
-      local success = proxy.set("rpc.optical.Interface.1.Stats.reset", "1")
-    elseif action == "resetall" then
-      for x,y in ipairs(ports) do
-        if string.match(y, "wl") then
-          proxy.set("rpc.wireless.ssid.@"..y..".stats.reset", "1")
-        elseif match(y, "eth") then
-          proxy.set("sys.class.net.@"..y..".statistics.reset", "1")
-        elseif match(y, "gpon") then
-          proxy.set("rpc.optical.Interface.1.Stats.reset", "1")
-        end
-      end
-    end
-    if success then
-      proxy.apply();
-    end
-  end
+  return "sys.class.net.@" .. port .. ".statistics."
 end
 
-local base_path
-local param = {"rx_bytes", "rx_bytes", "tx_bytes", "rx_packets", "tx_packets", "rx_errors", "tx_errors"}
-local gpon_param = {"BytesReceived", "BytesReceived", "BytesSent", "PacketsReceived", "PacketsSent", "ErrorsReceived", "ErrorsSent"}
+if ngx.var.request_method == "POST" then
+  local posted = ngx.req.get_post_args()
+  local resetAll = posted.stats_reset == "RESET" or posted.action == "resetall"
+  local changed
+  for _, port in ipairs(ports) do
+    if (resetAll or posted.action == port) and not (port == "gpon" and integrated_gpon) then
+      local success = proxy.set(statsPath(port) .. "reset", "1")
+      changed = changed or success
+    end
+  end
+  if changed then proxy.apply() end
+end
+
+local param = {"rx_bytes", "tx_bytes", "rx_packets", "tx_packets", "rx_errors", "tx_errors"}
+local gpon_param = {"BytesReceived", "BytesSent", "PacketsReceived", "PacketsSent", "ErrorsReceived", "ErrorsSent"}
 local datarows ={}
 for k,v in ipairs(ports) do
   if k == 10 then
     break
   end
   datarows[k]={}
-  if string.match(v, "wl") then
-    base_path = "rpc.wireless.ssid.@" .. v ..".stats."
-  elseif match(v, "gpon") then
-    base_path = "rpc.optical.Interface.1.Stats."
-  else
-    base_path = "sys.class.net.@" .. v .. ".statistics."
+  local base_path = statsPath(v)
+  local counters = v == "gpon" and not integrated_gpon and gpon_param or param
+  for column, counter in ipairs(counters) do
+    datarows[k][column + 1] = base_path .. counter
   end
-  if match(v, "gpon") then
-    for kk,vv in ipairs(gpon_param) do
-      datarows[k][kk] = base_path .. vv
+  if v == "gpon" and integrated_gpon then
+    internet.getOptionalContent(datarows[k])
+    for column = 2, 7 do
+      if datarows[k][column] == "" then datarows[k][column] = "—" end
     end
+    datarows[k][8] = ""
   else
-    for kk,vv in ipairs(param) do
-      datarows[k][kk] = base_path .. vv
-    end
+    content_helper.getExactContent(datarows[k])
+    datarows[k][8] = ui_helper.createSimpleButton(T"Reset Stats", nil, {controls = {class = string.format("clear_network_stats_%s",v)}, button = {["data-name"] = "action", ["data-value"] = string.format("%s",v),}})
   end
-  content_helper.getExactContent(datarows[k])
-  datarows[k][8] = ui_helper.createSimpleButton(T"Reset Stats", nil, {controls = {class = string.format("clear_network_stats_%s",v)}, button = {["data-name"] = "action", ["data-value"] = string.format("%s",v),}})
 end
 
   --re-write the first column

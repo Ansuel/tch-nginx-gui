@@ -436,6 +436,12 @@ else
     html[#html+1] = ui_helper.createLabel(T"IP Version 6 Address", format("%s %s","<i class=\"icon-ban-circle icon-large red\"></i> ",T"No Address Assigned"), attributes)
 end
 
+local delegated_path = internet.getIpv6Content().ip6prefix
+local delegated_prefix = delegated_path and internet.getValue(delegated_path) or ""
+if delegated_prefix ~= "" then
+    html[#html+1] = ui_helper.createLabel(T"Delegated IPv6 prefix", delegated_prefix, attributes)
+end
+
 local function getStatus(param)
     local statusIcon
     local explanation

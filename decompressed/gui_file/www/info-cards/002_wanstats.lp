@@ -23,6 +23,7 @@ for _, field in ipairs({
     {"connection", T"Connection Type"},
     {"ipv4", T"IPv4 address"},
     {"ipv6", T"IPv6 address"},
+    {"delegated_prefix", T"Delegated IPv6 prefix"},
     {"concentrator", T"Concentrator Name"},
     {"gateway", T"Gateway"},
     {"dns", T"DNS servers"},

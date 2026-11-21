@@ -12,29 +12,40 @@ uci2onoff() {
     esac
 }
 
-setup_eee() {
-    config_get eee ethernet eee 1
-    pwrctl config --eee `uci2onoff $eee`
+read_power_options() {
+    # The show section repeats option names without their config arguments.
+    pwrctl "$@" 2>&1 | awk '
+        $1 == "pwrctl" && $2 == "show" { exit }
+        $1 ~ /^--/ { print $1, $2 }
+    '
 }
 
-setup_autogreeen() {
-    config_get autogreeen ethernet autogreeen 1
-    pwrctl config --autogreeen `uci2onoff $autogreeen`
-}
-
-setup_ethapd() {
-    config_get ethapd ethernet ethapd 1
-    pwrctl config --ethapd `uci2onoff $ethapd`
-}
-
-setup_wait() {
-    config_get wait cpu wait 1
-    pwrctl config --wait `uci2onoff $wait`
+setup_switch() {
+    local section="$1" setting="$2" option switch_value
+    shift 2
+    for option in "$@"; do
+        if printf '%s\n' "$power_options" | grep -q "^$option "; then
+            config_get switch_value "$section" "$setting" 1
+            pwrctl config "$option" "$(uci2onoff "$switch_value")"
+            return $?
+        fi
+    done
 }
 
 setup_cpuspeed() {
+    local cpuspeed
     config_get cpuspeed cpu cpuspeed
-    pwrctl config --cpuspeed $cpuspeed
+    [ -n "$cpuspeed" ] || return 0
+
+    if printf '%s\n' "$power_options" | grep -qxF -- '--cpuspeed on|off'; then
+        # Zero is the GUI's full-speed sync mode. Preserve it as a speed.
+        case "$cpuspeed" in
+            on|off) pwrctl config --cpuspeed "$cpuspeed" ;;
+            *) pwrctl config --cpuspeed on "$cpuspeed" ;;
+        esac
+    elif printf '%s\n' "$power_options" | grep -q '^--cpuspeed '; then
+        pwrctl config --cpuspeed "$cpuspeed"
+    fi
 }
 
 move_irq_interrupts_cpu1() {
@@ -47,17 +58,32 @@ move_irq_interrupts_cpu1() {
 }
 
 setup() {
-    config_load power
-    setup_autogreeen
-    setup_eee
-    setup_ethapd
-    setup_wait
-    setup_cpuspeed
-	move_irq_interrupts_cpu1
+    local power_options
+
+    if command -v pwrctl >/dev/null 2>&1; then
+        power_options="$(read_power_options help)"
+        [ -n "$power_options" ] || power_options="$(read_power_options --help)"
+        # Preserve the original commands on firmware with no usable help.
+        [ -n "$power_options" ] || power_options='--autogreeen on|off
+--eee on|off
+--ethapd on|off
+--wait on|off
+--cpuspeed [speed]'
+        config_load power
+        setup_switch ethernet autogreeen --autogreeen
+        setup_switch ethernet eee --eee
+        setup_switch ethernet ethapd --ethapd --apd
+        setup_switch cpu wait --wait --cpuwait
+        setup_cpuspeed
+    fi
+    move_irq_interrupts_cpu1
 }
 
 start() {
     setup
 }
 
+reload() {
+    setup
+}
 

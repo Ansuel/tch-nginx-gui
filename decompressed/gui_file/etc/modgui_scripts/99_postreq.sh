@@ -70,6 +70,16 @@ logecho "Restarting transformer..."
 #Call a random value to check start of transformer
 lua -e "require('datamodel').get('uci.env.var.oui')" > /dev/null
 
+# The GUI archive already contains the compatibility files at their final paths.
+if [ ! -e /rom/etc/init.d/topologychg ] && [ ! -e /rom/usr/bin/topology_chg.lua ] &&
+   [ -x /usr/bin/multiap_controller ] && [ -x /etc/init.d/topologychg ]; then
+	if /etc/init.d/topologychg enabled; then
+		/etc/init.d/topologychg restart
+	else
+		/etc/init.d/topologychg enable && /etc/init.d/topologychg start
+	fi
+fi
+
 #This file is present only in newer build that don't suffer this strange bug
 #if [ ! -f /usr/lib/lua/tch/logger.lua ]; then
 #	#Wait this command better way to check if transformer is fully initialized

@@ -74,14 +74,17 @@ class LuciActivation(unittest.TestCase):
                 self.assertNotIn("upgrade", commands[1].split())
 
     @unittest.skipUnless(shutil.which("lua"), "Lua required")
-    def test_gui_upgrade_prepares_terminal_before_dispatch(self):
+    def test_gui_commands_are_registered_and_prepare_terminal_before_dispatch(self):
         source = (INSTALLER.parents[1] / "mappings/rpc/system.modgui.map").read_text()
         utility = source[source.index("local SYSTEM_MODGUI_UTILITY_ ="):source.index("local SYSTEM_MODGUI_DEBUGLOG_ =")]
         terminal = source[source.index("local SYSTEM_MODGUI_SCRIPTREQUEST_ ="):source.index("local SYSTEM_MODGUI_APP_ =")]
         prelude = '''
 local maps, launches, log = {}, 0, "previous GUI update log"
 local prepare_command_log
-local commands_helper = {upgradegui = "start-stop-daemon -x /usr/share/transformer/scripts/wrapper.sh upgradegui"}
+local commands_helper = {
+    checkver = "/usr/share/transformer/scripts/wrapper.sh checkver",
+    upgradegui = "start-stop-daemon -x /usr/share/transformer/scripts/wrapper.sh upgradegui",
+}
 register = function(map) maps[map.objectType.name] = map end
 os.remove = function() end
 local fail_log = false
@@ -100,12 +103,17 @@ local async_exec = function()
 end
 '''
         assertions = '''
-local send = maps["rpc.system.modgui.utility."].set.sendcmd
-send(nil, "sendcmd", "upgradegui")
+local utility = maps["rpc.system.modgui.utility."]
+local parameter = assert(utility.objectType.parameters.sendcmd, "sendcmd is not registered")
+assert(parameter.access == "readWrite" and parameter.type == "string")
+local send = utility.set.sendcmd
+send(nil, "sendcmd", "checkver")
 assert(launches == 1)
+send(nil, "sendcmd", "upgradegui")
+assert(launches == 2)
 fail_log = true
-local ok, err = send(nil, "sendcmd", "upgradegui")
-assert(ok == nil and err == "no space" and launches == 1)
+local ok, err = send(nil, "sendcmd", "checkver")
+assert(ok == nil and err == "no space" and launches == 2)
 '''
         result = subprocess.run(["lua", "-"], input=prelude + utility + terminal + assertions,
                                 text=True, capture_output=True, timeout=5)

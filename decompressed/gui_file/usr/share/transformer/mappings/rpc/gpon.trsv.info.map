@@ -19,11 +19,11 @@ end
 
 local function get(idx, paramName)
     local result = conn:call("gpon.trsv", "get_info", { info = idx })
-    if result == nil then
+    local data = result and result[idx]
+    if type(data) ~= "table" then
         log:error(string.format("Cannot retrieve info %s", idx))
         return ""
     end
-    local data = result[idx]
     local key, val = "", ""
     for key, val in pairs (data) do
         --to deal with whose key include space, such as "DS_Bitrate     (Mbps)"
@@ -36,11 +36,11 @@ end
 
 local function getAll (idx)
     local result = conn:call("gpon.trsv", "get_info", { info = idx })
-    if result == nil then
+    local data = result and result[idx]
+    if type(data) ~= "table" then
         log:error(string.format ("Cannot retrieve  status info %s", idx))
-        return ""
+        return {}
     end
-    local data = result[idx]
     local res_data = {}
     local key, val = "", ""
     for key, val in pairs (data) do
@@ -257,6 +257,10 @@ local gpon_trsv_info_vendor = {
     minEntries = 1,
     maxEntries = 1,
     parameters = {
+      SN = {
+        access = "readOnly",
+        type = "string",
+      },
       Type = {
         access = "readOnly",
         type = "string",

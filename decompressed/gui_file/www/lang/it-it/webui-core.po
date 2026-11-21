@@ -4732,3 +4732,26 @@ msgstr "Impossibile identificare l'interfaccia WAN del bridge esistente; riprist
 
 msgid "Bridge mode uses the selected WAN interface with WanSensing disabled. Enabling WanSensing exits bridge mode and restores the routed connection."
 msgstr "La modalità bridge utilizza l'interfaccia WAN selezionata con WanSensing disattivato. L'attivazione di WanSensing fa uscire dalla modalità bridge e ripristina la connessione instradata."
+msgid "Delegated IPv6 prefix"
+msgstr "Prefisso IPv6 delegato"
+
+msgid "BIP errors"
+msgstr "Errori BIP"
+
+msgid "Corrected FEC codewords"
+msgstr "Parole di codice FEC corrette"
+
+msgid "Uncorrectable FEC codewords"
+msgstr "Parole di codice FEC non correggibili"
+
+msgid "EasyMesh topology history"
+msgstr "Cronologia della topologia EasyMesh"
+
+msgid "No topology changes recorded."
+msgstr "Nessun cambio di topologia registrato."
+
+msgid "Event"
+msgstr "Evento"
+
+msgid "Backhaul changed"
+msgstr "Backhaul cambiato"

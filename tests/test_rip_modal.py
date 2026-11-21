@@ -178,13 +178,22 @@ assert(not html:find('data-poll="1"', 1, true))
 assert(html:find("Loading the temporary module", 1, true))
 
 rpc["rpc.system.modgui.utility.rip_status"] =
-  "arch=mips;release=3.4.11-rt19;eck=0;module=r2secr.mips.3.4.11-rt19.ko;state=error:insmod failed"
+  "arch=armv7l;release=4.1.52;eck=0;module=r2secr.ko;state=requested 123"
+output, opened = {}, {}
+dofile(snippet)
+html = table.concat(output)
+assert(html:find('data-poll="1"', 1, true))
+assert(html:find('" disabled>Extract keys', 1, true))
+
+rpc["rpc.system.modgui.utility.rip_status"] =
+  "arch=mips;release=3.4.11-rt19;eck=0;module=r2secr.mips.3.4.11-rt19.ko;state=error:request timed out"
 output, opened = {}, {}
 dofile(snippet)
 html = table.concat(output)
 assert(html:find('id="rip-keys-extract"', 1, true))
 assert(not html:find('data-poll="1"', 1, true))
-assert(html:find("The key extraction failed. insmod failed", 1, true))
+assert(not html:find('" disabled>Extract keys', 1, true))
+assert(html:find("The key extraction failed. request timed out", 1, true))
 
 output, available, opened = {}, false, {}
 dofile(snippet)
@@ -331,6 +340,9 @@ local signed = string.rep("S", 64) .. string.rep("g", 256) .. string.rep(string.
 assert(rip.strip_record(signed, true) == string.rep("S", 64))
 assert(rip.strip_record(string.rep("S", 64) .. string.rep("g", 256) .. string.char(200), true) == nil)
 assert(rip.aes128_cbc(key, "short") == nil)
+local zero_block = string.rep("\0", 16)
+local zero_plain = rip.aes128_cbc(key, zero_block .. zero_block)
+assert(rip.aes128_cbc(key, zero_block:rep(1024)) == zero_plain:rep(1023))
 
 local log = table.concat({
   "[    2.000000] unrelated 00 11 | ..",
@@ -376,11 +388,21 @@ local ko_sha = nil
 
 local module = rip.supported("mips", "3.4.11-rt19")
 ko_path, ko_sha = "/tmp/r2secr-3.4.11-rt19.ko", module.sha256
+local download_sha = ko_sha
+local download_result = 0
 
 _G.os = setmetatable({}, { __index = os })
 os.execute = function(cmd)
   runs[#runs + 1] = cmd
-  if cmd:find("curl") then downloads = downloads + 1 end
+  if cmd:find("^curl ") then
+    downloads = downloads + 1
+    files[ko_path] = download_sha
+    return download_result
+  elseif cmd:find("^cp %-f ") then
+    local source, destination = cmd:match("^cp %-f (%S+) (%S+)$")
+    files[destination] = files[source]
+    return files[source] and 0 or 1
+  end
   return 0
 end
 os.remove = function(path) files[path] = nil end
@@ -390,11 +412,6 @@ io.popen = function(cmd)
   if cmd:find("timeout", 1, true) and cmd:find("true", 1, true) then out = "ok\n"
   elseif cmd:find("sha256sum") then out = files[cmd:match("sha256sum (%S+)")] or ""
   elseif cmd:find("uname %-r") then out = "3.4.11-rt19\n"
-  elseif cmd:find("test %-s") then
-    if cmd:find(ko_path, 1, true) and not files[ko_path] and downloads > 0 then
-      files[ko_path] = ko_sha
-    end
-    out = files[cmd:match("test %-s (%S+)")] and "ok" or ""
   elseif cmd:find("rm %-f") then files[cmd:match("rm %-f (%S+)")] = nil
   elseif cmd:find("insmod") then out = insmod_ok and "" or "insmod: can't insert"
   elseif cmd:find("dmesg") then out = dmesg
@@ -443,8 +460,21 @@ downloads = 0
 assert(rip.extract(module)) -- cached module, checksum matches
 assert(downloads == 0)
 
-insmod_ok = false
+for _, digest in ipairs({"", "bad"}) do
+  files[ko_path], download_sha, runs = nil, digest, {}
+  local ok, err = rip.extract(module)
+  assert(not ok and err == "cannot verify the downloaded module checksum")
+  assert(not files[ko_path])
+  for _, cmd in ipairs(runs) do assert(not cmd:find("insmod", 1, true)) end
+end
+
+files[ko_path], download_sha, download_result = nil, ko_sha, 1
 local ok, err = rip.extract(module)
+assert(not ok and err == "module download failed" and not files[ko_path])
+download_result = 0
+
+insmod_ok = false
+ok, err = rip.extract(module)
 assert(not ok and err == "insmod: can't insert")
 insmod_ok = true
 
@@ -471,6 +501,7 @@ assert(bundled.sha256 and #bundled.sha256 == 64)
 local cmdline = ".r2secr=0x1ffdf000"
 local ko_bytes = string.rep("x", 700)
 local patched_bytes = nil
+files[bundled.local_path] = bundled.sha256
 io.open = function(path, mode)
   if path == "/proc/cmdline" and mode == "rb" then
     return { read = function() return cmdline end, close = function() end }
@@ -499,6 +530,14 @@ assert(patched_bytes and patched_bytes:sub(661, 664) == string.char(0x00, 0xf0, 
 local cp_cmd
 for _, cmd in ipairs(runs) do if cmd:find("cp %-f") then cp_cmd = cmd end end
 assert(cp_cmd and cp_cmd:find(bundled.local_path, 1, true))
+
+for _, digest in ipairs({"", "bad"}) do
+  files[bundled.local_path], patched_bytes, runs = digest, nil, {}
+  local ok, err = rip.extract(bundled)
+  assert(not ok and err == "cannot verify the bundled module checksum")
+  assert(not patched_bytes)
+  for _, cmd in ipairs(runs) do assert(not cmd:find("insmod", 1, true)) end
+end
 
 cmdline = "console=ttyS0 root=/dev/mtd2"
 local ok2, err2 = rip.extract(bundled)
@@ -593,6 +632,8 @@ assert(unhex(values["0105"]) == ("RIP private key material" .. string.rep("\14",
         result = run_lua(r'''
 local rip = dofile(arg[1])
 local files = { [rip.status_file] = "requested 123;; \n" }
+local now = 422
+os.time = function() return now end
 os.remove = function(path) files[path] = nil end
 io.open = function(path, mode)
   if path == rip.status_file and mode == "rb" and files[path] then
@@ -601,6 +642,8 @@ io.open = function(path, mode)
   return nil
 end
 assert(rip.status() == "requested 123")
+now = 423
+assert(rip.status() == "error:request timed out")
 files[rip.status_file] = nil
 assert(rip.status() == "")
 files[rip.secrets_file] = "011f=aa"
@@ -684,6 +727,51 @@ class RipPlacement(unittest.TestCase):
           'start-stop-daemon -S -b -x /usr/share/transformer/scripts/ripKeysUtility.sh extract"] = true',
           mapping)
         self.assertIn('Extraction is already running', mapping)
+
+
+@unittest.skipUnless(LUA, "Lua interpreter required")
+class ModguiJsonErrors(unittest.TestCase):
+    def test_failed_posts_send_json_without_the_html_error_renderer(self):
+        modal = (WEB / "docroot/modals/modgui-modal.lp").read_text()
+        helpers = modal[modal.index("local function json_error"):modal.index("local function upgradeguifile")]
+        actions = modal[modal.index('        if action == "rip_keys"'):modal.index('        if action == "debug_report"')]
+        result = run_lua(r'''
+local response, role
+local proxy = {
+  set = function() return nil, {{errmsg = "Command refused"}} end,
+  apply = function() error("must not apply a rejected command") end,
+}
+local ngx = {
+  OK = 0, HTTP_FORBIDDEN = 403, HTTP_CONFLICT = 409,
+  ctx = {session = {getrole = function() return role end}},
+  header = {},
+}
+package.preload.dkjson = function()
+  return {encode = function(payload)
+    assert(payload.success == false and type(payload.error) == "string")
+    return payload.error
+  end}
+end
+function ngx.print(body)
+  assert(ngx.status == 403 or ngx.status == 409)
+  assert(ngx.header.content_type == "application/json")
+  assert(response == nil)
+  response = body
+end
+function ngx.exit(status) assert(status == ngx.OK) end
+''' + helpers + '\nlocal function rip_post(action, post_args)\n' + actions + '\nend\n' + r'''
+sendcmd("checkver")
+assert(ngx.status == 409 and response == "Command refused")
+response, ngx.status = nil, nil
+role = "guest"
+rip_post("rip_status", {})
+assert(ngx.status == 403 and response == "Insufficient privileges")
+response, ngx.status = nil, nil
+role = "admin"
+rip_post("rip_keys", {command = "extract"})
+assert(ngx.status == 409 and response == "Command refused")
+''', WEB / "docroot/modals/modgui-modal.lp")
+        self.assertEqual(result.returncode, 0, result.stderr)
 
 
 if __name__ == "__main__":

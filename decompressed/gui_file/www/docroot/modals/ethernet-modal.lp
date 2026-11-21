@@ -45,7 +45,6 @@ local vQTN = post_helper.validateQTN
 local gAV = post_helper.getAndValidation
 local gVIC = post_helper.getValidateInCheckboxgroup
 local gVIES = post_helper.getValidateInEnumSelect
-local vNES = post_helper.validateNonEmptyString
 
 local session = ngx.ctx.session
 local tech = false
@@ -339,182 +338,15 @@ if ngx.var.request_method == "POST" and ngx.req.get_post_args().iPv6StateOnlyCha
     ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     ngx.exit(ngx.HTTP_OK)
 end
--- Static leases
-local sleases_columns = {
-  {
-    header = T"Hostname",
-    name = "sleases_name",
-    param = "name",
-    type = "text",
-    attr = { input = { class="span2" } },
-  },
-  {
-    header = T"MAC address",
-    name = "sleases_mac",
-    param = "mac",
-    type = "select",
-    values = hosts_mac,
-    attr = { input = { class="span2", maxlength="17", id= "lease_mac" }, autocomplete=hosts_mac },
-    unique = true,
-  },
-  {
-    header = T"IP",
-    name = "sleases_ip",
-    param = "ip",
-    type = "text",
-    attr = { input = { class="span2", maxlength="15"}, autocomplete=hosts_ac },
-    unique = true,
-  },
-  {
-    header = "",
-    name = "sleases_owner",
-    param = "owner",
-    type = "hidden",
-    readonly = true,
-    attr = { },
-  },
-}
-
--- Function to avoid users to enter ReservedStatic name as custom static lease name
-local function sleases_name_validation(value)
-  if (value:find("^ReservedStatic") ~= nil) then
-    return nil, T"Cannot use reserved names as static lease name"
-  end
-  return true
-end
-
-local function sleases_mac_validation(value, object, key)
-  local r1, r2 = post_helper.validateStringIsMAC(value)
-  if r1 then
-    if string.lower(value) == "ff:ff:ff:ff:ff:ff" then
-        return nil, T"The requested MAC address can't be the broadcast MAC"
-    else
-        object[key] = string.lower(value)
-    end
-  end
-  return r1, r2
-end
-
--- Function to check the input IP is in Reserved IP list
-local function reserved_ip_validation(value)
-    local reservedList = {}
-    local reservedIPList = proxy.get("uci.dhcp.host.")
-    reservedIPList = content_helper.convertResultToObject("uci.dhcp.host.", reservedIPList)
-    if reservedIPList then
-        for _,v in pairs(reservedIPList) do
-            if v["name"]:find("^ReservedStatic") ~= nil then
-                reservedList[#reservedList + 1] = v["ip"]
-                if value == v["ip"] then
-                    return nil
-                end
-            end
-        end
-    end
-    return true
-end
-
-local function sleases_ip_validation(value, object, key)
-    local contentdata = {
-      localdevIP = "uci.network.interface.@" .. curintf .. ".ipaddr",
-      localdevmask = "uci.network.interface.@" .. curintf .. ".netmask",
-    }
-    content_helper.getExactContent(contentdata)
-    return post_helper.staticLeaseIPValidation(value, contentdata)
-end
-
-local sleases_valid = {
-    sleases_name = gAV(sleases_name_validation,post_helper.validateStringIsDomainName),
-    sleases_mac = gAV(sleases_mac_validation,vQTN),
-    sleases_ip = gAV(sleases_ip_validation,vQTN),
-}
-
-local sleases_options = {
-    tableid = "sleases",
-    basepath = "uci.dhcp.host.@.",
-    createMsg = T"Add new static lease",
-    objectName  = post_helper.getRandomKey(),
-    addNamedObject = true,
-}
-
-
-local syshosts_data = proxy.get("sys.hosts.host.")
-local sleases_filter = function(data)
-    if data['owner'] == "portforward" then
-        local path
-        if syshosts_data then
-            for _, v in pairs(syshosts_data) do
-                if v.value == data['mac'] then
-                    path = v.path
-                    break
-                end
-            end
-            for _, v in pairs(syshosts_data) do
-                if v.path == path and v.param == "HostName" then
-                    data['name'] = v.value
-                    break
-                end
-            end
-        end
-        return { canEdit = false, canDelete = false }
-    end
-    if (data['name']:find("^ReservedStatic") == 1) then
-       return false
-    end
-    return true
-end
-
-local sleases_data, sleases_helpmsg = post_helper.handleTableQuery(sleases_columns, sleases_options, sleases_filter, nil, sleases_valid)
-
-local inUseFlag = false
-if ngx.var.request_method == "POST" then
-  local post_data = ngx.req.get_post_args()
-  if ( post_data.action == "TABLE-MODIFY" or  post_data.action == "TABLE-EDIT"  or  post_data.action == "TABLE-ADD") then
-    local text_mac_index = tonumber(post_data.index)
-    local text_mac
-    if  post_data.action == "TABLE-ADD" then
-      text_mac = post_data["sleases_mac"]
-    else
-      text_mac = sleases_data[text_mac_index][2]
-    end
-    local flag = true
-    for _,j in ipairs(hosts_mac) do
-      if text_mac == j[1] then
-        flag = false
-        break
-      end
-    end
-    if flag   then
-      sleases_columns[2] = {
-        header = T"MAC address",
-        name = "sleases_mac",
-        param = "mac",
-        type = "text",
-        attr = { input = { class="span2", maxlength="17", id= "lease_mac", value = text_mac }},
-        unique = true,
-      }
-    end
-    if post_data.action == "TABLE-MODIFY" or  post_data.action == "TABLE-ADD" then
-      local slease_ip = post_data.sleases_ip
-      local arranged_data = content_helper.convertResultToObject("sys.hosts.host.", syshosts_data)
-      if arranged_data then
-        for _, v in pairs(arranged_data) do
-            if v.DhcpLeaseTime ~= "" and v.IPAddress == slease_ip then
-                inUseFlag = true
-                break
-           end
-        end
-      end
-    end
-  end
-end
-
 local cur_dhcp_intf = "lan"
+local has_dhcp_section = false
 local dhcp_intfs_path = "uci.dhcp.dhcp."
 local all_dhcp_intfs = content_helper.convertResultToObject(dhcp_intfs_path .. "@.", proxy.get(dhcp_intfs_path))
 
 for k,v in ipairs(all_dhcp_intfs) do
     if v.interface == curintf then
         cur_dhcp_intf = v.paramindex
+        has_dhcp_section = true
         break
     end
 end
@@ -523,6 +355,27 @@ end
 if cur_dhcp_intf == "STB" then
     cur_dhcp_intf = "lan"
 end
+
+local dnsmasq_base = "uci.dhcp.dnsmasq."
+local default_dnsmasq = dnsmasq_base .. "@dnsmasq."
+local dhcp_instance = proxy.get(dhcp_intfs_path .. "@" .. cur_dhcp_intf .. ".instance")
+local instance_name = dhcp_instance and dhcp_instance[1] and untaint(dhcp_instance[1].value)
+local pool_dnsmasq = dnsmasq_base .. "@" .. (instance_name or "") .. "."
+local dnsmasq_sections = proxy.getPN(dnsmasq_base, true) or {}
+local has_default_dnsmasq = false
+local selected_dnsmasq
+for _, section in ipairs(dnsmasq_sections) do
+    if section.path == default_dnsmasq then
+        has_default_dnsmasq = true
+    end
+    if section.path == pool_dnsmasq then
+        selected_dnsmasq = section.path
+    end
+end
+local dnsmasq_path = selected_dnsmasq
+    or (has_default_dnsmasq and default_dnsmasq)
+    or (dnsmasq_sections[1] and dnsmasq_sections[1].path)
+    or default_dnsmasq
 
 local sfp_presence = proxy.get("uci.env.rip.sfp")
 
@@ -551,7 +404,7 @@ local content_sfp, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
 
 -- Standard parameters
 local mapParams = {
-    domainName = "uci.dhcp.dnsmasq.@dnsmasq.domain",
+    domainName = dnsmasq_path .. "domain",
     dhcpStart = "uci.dhcp.dhcp.@" .. cur_dhcp_intf .. ".start",
     dhcpLimit = "uci.dhcp.dhcp.@" .. cur_dhcp_intf .. ".limit",
     --dhcpv4State = "uci.dhcp.dhcp.@" .. cur_dhcp_intf .. ".dhcpv4",
@@ -1018,7 +871,7 @@ local function validatedhcpIgnore(value, object, key)
 end
 
 local mapValid = {
-    domainName = vNES,
+    domainName = post_helper.validateNonEmptyString,
     localdevIP = validateGWIP,
     --localIPv6 = validateIPv6,
     dnsServer = validateDNS,
@@ -1075,9 +928,38 @@ local post_data = ngx.req.get_post_args()
 	end
 end
 
+local post_data = ngx.var.request_method == "POST" and ngx.req.get_post_args()
+local post_action = post_data and post_data.action
+if post_action == "SAVE" and post_data.domainName ~= nil then
+    -- Include the DNS settings in the same validated save as the DHCP domain.
+    mapParams.domainLocal = dnsmasq_path .. "local"
+    if has_default_dnsmasq and dnsmasq_path ~= default_dnsmasq then
+        mapParams.defaultDomain = default_dnsmasq .. "domain"
+        mapParams.defaultDomainLocal = default_dnsmasq .. "local"
+    end
+
+    -- These fields are derived from domainName, including when supplied in a POST.
+    local derivedDomainValue = post_helper.getOptionalValidation()
+    mapValid.domainLocal = derivedDomainValue
+    mapValid.defaultDomain = derivedDomainValue
+    mapValid.defaultDomainLocal = derivedDomainValue
+    mapValid.domainName = function(value, object)
+        local valid, msg = post_helper.validateStringIsDomainName(value)
+        if not valid then
+            return nil, msg
+        end
+        local local_domain = "/" .. value .. "/"
+        object.domainLocal = local_domain
+        if mapParams.defaultDomain then
+            object.defaultDomain = value
+            object.defaultDomainLocal = local_domain
+        end
+        return true
+    end
+end
 content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
-if (ngx.var.request_method == "POST")  and not next(helpmsg) then
+if (post_action == "SAVE" or post_action == "RESET") and not next(helpmsg) then
    local dhcp_options_path = "uci.dhcp.dhcp.@"..cur_dhcp_intf..".dhcp_option."
    local dhcp_options = content_helper.convertResultToObject(dhcp_options_path,proxy.get(dhcp_options_path))
     for _,v in ipairs(dhcp_options) do
@@ -1158,22 +1040,219 @@ if ngx.var.request_method == "POST" and helpmsg["leaseTime"] then
 end
 
 
-if ngx.var.request_method == "POST" then
-    local gwIP = session:retrieve("old_ip")
-    if curintf == "lan" and content["localdevIP"]~= gwIP and not next(helpmsg) then
-        modemIPChangeState = "1"
-    end
-    session:store("old_ip",(content["localdevIP"]))
-
-    -- Redirect the GUI only if the local GW device IP address is changed for the "lan" interface
-    if curintf == "lan" and content["localdevIP"]~= gwIP and not next(helpmsg) then  ngx.print('\
+if curintf == "lan" then
+    if post_action == "SAVE" or post_action == "RESET" then
+        local gwIP = session:retrieve("old_ip")
+        if gwIP and content["localdevIP"] ~= gwIP and not next(helpmsg) then
+            modemIPChangeState = "1"
+            ngx.print('\
     <script type="text/javascript">\
       window.location="http://');  ngx.print(content["localdevIP"]); ngx.print('";\
     </script>\
     ');  session:logout()
+        end
     end
-else
-    session:store("old_ip",(content["localdevIP"]))
+    session:store("old_ip", content["localdevIP"])
+end
+
+-- Read the configured subnet and DHCP state after processing network settings.
+local lease_network = {
+    localdevIP = mapParams.localdevIP,
+    localdevmask = mapParams.localdevmask,
+    dhcpIgnore = mapParams.dhcpIgnore,
+    dhcpv4 = "uci.dhcp.dhcp.@" .. cur_dhcp_intf .. ".dhcpv4",
+}
+local lease_in_subnet
+if has_dhcp_section and modemIPChangeState ~= "1" and content_helper.getExactContent(lease_network)
+    and lease_network.dhcpIgnore ~= "1" and lease_network.dhcpv4 ~= "disabled" then
+    lease_in_subnet = post_helper.getValidateStringIsIPv4InNetwork(lease_network.localdevIP, lease_network.localdevmask)
+end
+
+-- Static leases
+local sleases_columns = {
+  {
+    header = T"Hostname",
+    name = "sleases_name",
+    param = "name",
+    type = "text",
+    attr = { input = { class="span2" } },
+  },
+  {
+    header = T"MAC address",
+    name = "sleases_mac",
+    param = "mac",
+    type = "select",
+    values = hosts_mac,
+    attr = { input = { class="span2", maxlength="17", id= "lease_mac" }, autocomplete=hosts_mac },
+    unique = true,
+  },
+  {
+    header = T"IP",
+    name = "sleases_ip",
+    param = "ip",
+    type = "text",
+    attr = { input = { class="span2", maxlength="15"}, autocomplete=hosts_ac },
+    unique = true,
+  },
+  {
+    header = "",
+    name = "sleases_owner",
+    param = "owner",
+    type = "hidden",
+    readonly = true,
+    attr = { },
+  },
+}
+
+-- Function to avoid users to enter ReservedStatic name as custom static lease name
+local function sleases_name_validation(value)
+  if (value:find("^ReservedStatic") ~= nil) then
+    return nil, T"Cannot use reserved names as static lease name"
+  end
+  return true
+end
+
+local function sleases_mac_validation(value, object, key)
+  local r1, r2 = post_helper.validateStringIsMAC(value)
+  if r1 then
+    if string.lower(value) == "ff:ff:ff:ff:ff:ff" then
+        return nil, T"The requested MAC address can't be the broadcast MAC"
+    else
+        object[key] = string.lower(value)
+    end
+  end
+  return r1, r2
+end
+
+local function sleases_ip_validation(value)
+    return post_helper.staticLeaseIPValidation(value, lease_network)
+end
+
+local sleases_valid = {
+    sleases_name = gAV(sleases_name_validation,post_helper.validateStringIsDomainName),
+    sleases_mac = gAV(sleases_mac_validation,vQTN),
+    sleases_ip = gAV(sleases_ip_validation,vQTN),
+}
+
+local sleases_options = {
+    -- The table ID scopes the row indexes stored in the session.
+    tableid = curintf == "lan" and "sleases" or "sleases-" .. curintf,
+    basepath = "uci.dhcp.host.@.",
+    createMsg = T"Add new static lease",
+    objectName  = post_helper.getRandomKey(),
+    addNamedObject = true,
+}
+
+
+local syshosts_data = lease_in_subnet and proxy.get("sys.hosts.host.")
+local sys_hosts = content_helper.convertResultToObject("sys.hosts.host.", syshosts_data)
+local names_by_mac = {}
+for _, host in ipairs(sys_hosts) do
+    if host.MACAddress and host.HostName then
+        names_by_mac[string.lower(untaint(host.MACAddress))] = host.HostName
+    end
+end
+
+local function lease_hostname(lease)
+    if lease.owner == "portforward" and lease.mac then
+        return names_by_mac[string.lower(untaint(lease.mac))] or lease.name
+    end
+    return lease.name
+end
+
+local lease_sort_keys = {
+    ip = function(lease)
+        local ip = ipv42num(lease.ip)
+        -- ipv42num returns a signed 32-bit integer.
+        return ip and ip % 4294967296 or math.huge
+    end,
+    name = function(lease)
+        return string.lower(untaint(lease_hostname(lease)) or "")
+    end,
+    mac = function(lease)
+        return string.lower(untaint(lease.mac) or "")
+    end,
+}
+
+local lease_sort
+if lease_in_subnet then
+    local sort_session_key = sleases_options.tableid .. ".sort"
+    local previous_sort = session:retrieve(sort_session_key)
+    local requested_sort = post_action == "SLEASES-SORT" and untaint(post_data.sleases_sort)
+    lease_sort = lease_sort_keys[requested_sort] and requested_sort or previous_sort or "ip"
+    if lease_sort ~= previous_sort then
+        session:store(sort_session_key, lease_sort)
+        -- The previous row numbers belong to a different order.
+        session:store(sleases_options.tableid .. ".stateid", post_helper.getRandomKey())
+    end
+    local sort_key = lease_sort_keys[lease_sort]
+    sleases_options.sorted = function(a, b)
+        local a_key, b_key = sort_key(a), sort_key(b)
+        if a_key ~= b_key then
+            return a_key < b_key
+        end
+        return a.paramindex < b.paramindex
+    end
+end
+
+local sleases_filter = function(data)
+    if not data.ip or not lease_in_subnet(data.ip) then
+        return false
+    end
+    if data['owner'] == "portforward" then
+        data.name = lease_hostname(data)
+        return { canEdit = false, canDelete = false }
+    end
+    if data.name and data.name:find("^ReservedStatic") == 1 then
+       return false
+    end
+    return true
+end
+
+local sleases_data, sleases_helpmsg
+if lease_in_subnet then
+    sleases_data, sleases_helpmsg = post_helper.handleTableQuery(sleases_columns, sleases_options, sleases_filter, nil, sleases_valid)
+end
+
+local inUseFlag = false
+if lease_in_subnet and ngx.var.request_method == "POST" then
+  local post_data = ngx.req.get_post_args()
+  if post_data.tableid == sleases_options.tableid and
+      (post_data.action == "TABLE-MODIFY" or post_data.action == "TABLE-EDIT" or post_data.action == "TABLE-ADD") then
+    local text_mac
+    if  post_data.action == "TABLE-ADD" then
+      text_mac = post_data["sleases_mac"]
+    else
+      local row = sleases_data[sleases_options.editing]
+      text_mac = row and row[2]
+    end
+    local flag = text_mac ~= nil
+    for _,j in ipairs(hosts_mac) do
+      if text_mac == j[1] then
+        flag = false
+        break
+      end
+    end
+    if flag   then
+      sleases_columns[2] = {
+        header = T"MAC address",
+        name = "sleases_mac",
+        param = "mac",
+        type = "text",
+        attr = { input = { class="span2", maxlength="17", id= "lease_mac", value = text_mac }},
+        unique = true,
+      }
+    end
+    if post_data.action == "TABLE-MODIFY" or  post_data.action == "TABLE-ADD" then
+      local slease_ip = post_data.sleases_ip
+      for _, v in ipairs(sys_hosts) do
+        if v.DhcpLeaseTime ~= "" and v.IPAddress == slease_ip then
+          inUseFlag = true
+          break
+        end
+      end
+    end
+  end
 end
 
 local ethports_checked = {}
@@ -1306,11 +1385,21 @@ ngx.print('\
 end]]
 ngx.print('\
               ');
--- Do not display the static lease when the interface is not lan
-if curintf == "lan" and modemIPChangeState ~= "1" then
+if lease_in_subnet then
     ngx.print('\
                   <legend>');  ngx.print( T"Static leases" ); ngx.print('</legend>\
                   ');
+    if #sleases_data > 1 and (not sleases_options.editing or sleases_options.editing == 0) then
+        ngx.print(ui_helper.createInputSelectWithButton(T"Sort by", "sleases_sort", {
+            { "ip", T"IP" },
+            { "name", T"Hostname" },
+            { "mac", T"MAC address" },
+        }, lease_sort, T"Sort", "icon-sort", {
+            label = { ["for"] = "sleases_sort" },
+            select = { class = "span2", ["data-for"] = "SLEASES-SORT" },
+            button = { ["data-name"] = "action", ["data-value"] = "SLEASES-SORT" },
+        }))
+    end
     local confilictipchange_alert = {
         alert = {
             class = "alert hide",
@@ -1321,11 +1410,9 @@ if curintf == "lan" and modemIPChangeState ~= "1" then
         ui_helper.createAlertBlock(T("The latest added/modified static lease is set to an IP that is already in use," ..
                 " please perform a reboot to apply the changes"), confilictipchange_alert),
         ui_helper.createTable(sleases_columns, sleases_data, sleases_options, nil, sleases_helpmsg))
-    ngx.print('\
-              </fieldset>\
-              ');
 end
 ngx.print('\
+          </fieldset>\
           ');
 -- Do not display the navlist on the list if only 1 lan interface
 if #lan_intfs > 1 then

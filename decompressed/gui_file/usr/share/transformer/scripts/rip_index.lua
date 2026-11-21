@@ -1,5 +1,3 @@
-local unpack = unpack or table.unpack
-
 local M = {}
 
 local function partition()
@@ -177,7 +175,12 @@ function M.status()
   if not file then return "" end
   local text = file:read("*a") or ""
   file:close()
-  return (text:gsub("[;%s]+$", ""))
+  text = text:gsub("[;%s]+$", "")
+  local requested = tonumber(text:match("^requested (%d+)$"))
+  if requested and os.time() - requested >= 300 then
+    return "error:request timed out"
+  end
+  return text
 end
 
 local function shell(command)
@@ -207,7 +210,12 @@ function M.extract(module)
   if module.local_path then
     local address = M.cmdline_secrets_address()
     if not address then return nil, "no secrets pointer in the kernel cmdline" end
-    shell("cp -f " .. module.local_path .. " " .. ko)
+    local copied = os.execute("cp -f " .. module.local_path .. " " .. ko)
+    if copied ~= 0 and copied ~= true then return nil, "cannot copy the bundled module" end
+    if shell("sha256sum " .. ko):match("^(%x+)") ~= module.sha256 then
+      shell("rm -f " .. ko)
+      return nil, "cannot verify the bundled module checksum"
+    end
     local patched = io.open(ko, "rb")
     if not patched then return nil, "module is missing from the GUI" end
     local bytes = patched:read("*a")
@@ -223,14 +231,14 @@ function M.extract(module)
     patched:close()
   elseif shell("sha256sum " .. ko):match("^(%x+)") ~= module.sha256 then
     shell("rm -f " .. ko)
-    os.execute("curl -fksL --max-time 60 -o " .. ko .. " '" .. module.url .. "'")
-    if shell("test -s " .. ko .. " && echo ok") ~= "ok" then
+    local downloaded = os.execute("curl -fksL --max-time 60 -o " .. ko .. " '" .. module.url .. "'")
+    if downloaded ~= 0 and downloaded ~= true then
+      shell("rm -f " .. ko)
       return nil, "module download failed"
     end
-    local sum = shell("sha256sum " .. ko):match("^(%x+)")
-    if sum and sum ~= module.sha256 then
+    if shell("sha256sum " .. ko):match("^(%x+)") ~= module.sha256 then
       shell("rm -f " .. ko)
-      return nil, "module checksum mismatch"
+      return nil, "cannot verify the downloaded module checksum"
     end
   end
 
@@ -413,10 +421,11 @@ function M.aes128_cbc(key, data)
     local block = { data:byte(offset, offset + 15) }
     local cipher = { data:byte(offset, offset + 15) }
     local decrypted = decrypt_block(block, words)
-    for i = 1, 16 do plain[#plain + 1] = bxor(decrypted[i], previous[i]) end
+    for i = 1, 16 do decrypted[i] = string.char(bxor(decrypted[i], previous[i])) end
+    plain[#plain + 1] = table.concat(decrypted)
     previous = cipher
   end
-  return string.char(unpack(plain))
+  return table.concat(plain)
 end
 
 -- Signed records keep a 256-byte signature before the trailing pad bytes.

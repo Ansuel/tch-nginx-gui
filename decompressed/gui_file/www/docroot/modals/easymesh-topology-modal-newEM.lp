@@ -820,6 +820,9 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
          </svg>\
       </div>\
     </div>\
+');
+  lp.include("easymesh-history.lp")
+  ngx.print('\
   </div>\
   <script>\
     var height_total = ');  ngx.print(tonumber(topologyHeight)); ngx.print(' > 0 ? ');  ngx.print(tonumber(topologyHeight)); ngx.print(' : 150;\
