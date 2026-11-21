@@ -2002,9 +2002,16 @@ end
   ngx.print('\
 </form>\
 ');
-  local lp = require("web.lp")
-  lp.setpath("/www/snippets/")
-  lp.include("easymesh-history.lp")
+  local multiap_enabled = proxy.get("uci.multiap.controller.enabled") or proxy.get("uci.multiap.agent.enabled")
+  local f = io.open("/www/snippets/easymesh-history.lp", "r")
+  if multiap_enabled and f then
+    f:close()
+    local lp = require("web.lp")
+    lp.setpath("/www/snippets/")
+    pcall(lp.include, "easymesh-history.lp")
+  elseif f then
+    f:close()
+  end
   ngx.print('\
 </div>\
 \
