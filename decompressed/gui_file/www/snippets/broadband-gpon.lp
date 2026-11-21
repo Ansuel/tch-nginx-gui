@@ -11,8 +11,21 @@ local tonumber = tonumber
 
 local iconUp = "<i class=\"icon-upload icon-large gray\"></i> "
 local iconDown = "<i class=\"icon-download icon-large gray\"></i> "
-local ajax_helper = require("web.ajax_helper")
 local bridge = require("bridgehelper")
+
+local byte_units = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"}
+local function formatBytes(value)
+    local bytes = tonumber(value) or 0
+    local unit = 1
+    while bytes >= 1024 and unit < #byte_units do
+        bytes = bytes / 1024
+        unit = unit + 1
+    end
+    if unit == 1 then
+        return format("%.0f B", bytes)
+    end
+    return format("%.2f %s", bytes, byte_units[unit])
+end
 
 if bridge.hasIntegratedGpon() then
     local stats = "sys.class.net.@gpondef.statistics."
@@ -48,6 +61,9 @@ if bridge.hasIntegratedGpon() then
     }) do
         local value = content[field[1]]
         if value and value:match("^%d+$") then
+            if field[1] == "rx_bytes" or field[1] == "tx_bytes" then
+                value = formatBytes(value)
+            end
             ngx.print(ui_helper.createLabel(field[2], value))
             available = true
         end
@@ -81,18 +97,24 @@ local mapParams = {
 }
 content_helper.getExactContent(mapParams)
 
-ajax_helper.handleAjaxQuery({}, function(c)
+local opticalBytes = format("%s %s %s %s", iconUp, formatBytes(mapParams.bytes_sent), iconDown, formatBytes(mapParams.bytes_received))
+if ngx.var.request_method == "POST" and ngx.req.get_post_args().action == "AJAX-GET" then
     local function notnil(path)
         if path == nil or path == "" then
             return "0"
         end
         return path
     end
-    c.optical_bytes = format("%s %s %s %s", iconUp, notnil(mapParams.bytes_sent), iconDown, notnil(mapParams.bytes_received))
-    c.optical_packets = format("%s %s %s %s", iconUp, notnil(mapParams.packets_sent), iconDown, notnil(mapParams.packets_received))
-    c.optical_discard = format("%s %s %s %s", iconUp, notnil(mapParams.discard_sent), iconDown, notnil(mapParams.discard_received))
-    c.optical_errors = format("%s %s %s %s", iconUp, notnil(mapParams.errors_sent), iconDown, notnil(mapParams.errors_received))
-end)
+    local counters = {
+        optical_bytes = opticalBytes,
+        optical_packets = format("%s %s %s %s", iconUp, notnil(mapParams.packets_sent), iconDown, notnil(mapParams.packets_received)),
+        optical_discard = format("%s %s %s %s", iconUp, notnil(mapParams.discard_sent), iconDown, notnil(mapParams.discard_received)),
+        optical_errors = format("%s %s %s %s", iconUp, notnil(mapParams.errors_sent), iconDown, notnil(mapParams.errors_received)),
+    }
+    ngx.header.content_type = "application/json"
+    ngx.print(require("dkjson").encode(counters))
+    return ngx.exit(ngx.HTTP_OK)
+end
 
 local gpon_status = "connecting"
 if mapParams.gpon_state == "Up" then
@@ -122,7 +144,7 @@ local gpon_light_map = {
     html[#html + 1] =
     ui_helper.createLabel(
             T"Bytes",
-            format("%s %s %s %s", iconUp, mapParams["bytes_sent"], iconDown, mapParams["bytes_received"]),
+            opticalBytes,
             ajax_attr
     )
     ajax_attr.span.id="optical_packets"

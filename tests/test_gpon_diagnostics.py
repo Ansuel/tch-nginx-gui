@@ -9,6 +9,65 @@ LUA = shutil.which('luajit') or shutil.which('lua')
 
 @unittest.skipUnless(LUA, 'Lua required')
 class GponDiagnostics(unittest.TestCase):
+    def test_broadband_byte_units_on_load_and_ajax_refresh(self):
+        result = subprocess.run([LUA, '-', str(ROOT)], input=r'''
+local render = assert(loadfile(arg[1] .. '/www/snippets/broadband-gpon.lp'))
+local integrated, labels, response, tx, rx
+gettext = {textdomain=function() end}
+T = function(label) return label end
+package.loaded.bridgehelper = {hasIntegratedGpon=function() return integrated end}
+package.loaded['web.ui_helper'] = {
+  createLight=function() end,
+  createLabel=function(label, value, attr)
+    labels[label] = value
+    if label == 'Bytes' then assert(attr.span.id == 'optical_bytes') end
+  end,
+}
+package.loaded['web.content_helper'] = {getExactContent=function(content)
+  content.gpon_state = 'Up'
+  content.optical_signal_level, content.transmit_optical_level = '-20000', '2000'
+  content.bytes_sent, content.bytes_received = tx, rx
+  for _, counter in ipairs({'packets', 'discard', 'errors'}) do
+    content[counter .. '_sent'], content[counter .. '_received'] = '2048', '1024'
+  end
+end}
+package.loaded.dkjson = {encode=function(data) response = data; return '{}' end}
+package.loaded.internethelper = {getOptionalContent=function(content)
+  content.status, content.rx, content.tx = 'OPERATION (O5)', '', ''
+  content.tx_bytes, content.rx_bytes, content.rx_packets = tx, rx, '2048'
+end}
+package.loaded.datamodel = {get=function() return {} end}
+local function run(method)
+  labels, response = {}, nil
+  ngx = {var={request_method=method}, header={}, HTTP_OK=200,
+    req={get_post_args=function()
+      return {action='AJAX-GET', requested_params={'optical_bytes', 'optical_packets'}}
+    end},
+    print=function(body) if method == 'POST' then assert(body == '{}') end end,
+    exit=function(status) assert(status == 200); return status end,
+  }
+  return render()
+end
+local function counters(upload, download)
+  return '<i class="icon-upload icon-large gray"></i>  ' .. upload ..
+         ' <i class="icon-download icon-large gray"></i>  ' .. download
+end
+tx, rx = '1536', '1099511627776'
+run('GET')
+assert(labels.Bytes == counters('1.50 KiB', '1.00 TiB'))
+local initial_bytes = labels.Bytes
+assert(run('POST') == 200 and ngx.header.content_type == 'application/json')
+assert(response.optical_bytes == initial_bytes)
+assert(response.optical_packets == counters('2048', '1024'))
+tx, rx = '1023', ''
+assert(run('POST') == 200 and response.optical_bytes == counters('1023 B', '0 B'))
+integrated, tx, rx = true, '1073741824', '0'
+run('GET')
+assert(labels['Tx Bytes'] == '1.00 GiB' and labels['Rx Bytes'] == '0 B')
+assert(labels['Rx Packets'] == '2048')
+''', text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_network_reset_applies_once_and_keeps_integrated_gpon_read_only(self):
         source = (ROOT / 'www/docroot/modals/diagnostics-network-modal.lp').read_text()
         reset = source[source.index('local function statsPath'):source.index('local param = {"rx_bytes"')]
