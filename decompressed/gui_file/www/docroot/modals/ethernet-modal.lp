@@ -45,7 +45,6 @@ local vQTN = post_helper.validateQTN
 local gAV = post_helper.getAndValidation
 local gVIC = post_helper.getValidateInCheckboxgroup
 local gVIES = post_helper.getValidateInEnumSelect
-local vNES = post_helper.validateNonEmptyString
 
 local session = ngx.ctx.session
 local tech = false
@@ -357,6 +356,27 @@ if cur_dhcp_intf == "STB" then
     cur_dhcp_intf = "lan"
 end
 
+local dnsmasq_base = "uci.dhcp.dnsmasq."
+local default_dnsmasq = dnsmasq_base .. "@dnsmasq."
+local dhcp_instance = proxy.get(dhcp_intfs_path .. "@" .. cur_dhcp_intf .. ".instance")
+local instance_name = dhcp_instance and dhcp_instance[1] and untaint(dhcp_instance[1].value)
+local pool_dnsmasq = dnsmasq_base .. "@" .. (instance_name or "") .. "."
+local dnsmasq_sections = proxy.getPN(dnsmasq_base, true) or {}
+local has_default_dnsmasq = false
+local selected_dnsmasq
+for _, section in ipairs(dnsmasq_sections) do
+    if section.path == default_dnsmasq then
+        has_default_dnsmasq = true
+    end
+    if section.path == pool_dnsmasq then
+        selected_dnsmasq = section.path
+    end
+end
+local dnsmasq_path = selected_dnsmasq
+    or (has_default_dnsmasq and default_dnsmasq)
+    or (dnsmasq_sections[1] and dnsmasq_sections[1].path)
+    or default_dnsmasq
+
 local sfp_presence = proxy.get("uci.env.rip.sfp")
 
 --Support ethernet mode for devices with no eth4 port
@@ -384,7 +404,7 @@ local content_sfp, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
 
 -- Standard parameters
 local mapParams = {
-    domainName = "uci.dhcp.dnsmasq.@dnsmasq.domain",
+    domainName = dnsmasq_path .. "domain",
     dhcpStart = "uci.dhcp.dhcp.@" .. cur_dhcp_intf .. ".start",
     dhcpLimit = "uci.dhcp.dhcp.@" .. cur_dhcp_intf .. ".limit",
     --dhcpv4State = "uci.dhcp.dhcp.@" .. cur_dhcp_intf .. ".dhcpv4",
@@ -851,7 +871,7 @@ local function validatedhcpIgnore(value, object, key)
 end
 
 local mapValid = {
-    domainName = vNES,
+    domainName = post_helper.validateNonEmptyString,
     localdevIP = validateGWIP,
     --localIPv6 = validateIPv6,
     dnsServer = validateDNS,
@@ -908,9 +928,37 @@ local post_data = ngx.req.get_post_args()
 	end
 end
 
+local post_data = ngx.var.request_method == "POST" and ngx.req.get_post_args()
+local post_action = post_data and post_data.action
+if post_action == "SAVE" and post_data.domainName ~= nil then
+    -- Include the DNS settings in the same validated save as the DHCP domain.
+    mapParams.domainLocal = dnsmasq_path .. "local"
+    if has_default_dnsmasq and dnsmasq_path ~= default_dnsmasq then
+        mapParams.defaultDomain = default_dnsmasq .. "domain"
+        mapParams.defaultDomainLocal = default_dnsmasq .. "local"
+    end
+
+    -- These fields are derived from domainName, including when supplied in a POST.
+    local derivedDomainValue = post_helper.getOptionalValidation()
+    mapValid.domainLocal = derivedDomainValue
+    mapValid.defaultDomain = derivedDomainValue
+    mapValid.defaultDomainLocal = derivedDomainValue
+    mapValid.domainName = function(value, object)
+        local valid, msg = post_helper.validateStringIsDomainName(value)
+        if not valid then
+            return nil, msg
+        end
+        local local_domain = "/" .. value .. "/"
+        object.domainLocal = local_domain
+        if mapParams.defaultDomain then
+            object.defaultDomain = value
+            object.defaultDomainLocal = local_domain
+        end
+        return true
+    end
+end
 content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
-local post_action = ngx.var.request_method == "POST" and ngx.req.get_post_args().action
 if (post_action == "SAVE" or post_action == "RESET") and not next(helpmsg) then
    local dhcp_options_path = "uci.dhcp.dhcp.@"..cur_dhcp_intf..".dhcp_option."
    local dhcp_options = content_helper.convertResultToObject(dhcp_options_path,proxy.get(dhcp_options_path))
