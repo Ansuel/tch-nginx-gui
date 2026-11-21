@@ -166,10 +166,8 @@ elseif platform.module and platform.module ~= "" then
   ngx.print('<p>', T"Load the temporary", ' ', escape(platform.module), ' ',
     T"module from github.com/pedro-n-rocha/secr to read the device keys from kernel RAM and decrypt the encrypted parameters below. The module is never written to flash, it is removed immediately after the dump and everything is lost on reboot. Use at your own risk.", '</p>',
     '<p id="rip-keys-status" role="status">', escape(status_text), '</p>')
-  if not status_state:match("^requested") then
-    ngx.print('<button type="button" class="btn" id="rip-keys-extract" data-command="extract" data-pending="',
-      escape(extracting), '">', T"Extract keys", '</button>')
-  end
+  ngx.print('<button type="button" class="btn" id="rip-keys-extract" data-command="extract" data-pending="',
+    escape(extracting), '"', requesting and ' disabled' or '', '>', T"Extract keys", '</button>')
 else
   ngx.print('<p id="rip-keys-status" role="status">', T"No temporary key module is available for this platform", ': ',
     escape(platform.arch or "?"), ' ', escape(platform.release or "?"),
@@ -225,26 +223,34 @@ ngx.print('<script>\
   var busy = false;\
   var token = function() { return $("meta[name=CSRFtoken]").attr("content"); };\
 \
-  function poll(attempts) {\
-    $.post("modals/modgui-modal.lp", { action: "rip_status", CSRFtoken: token() }, function(data) {\
+  function showError(button, error) {\
+    busy = false;\
+    button.prop("disabled", false);\
+    status.textContent = failed + (error ? " " + error : "");\
+  }\
+\
+  function poll(button, deadline) {\
+    if (Date.now() >= deadline) { showError(button); return; }\
+    function retry() { window.setTimeout(function() { poll(button, deadline); }, 2000); }\
+    $.ajax({ url: "/modals/modgui-modal.lp", type: "POST", dataType: "json", timeout: 8000,\
+      data: { action: "rip_status", CSRFtoken: token() }\
+    }).done(function(data) {\
       var state = data && data.status || "";\
-      if (state.indexOf("eck=1") !== -1) { window.location.reload(); return; }\
-      var error = state.indexOf("state=error:");\
-      if (error !== -1 || attempts <= 0) {\
-        status.textContent = failed + (error !== -1 ? " " + state.slice(error + 12) : state);\
-        window.location.reload();\
-        return;\
-      }\
-      window.setTimeout(function() { poll(attempts - 1); }, 2000);\
-    }, "json").fail(function() {\
-      if (attempts > 0) { window.setTimeout(function() { poll(attempts - 1); }, 2000); return; }\
-      status.textContent = failed;\
-    });\
+      var error = state.match(/(?:^|;)state=error:(.*)$/);\
+      if (error) { showError(button, error[1]); return; }\
+      if (/(?:^|;)eck=1(?:;|$)/.test(state)) { window.location.reload(); return; }\
+      retry();\
+    }).fail(retry);\
+  }\
+\
+  function pollExtraction(button) {\
+    busy = true;\
+    poll(button, Date.now() + 300000);\
   }\
 \
   if (section.getAttribute("data-poll")) {\
     status.textContent = section.getAttribute("data-requesting");\
-    poll(60);\
+    pollExtraction($("#rip-keys-extract"));\
   }\
 \
   $("#rip-keys-extract,#rip-keys-clear").on("click", function() {\
@@ -253,21 +259,15 @@ ngx.print('<script>\
     var button = $(this);\
     button.prop("disabled", true);\
     if (button.data("pending")) status.textContent = button.data("pending");\
-    $.post("modals/modgui-modal.lp", {\
-      action: "rip_keys",\
-      command: button.data("command"),\
-      CSRFtoken: token()\
-    }, null, "json")\
+    $.ajax({ url: "/modals/modgui-modal.lp", type: "POST", dataType: "json", timeout: 10000,\
+      data: { action: "rip_keys", command: button.data("command"), CSRFtoken: token() }\
+    })\
     .done(function() {\
-      if (button.data("command") === "extract") poll(60);\
+      if (button.data("command") === "extract") pollExtraction(button);\
       else window.location.reload();\
     })\
     .fail(function(request) {\
-      busy = false;\
-      button.prop("disabled", false);\
-      var error = "";\
-      try { error = JSON.parse(request.responseText).error || ""; } catch (ignore) {}\
-      status.textContent = failed + (error ? " " + error : "");\
+      showError(button, request.responseJSON && request.responseJSON.error);\
     });\
     return false;\
   });\

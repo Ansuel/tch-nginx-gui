@@ -160,13 +160,24 @@ local function receive_file(filename, match)
         return result, err_code, err_msg
 end
 
+local function json_error(status, err, fallback)
+        if type(err) == "table" and not (string.istainted and string.istainted(err)) then
+                local first = err[1]
+                err = type(first) == "table" and first.errmsg or nil
+        end
+        ngx.status = status
+        ngx.header.content_type = "application/json"
+        ngx.print(require("dkjson").encode({success = false, error = err and tostring(err) or fallback}))
+        -- Error statuses passed to ngx.exit render an HTML error page on this firmware.
+        return ngx.exit(ngx.OK)
+end
+
 local function sendcmd(cmd, path)
                 local ok, err = proxy.set(path or "rpc.system.modgui.utility.sendcmd", cmd)
-                ngx.header.content_type = "application/json"
                 if not ok then
-                        ngx.print(require("dkjson").encode({success = false, error = err}))
-                        return ngx.exit(ngx.HTTP_CONFLICT)
+                        return json_error(ngx.HTTP_CONFLICT, err, "Unable to start command.")
                 end
+        ngx.header.content_type = "application/json"
         ngx.print('{"success":"true"}')
         ngx.timer.at(0, function()
                 proxy.apply()
@@ -376,9 +387,7 @@ if ngx.req.get_method() == "POST" then
                 local dkjson = require("dkjson")
                 local role_ok, role = pcall(function() return ngx.ctx.session:getrole() end)
                 if not role_ok or (role ~= "admin" and role ~= "engineer") then
-                        ngx.header.content_type = "application/json"
-                        ngx.print('{"success":false,"error":"Insufficient privileges"}')
-                        return ngx.exit(ngx.HTTP_FORBIDDEN)
+                        return json_error(ngx.HTTP_FORBIDDEN, nil, "Insufficient privileges")
                 end
                 if action == "rip_status" then
                         local result = proxy.get("rpc.system.modgui.utility.rip_status")
@@ -395,8 +404,7 @@ if ngx.req.get_method() == "POST" then
                         ngx.print('{"success":true}')
                         return ngx.exit(ngx.HTTP_OK)
                 end
-                ngx.print(dkjson.encode({ success = false, error = err or "RIP key action failed" }))
-                return ngx.exit(ngx.HTTP_CONFLICT)
+                return json_error(ngx.HTTP_CONFLICT, err, "RIP key action failed")
         end
         if action == "debug_report" then
 
