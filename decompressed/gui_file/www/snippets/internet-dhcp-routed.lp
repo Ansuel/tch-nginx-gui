@@ -12,7 +12,7 @@ local ui_helper = require("web.ui_helper")
 local message_helper = require("web.uimessage_helper")
 local ajax_helper = require("web.ajax_helper")
 local tonumber = tonumber
-local match, format = string.match, string.format
+local format = string.format
 local post_helper = require("web.post_helper")
 local session = ngx.ctx.session
 -- State data
@@ -86,34 +86,6 @@ local function get_dhcp_state(wan_auto, ipaddr)
     end
 end
 
-local function split(str, ang)
-	local tab = {}
-	for vari in string.gfind(format("%s",str), ang) do
-		table.insert(tab, vari)
-	end
-	return tab
-end 
-
-local function dns_filter(tab)
-	local ipv4_dns = ""
-	local ipv6_dns = ""
-	
-	for _,v in ipairs(tab) do
-		if match(v, "^(%d+)%.(%d+)%.(%d+)%.(%d+)$") then
-			ipv4_dns=ipv4_dns..format("%s,", v)
-		else
-			ipv6_dns=ipv6_dns..format("%s,", v)
-		end
-	end
-	
-	if #ipv4_dns > 1 then
-		ipv4_dns = string.sub(ipv4_dns,1,#ipv4_dns-1)
-	end
-	if #ipv6_dns > 1 then
-		ipv6_dns = string.sub(ipv6_dns,1,#ipv6_dns-1)
-	end
-	return ipv4_dns, ipv6_dns
-end
 -- Process POST query
 local post_helper = require("web.post_helper")
 local firewall_zone = proxy.get("uci.firewall.zone.")
@@ -171,7 +143,6 @@ local mapParams = {
     uci_wan_masq = "uci.firewall.zone."..zonenum..".masq",
 	uci_wan_ipv6 = "uci.network.interface.@wan.ipv6",
     uci_wan_mac = "uci.network.interface.@wan.macaddr",
-    uci_wan_peerdns = "uci.network.interface.@wan.peerdns",
 	uci_wan_vendorid = "uci.network.interface.@wan.vendorid",
 }
 
@@ -200,10 +171,10 @@ local mapValid = {
     uci_wan_masq = validateNat,
 	uci_wan_ipv6 = IPv6andUsername,
     uci_wan_mac = gOV(post_helper.validateStringIsMAC),
-    uci_wan_peerdns = vB,
 	uci_wan_vendorid = gOV(post_helper.validateNonEmptyString),
 }
 
+internethelper.addWanPeerDnsSettings(mapParams, mapValid)
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 -- default value
 if content["uci_wan_auto"] ~= "0" then
@@ -257,13 +228,13 @@ local cs = {
     nexthop = "rpc.network.interface.@wan.nexthop",
     dns = "rpc.network.interface.@wan.dnsservers",
     ipv6_gua = "rpc.network.interface.@wan6.ipv6uniquelocaladdr",
-    dns_loopback = "rpc.network.interface.@loopback.dnsservers", -- Added to include static dns servers configured on loopback interface (for TI custo)
 }
 
 
 for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
 	cs[v6Key] = v6Value
 end
+cs.dnsv6 = cs.dns
 
 local dhcp_lease = {
         uptime = "rpc.system.uptime",
@@ -281,41 +252,18 @@ end
 ajax_helper.handleAjaxQuery(cs, function(c)
     -- this will add the HTML for the light
     local ds = get_dhcp_state(content["uci_wan_auto"], c["ipaddr"])
-    local dnstab = split(getValue("rpc.network.interface.@loopback.dnsservers"), "[^%,]+")
-    local dnsv4, dnsv6 = dns_filter(dnstab)
     ajax_attr_light.light.class = dhcp_light_map[ds]
     c.wan_status = ui_helper.createSimpleLight(nil, dhcp_state_map[ds], ajax_attr_light)
-	if getValue("uci.network.interface.@wan.auto") == "1" then
-          c.dns = content_helper.getMergedList(getValue("rpc.network.interface.@wan.dnsservers"), dnsv4)
-        else
-		c.dns = dnsv4
-	end
-    local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
-    if ipv6_enabled and ipv6_enabled[1] and ipv6_enabled[1].value == "1" then
-		c.dnsv6 = dnsv6
-	end
-	if ds == "connected" then
+    c.dns, c.dnsv6 = internethelper.getWanDns()
+    if ds == "connected" then
         content_helper.getExactContent(dhcp_lease)
-        c["leaseobtained"], c["leaseexpires"] = getLeaseTime(dhcp_lease["uptime"],  dhcp_lease["lease"], dhcp_lease["lease_expires"])
+        c["leaseobtained"], c["leaseexpires"] = getLeaseTime(dhcp_lease["uptime"], dhcp_lease["lease"], dhcp_lease["lease_expires"])
     end
 end)
 -- will stop in handleAjaxQuery if it is an actual AJAX query
 internethelper.getOptionalContent(cs)
 
-local dnstab = split(cs.dns, "[^%,]+")
-local dnsv4, dnsv6 = dns_filter(dnstab)
-cs.dns = dnsv4
-if dnsv6 and not cs.dnsv6 then
-	cs.dnsv6 = dnsv6
-end
-
--- account for inconsistencies in DNS display format by removing extra spaces
-if cs["dns"] and cs["dns"]:len() > 0 then
-    cs["dns"] = cs["dns"]:gsub("%s+", "")
-end
-if cs["dnsv6"] and cs["dnsv6"]:len() > 0 then
-    cs["dnsv6"] = cs["dnsv6"]:gsub("%s+", "")
-end
+cs.dns, cs.dnsv6 = internethelper.getWanDns()
 
 dhcp_state = get_dhcp_state(content["uci_wan_auto"], cs["ipaddr"])
 

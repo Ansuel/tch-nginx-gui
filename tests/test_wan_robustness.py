@@ -199,13 +199,114 @@ assert(not helper.getMtuValidator('dhcp')('576', {uci_wan_ipv6 = '1'}))
 assert(#writes == 0)
 ''')
 
+    def test_peer_dns_save_repairs_existing_ipv6_settings_in_one_apply(self):
+        self.run_lua('''
+local store = {}
+local post = {action = 'SAVE', uci_wan_peerdns = '0'}
+ngx = {
+  var = {request_method = 'POST', content_type = 'application/x-www-form-urlencoded'},
+  req = {get_post_args = function() return post end},
+  ctx = {session = {retrieve = function(_, key) return store[key] end}},
+  header = {},
+  log = function() end,
+}
+string.untaint = function(value) return value end
+package.preload.bit = function() return {} end
+package.preload['tch.inet'] = function() return {ipv42num = function() return 0 end} end
+package.preload['tch.posix'] = function() return {} end
+package.preload['web.taint'] = function() return {} end
+package.preload['web.intl'] = function() return {load_gettext = function()
+  return {gettext = T, ngettext = T, language = function() end, textdomain = function() end}
+end} end
+package.preload['web.uimessage_helper'] = function() return {pushMessage = function(_, level)
+  store.uimessages = {{level = level}}
+end} end
+local library = LIBRARY_PATH
+package.path = library .. '/?.lua;' .. package.path
+-- Stock Lua rejects a legacy escape in the unrelated domain-name validator.
+local file = assert(io.open(library .. '/web/post_helper.lua'))
+local postSource = file:read('*a')
+file:close()
+local compile = loadstring or load
+package.preload['web.post_helper'] = assert(compile((postSource:gsub(string.char(92) .. '%-', '-'))))
+
+local applies = 0
+proxy.set = function(params)
+  writes[#writes + 1] = params
+  for path, value in pairs(params) do values[path] = value end
+  return true
+end
+proxy.apply = function()
+  applies = applies + 1
+  return true
+end
+local function peer(interface)
+  return 'uci.network.interface.@' .. interface .. '.peerdns'
+end
+local function save()
+  store.uimessages = nil
+  local params = {other = 'uci.network.interface.@wan.other'}
+  local valid = {other = require('web.post_helper').validateBoolean}
+  helper.addWanPeerDnsSettings(params, valid)
+  return require('web.post_helper').handleQuery(params, valid)
+end
+values[peer('wan')] = '0'
+values[peer('wan6')] = ''
+values[peer('6rd')] = '1'
+values['uci.network.interface.@wan.other'] = '0'
+
+save()
+assert(#writes == 1 and applies == 1)
+assert(values[peer('wan6')] == '0' and values[peer('6rd')] == '0')
+assert(values[peer('wan_6')] == nil)
+save()
+assert(#writes == 1 and applies == 2)
+
+values[peer('wan_6')] = '0'
+post.uci_wan_peerdns = '1'
+post.other = 'invalid'
+local _, errors = save()
+assert(errors.other and #writes == 1 and applies == 2)
+post.other = nil
+post.uci_wan_peerdns = 'invalid'
+_, errors = save()
+assert(errors.uci_wan_peerdns and #writes == 1 and applies == 2)
+post.uci_wan_peerdns = '1'
+save()
+assert(#writes == 2 and applies == 3)
+for _, interface in ipairs({'wan', 'wan6', 'wan_6', '6rd'}) do
+  assert(values[peer(interface)] == '1')
+end
+'''.replace('LIBRARY_PATH', repr(str(ROOT / 'usr/lib/lua'))))
+
+    def test_public_and_loopback_dns_are_merged_by_address_family(self):
+        self.run_lua('''
+package.preload['web.web'] = function() return {
+  html_escape = function(value) return (value:gsub('<', '&lt;'):gsub('>', '&gt;')) end,
+} end
+values['rpc.network.interface.@wan.dnsservers'] = '192.0.2.53, 2001:db8::53'
+values['rpc.network.interface.@wan6.dnsservers'] = '2001:db8::53 2001:db8::54'
+values['rpc.network.interface.@wan_6.dnsservers'] = '2001:db8::55'
+values['rpc.network.interface.@loopback.dnsservers'] = '192.0.2.54,2001:db8::53'
+local v4, v6 = helper.getWanDns()
+assert(v4 == '192.0.2.53,192.0.2.54', v4)
+assert(v6 == '2001:db8::53,2001:db8::54,2001:db8::55', v6)
+values['rpc.network.interface.@6rd.dnsservers'] = '<invalid>'
+v4 = helper.getWanDns()
+assert(v4:find('&lt;invalid&gt;', 1, true), v4)
+assert(#writes == 0)
+''')
+
     def test_dns_accepts_strings_lists_and_deduplicates_complete_addresses(self):
         source = MAPPING.read_text()
         block = source[source.index('local dnsServer1 ='):source.index('\nlocal config = "ipping"')]
         self.run_lua('''
-local static, status
+local static, status, peerdns
 local get_interface = function(key) return key end
-local uci_helper = {get_from_uci = function() return static end}
+local uci_helper = {get_from_uci = function(binding)
+  if binding.option == 'peerdns' then return peerdns end
+  return static
+end}
 local interface_status = {get = function() return status end}
 ''' + block + '''
 for _, config in ipairs({
@@ -222,6 +323,10 @@ for _, config in ipairs({'', {}, false}) do
   static, status = config, {inactive = {['dns-server'] = {'8.8.8.8'}}}
   getDnsServers('wan'); assert(servers == '8.8.8.8')
 end
+peerdns = '0'
+static = '2001:db8::53'
+getDnsServers('wan6')
+assert(servers == '2001:db8::53' and dnsServer1 == '')
 static, status = nil, nil
 getDnsServers('wan'); assert(servers == '' and dnsServer1 == '' and dnsServer2 == '')
 ''')

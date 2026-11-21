@@ -20,6 +20,52 @@ function M.getValue(path)
 	return result and result[1] and result[1].value or ""
 end
 
+local ipv6WanInterfaces = {"wan6", "wan_6", "6rd"}
+
+function M.addWanPeerDnsSettings(mapParams, mapValid)
+	local post_helper = require("web.post_helper")
+	mapParams.uci_wan_peerdns = "uci.network.interface.@wan.peerdns"
+	mapValid.uci_wan_peerdns = post_helper.validateBoolean
+
+	-- netifd applies peerdns per interface. Include existing IPv6 interfaces
+	-- in the same validated save as the WAN toggle.
+	for _, interface in ipairs(ipv6WanInterfaces) do
+		local path = "uci.network.interface.@" .. interface .. ".peerdns"
+		local result = proxy.get(path)
+		if result and result[1] then
+			local key = "uci_wan_peerdns_" .. interface
+			mapParams[key] = path
+			mapValid[key] = function(_, content)
+				local value = tonumber(content.uci_wan_peerdns)
+				content[key] = (value == 0 or value == 1) and tostring(value) or nil
+				return true
+			end
+		end
+	end
+end
+
+function M.getWanDns()
+	local html_escape = require("web.web").html_escape
+	local v4, v6, seen = {}, {}, {}
+	local function append(interface)
+		-- Both the modal labels and their AJAX refresh render HTML.
+		local value = html_escape(M.getValue("rpc.network.interface.@" .. interface .. ".dnsservers"))
+		for server in value:gmatch("[^%s,]+") do
+			if not seen[server] then
+				seen[server] = true
+				local list = server:find(":", 1, true) and v6 or v4
+				list[#list + 1] = server
+			end
+		end
+	end
+
+	append("wan")
+	for _, interface in ipairs(ipv6WanInterfaces) do append(interface) end
+	-- Some ISP profiles install static DNS servers on loopback.
+	append("loopback")
+	return table.concat(v4, ","), table.concat(v6, ",")
+end
+
 local function phoneUplink()
     local phone = "rpc.network.interface.@modgui_phone."
     if M.getValue("uci.network.interface.@modgui_phone.defaultroute") ~= "1" or M.getValue(phone .. "up") ~= "1" then

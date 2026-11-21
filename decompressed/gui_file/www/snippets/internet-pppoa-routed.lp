@@ -12,7 +12,7 @@ local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 local message_helper = require("web.uimessage_helper")
 local ajax_helper = require("web.ajax_helper")
-local match, format, find, upper = string.match, string.format, string.find, string.upper
+local format, find, upper = string.format, string.find, string.upper
 
 -- Process POST query
 local post_helper = require("web.post_helper")
@@ -94,35 +94,6 @@ function get_dhcp_state(wan_auto, wan_ppp, wan_error, ipaddr)
 	end
 end
 
-local function split(str, ang)
-	local tab = {}
-	for vari in string.gfind(format("%s",str), ang) do
-		table.insert(tab, vari)
-	end
-	return tab
-end
-
-local function dns_filter(tab)
-	local ipv4_dns = ""
-	local ipv6_dns = ""
-
-	for _,v in ipairs(tab) do
-		if match(v, "^(%d+)%.(%d+)%.(%d+)%.(%d+)$") then
-			ipv4_dns=ipv4_dns..format("%s,", v)
-		else
-			ipv6_dns=ipv6_dns..format("%s,", v)
-		end
-	end
-
-	if #ipv4_dns > 1 then
-		ipv4_dns = string.sub(ipv4_dns,1,#ipv4_dns-1)
-	end
-	if #ipv6_dns > 1 then
-		ipv6_dns = string.sub(ipv6_dns,1,#ipv6_dns-1)
-	end
-	return ipv4_dns, ipv6_dns
-end
-
 local firewall_zone = proxy.get("uci.firewall.zone.")
 local firewall_zone_path = content_helper.convertResultToObject("uci.firewall.zone.",firewall_zone)
 local zonenum = ""
@@ -148,7 +119,6 @@ local mapParams = {
   uci_wan_password = "uci.network.interface.@wan.password",
   uci_wan_masq = "uci.firewall.zone."..zonenum..".masq",
   uci_wan_ipv6 = "uci.network.interface.@wan.ipv6",
-  uci_wan_peerdns = "uci.network.interface.@wan.peerdns",
 }
 
 -- Shortcuts to validation helpers to make lines shorter
@@ -265,9 +235,9 @@ local mapValid = {
   uci_wan_password = gCV(isWanEnabled, gVP(vNES), gVP()),
   uci_wan_masq = validateNat,
   uci_wan_ipv6 = IPv6andUsername,
-  uci_wan_peerdns = vB,
 }
 
+internethelper.addWanPeerDnsSettings(mapParams, mapValid)
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 -- End POST process
 
@@ -286,40 +256,25 @@ local content_rpc = {
     ipaddr = "rpc.network.interface.@wan.ipaddr",
     nexthop = "rpc.network.interface.@wan.nexthop",
     dns = "rpc.network.interface.@wan.dnsservers",
-    dns_loopback = "rpc.network.interface.@loopback.dnsservers", -- Added to include static dns servers configured on loopback interface (for TI custo)
 }
 
 
 for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
 	content_rpc[v6Key] = v6Value
 end
+content_rpc.dnsv6 = content_rpc.dns
 
 ajax_helper.handleAjaxQuery(content_rpc, function(c)
     -- this will add the HTML for the light
     local ds = get_dhcp_state(content["uci_wan_auto"], getValue("rpc.network.interface.@wan.ppp.state"), getValue("rpc.network.interface.@wan.ppp.error"), c["ipaddr"])
-	local dnstab = split(getValue("rpc.network.interface.@loopback.dnsservers"), "[^%,]+")
-	local dnsv4, dnsv6 = dns_filter(dnstab)
     ajax_attr_light.light.class = ppp_light_map[ds]
     c.wan_status = ui_helper.createSimpleLight(nil, ppp_state_map[ds], ajax_attr_light)
-    if getValue("rpc.network.interface.@wan.ppp.state") == "connected" then
-	c.dns = content_helper.getMergedList(getValue("rpc.network.interface.@wan.dnsservers"), dnsv4)
-    else
-        c.dns = dnsv4
-    end
-    local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
-    if ipv6_enabled and ipv6_enabled[1] and ipv6_enabled[1].value == "1" then
-        c.dnsv6 = dnsv6
-    end
+    c.dns, c.dnsv6 = internethelper.getWanDns()
 end)
 
 internethelper.getOptionalContent(content_rpc)
 
-local dnstab = split(content_rpc.dns, "[^%,]+")
-local dnsv4, dnsv6 = dns_filter(dnstab)
-content_rpc.dns = dnsv4
-if dnsv6 and not content_rpc.dnsv6 then
-	content_rpc.dnsv6 = dnsv6
-end
+content_rpc.dns, content_rpc.dnsv6 = internethelper.getWanDns()
 
 -- need to untaint the string otherwise getExactContent will get lost
 local wan_atm_uci_path = format("uci.xtm.atmdevice.@%s.", content_rpc["wan_ppp_ll_intf"])
