@@ -1145,26 +1145,62 @@ local sleases_options = {
 
 
 local syshosts_data = lease_in_subnet and proxy.get("sys.hosts.host.")
+local sys_hosts = content_helper.convertResultToObject("sys.hosts.host.", syshosts_data)
+local names_by_mac = {}
+for _, host in ipairs(sys_hosts) do
+    if host.MACAddress and host.HostName then
+        names_by_mac[string.lower(untaint(host.MACAddress))] = host.HostName
+    end
+end
+
+local function lease_hostname(lease)
+    if lease.owner == "portforward" and lease.mac then
+        return names_by_mac[string.lower(untaint(lease.mac))] or lease.name
+    end
+    return lease.name
+end
+
+local lease_sort_keys = {
+    ip = function(lease)
+        local ip = ipv42num(lease.ip)
+        -- ipv42num returns a signed 32-bit integer.
+        return ip and ip % 4294967296 or math.huge
+    end,
+    name = function(lease)
+        return string.lower(untaint(lease_hostname(lease)) or "")
+    end,
+    mac = function(lease)
+        return string.lower(untaint(lease.mac) or "")
+    end,
+}
+
+local lease_sort
+if lease_in_subnet then
+    local sort_session_key = sleases_options.tableid .. ".sort"
+    local previous_sort = session:retrieve(sort_session_key)
+    local requested_sort = post_action == "SLEASES-SORT" and untaint(post_data.sleases_sort)
+    lease_sort = lease_sort_keys[requested_sort] and requested_sort or previous_sort or "ip"
+    if lease_sort ~= previous_sort then
+        session:store(sort_session_key, lease_sort)
+        -- The previous row numbers belong to a different order.
+        session:store(sleases_options.tableid .. ".stateid", post_helper.getRandomKey())
+    end
+    local sort_key = lease_sort_keys[lease_sort]
+    sleases_options.sorted = function(a, b)
+        local a_key, b_key = sort_key(a), sort_key(b)
+        if a_key ~= b_key then
+            return a_key < b_key
+        end
+        return a.paramindex < b.paramindex
+    end
+end
+
 local sleases_filter = function(data)
     if not data.ip or not lease_in_subnet(data.ip) then
         return false
     end
     if data['owner'] == "portforward" then
-        local path
-        if syshosts_data then
-            for _, v in pairs(syshosts_data) do
-                if v.value == data['mac'] then
-                    path = v.path
-                    break
-                end
-            end
-            for _, v in pairs(syshosts_data) do
-                if v.path == path and v.param == "HostName" then
-                    data['name'] = v.value
-                    break
-                end
-            end
-        end
+        data.name = lease_hostname(data)
         return { canEdit = false, canDelete = false }
     end
     if data.name and data.name:find("^ReservedStatic") == 1 then
@@ -1209,13 +1245,10 @@ if lease_in_subnet and ngx.var.request_method == "POST" then
     end
     if post_data.action == "TABLE-MODIFY" or  post_data.action == "TABLE-ADD" then
       local slease_ip = post_data.sleases_ip
-      local arranged_data = content_helper.convertResultToObject("sys.hosts.host.", syshosts_data)
-      if arranged_data then
-        for _, v in pairs(arranged_data) do
-            if v.DhcpLeaseTime ~= "" and v.IPAddress == slease_ip then
-                inUseFlag = true
-                break
-           end
+      for _, v in ipairs(sys_hosts) do
+        if v.DhcpLeaseTime ~= "" and v.IPAddress == slease_ip then
+          inUseFlag = true
+          break
         end
       end
     end
@@ -1356,6 +1389,17 @@ if lease_in_subnet then
     ngx.print('\
                   <legend>');  ngx.print( T"Static leases" ); ngx.print('</legend>\
                   ');
+    if #sleases_data > 1 and (not sleases_options.editing or sleases_options.editing == 0) then
+        ngx.print(ui_helper.createInputSelectWithButton(T"Sort by", "sleases_sort", {
+            { "ip", T"IP" },
+            { "name", T"Hostname" },
+            { "mac", T"MAC address" },
+        }, lease_sort, T"Sort", "icon-sort", {
+            label = { ["for"] = "sleases_sort" },
+            select = { class = "span2", ["data-for"] = "SLEASES-SORT" },
+            button = { ["data-name"] = "action", ["data-value"] = "SLEASES-SORT" },
+        }))
+    end
     local confilictipchange_alert = {
         alert = {
             class = "alert hide",
