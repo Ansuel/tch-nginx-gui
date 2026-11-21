@@ -32,36 +32,6 @@ local ajax_attr = {
 local firewall_zone = proxy.get("uci.firewall.zone.")
 local firewall_zone_path = content_helper.convertResultToObject("uci.firewall.zone.",firewall_zone)
 local zonenum = ""
-local match, format = string.match, string.format
-
-local function split(str, ang)
-	local tab = {}
-	for vari in string.gfind(format("%s",str), ang) do
-		table.insert(tab, vari)
-	end
-	return tab
-end 
-
-local function dns_filter(tab)
-	local ipv4_dns = ""
-	local ipv6_dns = ""
-	
-	for _,v in ipairs(tab) do
-		if match(v, "^(%d+)%.(%d+)%.(%d+)%.(%d+)$") then
-			ipv4_dns=ipv4_dns..format("%s,", v)
-		else
-			ipv6_dns=ipv6_dns..format("%s,", v)
-		end
-	end
-	
-	if #ipv4_dns > 1 then
-		ipv4_dns = string.sub(ipv4_dns,1,#ipv4_dns-1)
-	end
-	if #ipv6_dns > 1 then
-		ipv6_dns = string.sub(ipv6_dns,1,#ipv6_dns-1)
-	end
-	return ipv4_dns, ipv6_dns
-end
 
 for _, v in ipairs(firewall_zone_path) do
   if (v["name"] == "wan") then
@@ -149,29 +119,22 @@ local mapValid = {
 --- GRAB CURRENT DATA AND HELP MESSAGES FROM POST HANDLER
 --- FOR DNS CONFIGURATION, EITHER GET CURRENT VALUE OR LEAVE BLANK BASED ON FINDINGS
 --- HELP MESSAGES APPEAR NEXT TO CONTROLS (EXAMPLE INVALID VALUE ERRORS FOR TEXT FIELDS)
+internethelper.addWanPeerDnsSettings(mapParams, mapValid)
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
 ---
 --- DNS CONFIGURATION TABLE ITEMS
 ---
 local content_dns = {
-						wandns = "rpc.network.interface.@wan.dnsservers";
-						loopbackdns = "rpc.network.interface.@loopback.dnsservers";
-						}
-						
+    wandns = "rpc.network.interface.@wan.dnsservers",
+    dnsv6 = "rpc.network.interface.@wan.dnsservers",
+}
+
 ajax_helper.handleAjaxQuery(content_dns, function(c)
-    -- this will add the HTML for the light
-	local dnstab = split(c.loopbackdns, "[^%,]+")
-	local dnsv4, dnsv6 = dns_filter(dnstab)
-	c.loopbackdns = content_helper.getMergedList(getValue("rpc.network.interface.@wan.dnsservers"), dnsv4)
+    c.wandns, c.dnsv6 = internethelper.getWanDns()
 end)
 
-internethelper.getOptionalContent(content_dns)
-
-
-local dnstab = split(content_dns.loopbackdns, "[^%,]+")
-local dnsv4, dnsv6 = dns_filter(dnstab)
-content_dns.loopbackdns = content_helper.getMergedList(content_dns.wandns, dnsv4)
+content_dns.wandns, content_dns.dnsv6 = internethelper.getWanDns()
 
 local ipv4pattern = "^(((([1]?\\d)?\\d|2[0-4]\\d|25[0-5])\\.){3}(([1]?\\d)?\\d|2[0-4]\\d|25[0-5]))$"
 local dnsColumns = {
@@ -180,7 +143,7 @@ local dnsColumns = {
        name   = "wanDnsParam",                          -- MAP THIS PARAMETER AGAINST dnsValid TABLE
        param  = "value",                                -- APPENDED TO basepath OF dnsOptions TABLE
        type   = "text",
-       attr   = { input = { class="span2", maxlength="15", pattern = ipv4pattern } },
+       attr   = { input = { class="span3", maxlength="45" } },
     },
 }
 
@@ -196,7 +159,12 @@ local dnsOptions = {
 }
 
 local dnsValid = {
-    wanDnsParam =  post_helper.advancedIPValidation,
+    wanDnsParam = function(value, object, key)
+        if post_helper.GetIPType(value) == 6 then
+            return true
+        end
+        return post_helper.advancedIPValidation(value, object, key)
+    end,
 }
 
 local dnsData, dnsHelpMsg = post_helper.handleTableQuery(dnsColumns, dnsOptions, nil, nil, dnsValid)
@@ -274,10 +242,12 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
         html[#html+1] = ui_helper.createInputText(T"IP Address", "wanIpAddrParam", content["wanIpAddrParam"], wanIPClass, helpmsg["wanIpAddrParam"])
         html[#html+1] = ui_helper.createInputText(T"Subnet Mask", "wanNetmaskParam", content["wanNetmaskParam"], wanNetmaskClass, helpmsg["wanNetmaskParam"])
         html[#html+1] = ui_helper.createInputText(T"Gateway", "wanGatewayParam", content["wanGatewayParam"], wanGatewayClass, helpmsg["wanGatewayParam"])
-        if dns_loopback ~= "" then
-	    ajax_attr.span.id = "loopbackdns"
-            html[#html+1] = ui_helper.createLabel(T"DNS Servers", content_dns.loopbackdns,ajax_attr)
-        end
+        ajax_attr.span.id = "wandns"
+        html[#html+1] = ui_helper.createLabel(T"DNS Servers", content_dns.wandns, ajax_attr)
+        ajax_attr.span.id = "dnsv6"
+        html[#html+1] = ui_helper.createLabel(T"IPv6 DNS", content_dns.dnsv6, ajax_attr)
+        local peerdns = content.uci_wan_peerdns == "" and "1" or content.uci_wan_peerdns
+        html[#html+1] = ui_helper.createSwitch(T"Auto Discover DNS", "uci_wan_peerdns", peerdns)
 
         ngx.print(html)
       ngx.print('\

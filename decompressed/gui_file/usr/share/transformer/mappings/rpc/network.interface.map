@@ -661,12 +661,13 @@ local function getDnsServers(key)
   local v = {}
   local interface = get_interface(key)
   local staticDns = uci_helper.get_from_uci({ config = "network", sectionname = interface, option = "dns"})
+  local peerDns = uci_helper.get_from_uci({ config = "network", sectionname = interface, option = "peerdns"})
   local intfValue = interface_status.get(interface)
   local active = intfValue and intfValue['dns-server']
   local inactive = intfValue and intfValue['inactive'] and intfValue['inactive']['dns-server']
   if type(active) == "table" and #active ~= 0 then
     v = active
-  elseif type(inactive) == "table" and #inactive ~= 0 then
+  elseif peerDns ~= "0" and type(inactive) == "table" then
     v = inactive
   end
   local list, seen = {}, {}
