@@ -35,12 +35,15 @@ for id, hex in rpc_value("rpc.system.modgui.utility.rip_values"):gmatch("(%x%x%x
   if #hex % 2 == 0 then decrypted[id] = hex end
 end
 
--- ID names from https://github.com/pedro-n-rocha/secr/blob/master/eripv2.py
--- Names from the eRIPv2 catalog; values are shown for every id the driver exposes.
+-- ID names from https://github.com/pedro-n-rocha/secr/blob/master/eripv2.py,
+-- extended/verified on Technicolor BCMBCA (BCM63138, DGA4130/TIM) and BMIPS.
+-- Values are shown for every id the driver exposes.
 local catalog = {
   ["0000"] = { name = "LOWER_CHECKSUM" },
   ["0002"] = { name = "UNPROT_FREE1" },
   ["0004"] = { name = "PART_NBR_VARIANT" },
+  ["0008"] = { name = "BOOT_BANK_STATE" },
+  ["0009"] = { name = "BOOT_FLAGS" },
   ["0010"] = { name = "ICS" },
   ["0012"] = { name = "BOARD_SERIAL_NBR" },
   ["0022"] = { name = "FACTORY_RELEASE_DATE" },
@@ -51,6 +54,9 @@ local catalog = {
   ["003c"] = { name = "FACTORY_ID" },
   ["0040"] = { name = "BOARD_NAME" },
   ["0048"] = { name = "MEMORY_CONFIG" },
+  ["0049"] = { name = "BOARD_SUBCFG_A" },
+  ["004a"] = { name = "BOARD_SUBCFG_B" },
+  ["004b"] = { name = "BOARD_SUBCFG_C" },
   ["004c"] = { name = "USB_LAN_ADDR" },
   ["0083"] = { name = "MODEM_ACCESS_CODE" },
   ["0088"] = { name = "SECURE_REMOTE_MANG_PASWD" },
@@ -69,6 +75,7 @@ local catalog = {
   ["0115"] = { name = "CHIPID" },
   ["0116"] = { name = "PUBLIC_RSA_KEY" },
   ["0118"] = { name = "SERIAL_NBR_BYTES" },
+  ["0119"] = { name = "FEATURE_MASK" },
   ["011a"] = { name = "CLIENT_CERTIFICATE" },
   ["011b"] = { name = "OPTICAL_FRONT_END" },
   ["011c"] = { name = "DUID_LLT" },
@@ -82,7 +89,11 @@ local catalog = {
   ["0125"] = { name = "UNLOCK_TAG" },
   ["0127"] = { name = "OLYMPUS_IK" },
   ["0128"] = { name = "OLYMPUS_CK" },
-  ["012b"] = { name = "RANDOM_KEY_D" },
+  ["012a"] = { name = "PRIVATE_BLOB_A" },
+  ["012b"] = { name = "PRIVATE_BLOB_B" },
+  ["012c"] = { name = "TLV_NUMERIC_SECRET" },
+  ["012d"] = { name = "TLV_ALNUM_SECRET_A" },
+  ["012e"] = { name = "TLV_ALNUM_SECRET_B" },
   ["4001"] = { name = "ID_DECT_CFG" },
   ["8001"] = { name = "PRODUCT_ID" },
   ["8003"] = { name = "VARIANT_ID" },
