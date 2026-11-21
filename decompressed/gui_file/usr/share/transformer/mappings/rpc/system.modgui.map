@@ -176,6 +176,7 @@ local SYSTEM_MODGUI_UTILITY_ = {
     minEntries = 1,
     maxEntries = 1,
     parameters = {
+      sendcmd = {access = "readWrite", type = "string"},
       rip_key_B = {access = "readOnly", type = "string"},
       rip_index = {access = "readOnly", type = "string"},
       rip_status = {access = "readOnly", type = "string"},
