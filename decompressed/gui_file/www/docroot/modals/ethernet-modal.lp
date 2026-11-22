@@ -67,9 +67,14 @@ local clear_network_stats = {
 local pIPV = post_helper.isPublicIP
 
 local hosts_mac = {}
-for k, v in pairs(hosts_ac) do
-    local mac = match(k, "%[(.*)%]")
-    hosts_mac[#hosts_mac+1] = {mac, mac}
+local seen_mac = {}
+for host_label in pairs(hosts_ac) do
+    local mac = match(host_label, "%[([^%[%]]+)%]$")
+    local mac_key = mac and mac:lower()
+    if mac_key and not seen_mac[mac_key] then
+        seen_mac[mac_key] = true
+        hosts_mac[#hosts_mac+1] = {mac, mac}
+    end
 end
 
 hosts_mac[#hosts_mac+1] = {"custom",T"custom"}

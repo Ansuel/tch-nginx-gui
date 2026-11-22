@@ -139,6 +139,14 @@ local _, BitsDs = pcall(xdslctlget, "Bits","Ds")
 local _, QLNDs = pcall(xdslctlget, "QLN","Ds")
 local _, SNRDs = pcall(xdslctlget, "SNR","Ds")
 
+local function printChartStyleSelect(id)
+  ngx.print('<label for="', id, '">', T"Chart style", '</label>',
+    '<select id="', id, '">',
+    '<option value="points">', T"Points", '</option>',
+    '<option value="line">', T"Line", '</option>',
+    '</select>')
+end
+
   ngx.print('\
 \
 ');  ngx.print(ui_helper.createHeader(T"Diagnostics DSL", false, true))   ngx.print('\
@@ -157,7 +165,9 @@ local _, SNRDs = pcall(xdslctlget, "SNR","Ds")
     </form>\
 \
 	<fieldset>\
-      <legend>');  ngx.print( T"DSL Hlog" ); ngx.print('</legend>\
+      <legend>');  ngx.print( T"DSL Hlog" ); ngx.print('</legend>')
+	  printChartStyleSelect("HlogChartStyle")
+	  ngx.print('\
 		<div style="overflow-x:auto;max-width:1130px;">')
 		  	ngx.print('<div style="height: 400px;width:1130px;">')
 		  ngx.print('\
@@ -166,7 +176,9 @@ local _, SNRDs = pcall(xdslctlget, "SNR","Ds")
 		</div>\
     </fieldset>\
 	<fieldset>\
-      <legend>');  ngx.print( T"DSL QLN" ); ngx.print('</legend>\
+      <legend>');  ngx.print( T"DSL QLN" ); ngx.print('</legend>')
+	  printChartStyleSelect("QLNChartStyle")
+	  ngx.print('\
 	    <div style="overflow-x:auto;max-width:1130px;">')
 		  	ngx.print('<div style="height: 400px;width:1130px;">')
 		  ngx.print('\
@@ -203,15 +215,15 @@ var hlog_ctx = document.getElementById("HlogChart").getContext("2d");\
     data: {labels: labelLegend,\
 	"datasets":[{"data":['); ngx.print(HlogUs); ngx.print('],\
 	"pointBackgroundColor": "#90cd8a",\
+	"borderColor": "#90cd8a",\
 	"lineTension":0.1,\
 	"pointBorderWidth":"0.6",\
-	"pointRadius":"0.6",\
     },\
 	{"data":['); ngx.print(HlogDs); ngx.print('],\
 	"pointBackgroundColor": "#f58368",\
+	"borderColor": "#f58368",\
 	"lineTension":0.1,\
 	"pointBorderWidth":"0.6",\
-	"pointRadius":"0.6",\
     }]},\
     options: {\
 		maintainAspectRatio: false,\
@@ -222,8 +234,9 @@ var hlog_ctx = document.getElementById("HlogChart").getContext("2d");\
                 }\
             }]\
         },\
-		spanGaps:true,\
+		spanGaps:false,\
 		showLines:false,\
+		elements: {point: {radius: 0.6}, line: {borderWidth: 1, fill: false}},\
 		pointStyle:"cross",\
 		legend: {display: false},\
 		animation: {\
@@ -241,14 +254,14 @@ var qln_ctx = document.getElementById("QLNChart").getContext("2d");\
     data: {labels: labelLegend,\
 	"datasets":[{"data":['); ngx.print(QLNUs); ngx.print('],\
 	"pointBackgroundColor": "#90cd8a",\
+	"borderColor": "#90cd8a",\
 	"lineTension":0.1,\
 	"pointBorderWidth":"0.6",\
-	"pointRadius":"0.6",\
     },{"data":['); ngx.print(QLNDs); ngx.print('],\
 	"pointBackgroundColor": "#f58368",\
+	"borderColor": "#f58368",\
 	"lineTension":0.1,\
 	"pointBorderWidth":"0.6",\
-	"pointRadius":"0.6",\
     }]},\
     options: {\
 		maintainAspectRatio: false,\
@@ -259,8 +272,9 @@ var qln_ctx = document.getElementById("QLNChart").getContext("2d");\
                 }\
             }]\
         },\
-		spanGaps:true,\
+		spanGaps:false,\
 		showLines:false,\
+		elements: {point: {radius: 0.6}, line: {borderWidth: 1, fill: false}},\
 		pointStyle:"cross",\
 		legend: {display: false},\
 		animation: {\
@@ -272,6 +286,17 @@ var qln_ctx = document.getElementById("QLNChart").getContext("2d");\
         responsiveAnimationDuration: 0,\
     }\
 });\
+function bindChartStyle(selectId, chart) {\
+    var select = document.getElementById(selectId);\
+    select.addEventListener("change", function() {\
+        var showLine = select.value === "line";\
+        chart.options.showLines = showLine;\
+        chart.options.elements.point.radius = showLine ? 0 : 0.6;\
+        chart.update();\
+    });\
+}\
+bindChartStyle("HlogChartStyle", HlogChart);\
+bindChartStyle("QLNChartStyle", QLNChart);\
 var snr_ctx = document.getElementById("SNRChart").getContext("2d");\
 	var SNRChart = new Chart(snr_ctx, {\
     type: "line",\

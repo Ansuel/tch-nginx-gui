@@ -56,6 +56,7 @@ string.untaint = function(s) return s end
 T = function(s) return s end
 gettext = {textdomain = function() end}
 local role, enabled, output, layout, inventory = 'admin', '0', {}, true, false
+local model = 'DGA4331'
 local variants = {ExtenderPage = {extenderConfig = {
   showEMConfigPage = {value=true}, extenderInfo = {value=true}, backhaulConfig = {value=true},
 }}, Wireless = {wireless = {}}}
@@ -66,6 +67,7 @@ local function value(path)
   if path:match('frequency_bands$') then return 'radio_2G' end
   if path:match('security_mode$') then return 'wpa2-psk' end
   if path:match('hostname$') then return 'Gateway' end
+  if path == 'uci.env.var.prod_friendly_name' then return model end
   if path:match('NumberOfEntries$') then return '0' end
   return ''
 end
@@ -126,13 +128,18 @@ local function emit(v)
   if type(v)=='table' then for _,item in ipairs(v) do emit(item) end
   else output[#output+1]=tostring(v) end
 end
-ngx = {ctx={session={getrole=function() return role end}}, var={request_method='GET'},
+ngx = {ctx={session={getrole=function() return role end, hasAccess=function() return true end}},
+  var={request_method='GET'}, escape_uri=function(s) return (s:gsub(' ', '%%20')) end,
   req={get_uri_args=function() return {} end, get_method=function() return 'GET' end},
   print=function(...) for i=1,select('#',...) do emit(select(i,...)) end end}
 '''
         script += f'local root = {str(ROOT)!r}\n'
         script += r'''
-package.preload.easymesh_topology=function() return assert(loadfile(root..'/www/lua/easymesh_topology.lua'))() end
+package.path = root .. '/www/lua/?.lua;' .. package.path
+local open = io.open
+io.open = function(path, mode)
+  return open(path:gsub('^/www/', root .. '/www/'), mode)
+end
 for _, current_role in ipairs({'admin','engineer'}) do
   role = current_role
   for _, state in ipairs({'0','1'}) do
@@ -151,6 +158,24 @@ for _, current_role in ipairs({'admin','engineer'}) do
       inventory=false
     end
   end
+end
+local card = assert(loadfile(root .. '/www/cards/001_gateway.lp'))
+local topology = assert(loadfile(root .. '/www/docroot/modals/easymesh-topology-modal-newEM.lp'))
+for _, case in ipairs({
+  {model='DGA4331', image='gateway_AGTHF'},
+  {model='Unknown model', image='gateway_icon'},
+}) do
+  model = case.model
+  output = {}
+  card()
+  local html = table.concat(output)
+  assert(html:find('src="/img/' .. case.image .. '.png"', 1, true))
+  if model == 'DGA4331' then
+    assert(html:find('srcset="/img/gateway_AGTHF.webp"', 1, true))
+  end
+  output = {}
+  topology()
+  assert(table.concat(output):find('src="/img/' .. case.image .. '.png"', 1, true))
 end
 '''
         for runtime in filter(None, (shutil.which('lua'), shutil.which('luajit'))):

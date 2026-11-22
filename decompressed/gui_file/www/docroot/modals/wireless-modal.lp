@@ -343,11 +343,14 @@ end
 local wifi_standard_24GHz = {
       { "bg", T'802.11b/g'},
       { "bgn", T'802.11b/g/n'},
+      { "n", T'802.11n'},
 }
 
 local wifi_standard_5GHz = {
     { "an", T'802.11a/n'},
     { "anac", T'802.11a/n/ac'},
+    { "nac", T'802.11n/ac'},
+    { "ac", T'802.11ac'},
 }
 
 local supported_standards = untaint(radioData[curradio].supported_standards or "")
@@ -442,6 +445,7 @@ end
 
 local cw = {
   ["bg"] = "channelwidth20",
+  ["n"] = "channelwidth40",
   ["bgn"] = "channelwidth40",
   ["bgnax"] = "channelwidth40",
   ["gnax"] = "channelwidth40",
@@ -449,6 +453,7 @@ local cw = {
   ["an"] = "channelwidth40",
   ["anac"] = "channelwidth80",
   ["nac"] = "channelwidth80",
+  ["ac"] = "channelwidth80",
   ["anacax"] = "channelwidth160",
   ["nacax"] = "channelwidth160",
   ["acax"] = "channelwidth160",
@@ -1278,7 +1283,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
 
             local cw40attributes  = {
                 group = {
-                    class ="hide monitor-standard monitor-bgn monitor-bgnax monitor-gnax monitor-nax monitor-an",
+                    class ="hide monitor-standard monitor-bgn monitor-bgnax monitor-gnax monitor-nax monitor-an monitor-n",
                 },
 
             }
@@ -1287,7 +1292,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
 
             local cw80attributes  = {
                 group = {
-                    class ="hide monitor-standard monitor-anac monitor-nac",
+                    class ="hide monitor-standard monitor-anac monitor-nac monitor-ac",
                 },
             }
 

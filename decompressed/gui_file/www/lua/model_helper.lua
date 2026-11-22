@@ -1,4 +1,4 @@
-return {
+local models = {
  ["DGA4130"] = "AGTEF",
  ["DGA4132"] = "AGTHP",
  ["MediaAccess DGA4331"] = "AGTHF",
@@ -20,3 +20,19 @@ return {
  ["Technicolor DJA0231"] = "DJA0231",
 }
 
+function models.gateway_image(model, extension)
+  model = model:match("^%s*(.-)%s*$")
+  local short = model:gsub("^MediaAccess%s+", ""):gsub("^Technicolor%s+", "")
+  local alias = models[model] or models[short] or models["MediaAccess " .. short] or models["Technicolor " .. short]
+  local token = type(alias) == "string" and alias or short
+  if token:match("^[%w _%-]+$") then
+    local name = "gateway_" .. token .. "." .. extension
+    local file = io.open("/www/docroot/img/" .. name, "r")
+    if file then
+      file:close()
+      return name
+    end
+  end
+end
+
+return models

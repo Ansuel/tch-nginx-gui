@@ -396,7 +396,7 @@ if ngx.var.request_method == "POST" then
 end
 
 local icons = {
-  gateway = "gateway_icon.png",
+  gateway = topology.local_image(),
   host = "wifi_all.png",
   extenderBlue = "ext.png",
   extenderStatusRed = "booster_status_red.png",
@@ -404,14 +404,7 @@ local icons = {
   extenderStatusGreen = "booster_status_green.png",
   ethernet = "ethernet.png"
 }
-if isExtender then
-  icons["gateway"] = "extender.png"
-end
 local owaExtender = false
-if post_helper.getVariantValue(variantHelper, "ExtenderImage") then
-  icons["gateway"] = "gateway.png"
-end
-icons.gateway = topology.local_image()
 
 local link = {
   gateway = "/modals/easymesh-configuration-modal-newEM.lp",
