@@ -142,27 +142,6 @@ local function getWifiTodListFromIndex(index)
 	return nil
 end
 
-local function checkApInConfig(apInConfig,apToCheck)
-	local ap_list = {}
-  
-	if not apInConfig then
-		return false
-	end
-  
-	for i,v in ipairs(apInConfig) do
-		local ap_index = proxy.get(v.path.."value")[1].value
-		ap_list[#ap_conf+1] = ap_list:match("(.*)_")
-	end
-	
-	for _, ap in pairs(ap_list) do
-		if ap == apToCheck then
-			return true
-		end
-	end
-		
-	return false
-end
-
 local function onAdd(success, content, onModify)
 
   local index = success:match("action(.+)")
@@ -330,31 +309,35 @@ local timer_data = {}
 
 local function getApSelected(index)
 	local wifi_list, wifi_selected = {}, {}
-	
+
 	local wifiTodList = getWifiTodListFromIndex(index)
-	
+
 	if not wifiTodList then
 		return "", {}
 	end
-	
+
 	for _,v in ipairs(wifiTodList) do
-		local ap_index = proxy.get(v.path.."value")[1].value
+		local val = proxy.get(v.path.."value")
+		local ap_index = val and val[1] and val[1].value or ""
 		local ap = ap_index:match("(.*)_")
-		local ssid_get = proxy.get("rpc.wireless.ap.@"..ap..".ssid")
-		wifi_selected[#wifi_selected+1] = ap
-		if ssid_get then
-			local ssid = ssid_get[1].value
-			local name = proxy.get("rpc.wireless.ssid.@"..ssid..".ssid")[1].value
-			
-			local freq = proxy.get("rpc.wireless.ssid.@"..ssid..".radio")
-			freq = freq and freq[1].value
-			freq = string.match(freq,"radio_5G") and "5GHz" or "2.4GHz"
-			
-			wifi_list[#wifi_list+1] = untaint(name).." ("..untaint(freq)..")"
-			wifi_list[#wifi_list+1] = "<br/>"
+		if ap and ap ~= "" then
+			local ssid_get = proxy.get("rpc.wireless.ap.@"..ap..".ssid")
+			wifi_selected[#wifi_selected+1] = ap
+			if ssid_get and ssid_get[1] then
+				local ssid = ssid_get[1].value
+				local name_data = proxy.get("rpc.wireless.ssid.@"..ssid..".ssid")
+				local name = name_data and name_data[1] and name_data[1].value or ssid
+
+				local freq_data = proxy.get("rpc.wireless.ssid.@"..ssid..".radio")
+				local freq_val = freq_data and freq_data[1] and freq_data[1].value or ""
+				local freq = string.match(freq_val,"radio_5G") and "5GHz" or "2.4GHz"
+
+				wifi_list[#wifi_list+1] = untaint(name).." ("..untaint(freq)..")"
+				wifi_list[#wifi_list+1] = "<br/>"
+			end
 		end
 	end
-	
+
 	return table.concat(wifi_list), wifi_selected
 end
 
@@ -364,16 +347,20 @@ local tablesessionindexes = tod_options.tableid .. ".allowedindexes"
 session:store(tablesessionindexes, tod_index)
 
 for i, v in ipairs(tod_data) do
-	local index = action_list[i].object:gsub("wifitod.wifitod_","")
+	local obj = action_list[i] and action_list[i].object or ""
+	local index = obj:gsub("wifitod.wifitod_","")
 	local wifi_list, wifi_selected = getApSelected(index)
-	local days, start_time = timer_list[i].start_time:match("^(.-):(.+)$")
+	local timer_start = timer_list[i] and timer_list[i].start_time or ""
+	local days, start_time = timer_start:match("^(.-):(.+)$")
+	local timer_stop = timer_list[i] and timer_list[i].stop_time or ""
+	local stop_time = timer_stop:match("^.-:(.+)$")
 	
 	local ap_state = "-1"
 	local ap_state_get
 	
 	if wifi_selected[1] then
 		ap_state_get = proxy.get(format("%s@%s_%s.state",tod_ap_path , wifi_selected[1],index))
-		if ap_state_get then
+		if ap_state_get and ap_state_get[1] then
 			ap_state = ap_state_get[1].value
 		end
 	end
@@ -381,7 +368,7 @@ for i, v in ipairs(tod_data) do
 	v[1] = v[1] -- status
 	v[2] = wifi_list -- ap
 	v[3] = start_time -- start_time
-	v[4] = timer_list[i].stop_time:match("^.-:(.+)$") -- stop_time
+	v[4] = stop_time -- stop_time
 	v[5] = ap_status_map[ap_state] -- apState
 	v[6] = {} -- days
 	if days then
