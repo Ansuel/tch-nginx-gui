@@ -12,20 +12,33 @@ local post_helper = require("web.post_helper")
 local content_helper = require ("web.content_helper")
 local uimessage_helper = require("web.uimessage_helper")
 local role = ngx.ctx.session:getrole()
-local vB = post_helper.validateBoolean
 local vNES = post_helper.validateNonEmptyString
 
-local mapParam = {
-					posfxs1 = "Device.Services.VoiceService.1.PhyInterface.1.X_000E50_POSConfig",
-					posfxs2 = "Device.Services.VoiceService.1.PhyInterface.2.X_000E50_POSConfig",
-					}
+local function voicePath(port, suffix, read, ...)
+    local relative = ".Services.VoiceService.1.PhyInterface." .. port .. suffix
+    for _, root in ipairs({"Device", "InternetGatewayDevice"}) do
+        local path = root .. relative
+        local result = read(path, ...)
+        if result and result[1] then
+            return path
+        end
+    end
+end
 
-local mapValid = {
-					posfxs1 = vNES,
-					posfxs2 = vNES,
-					}
+local mapParam, mapValid = {}, {}
+for port = 1, 2 do
+    local path = voicePath(port, ".X_000E50_POSConfig", proxy.get)
+    if path then
+        local field = "posfxs" .. port
+        mapParam[field] = path
+        mapValid[field] = vNES
+    end
+end
 
-local content, helpmsg = post_helper.handleQuery(mapParam, mapValid)
+local content = {}
+if next(mapParam) then
+    content = post_helper.handleQuery(mapParam, mapValid)
+end
 
 local choice2 = {
 					{"0",T"Disabled"},
@@ -95,19 +108,21 @@ local codec_valid = {
 						supression = gVIESc2,
 						}
 						
-local codec_options = {}
-for i=1,2,1 do
-	codec_options[i]={
-		canEdit = true,
-		canAdd = false,
-		canDelete = false,
-		tableid = string.format("codecFXS%s",i),
-		basepath = string.format("Device.Services.VoiceService.1.PhyInterface.%s.X_000E50_Codec.List.",i),
-	}
+local codec_options, codec_data, codec_helpmsg = {}, {}, {}
+for port = 1, 2 do
+    local path = voicePath(port, ".X_000E50_Codec.List.", proxy.getPN, true)
+    if path then
+        local options = {
+            canEdit = true,
+            canAdd = false,
+            canDelete = false,
+            tableid = "codecFXS" .. port,
+            basepath = path,
+        }
+        codec_options[port] = options
+        codec_data[port], codec_helpmsg[port] = post_helper.handleTableQuery(codec_columns, options, nil, nil, codec_valid)
+    end
 end
-
-local codec_data_FXS1, codec_helpmsg_FXS1 = post_helper.handleTableQuery(codec_columns, codec_options[1], nil, nil, codec_valid)
-local codec_data_FXS2, codec_helpmsg_FXS2 = post_helper.handleTableQuery(codec_columns, codec_options[2], nil, nil, codec_valid)
 
 local uri = ngx.var.uri
 if ngx.var.args and string.len(ngx.var.args) > 0 then
@@ -133,8 +148,12 @@ ngx.print('\
 									values = {on = "true", off = "false"},
 									}
 			local html = {}
-			html[#html+1] = ui_helper.createSwitch(T"Pos on FXS1", "posfxs1", content["posfxs1"],Posswitch)
-			html[#html+1] = ui_helper.createSwitch(T"Pos on FXS2", "posfxs2", content["posfxs2"],Posswitch)
+			if mapParam.posfxs1 then
+				html[#html+1] = ui_helper.createSwitch(T"Pos on FXS1", "posfxs1", content.posfxs1, Posswitch)
+			end
+			if mapParam.posfxs2 then
+				html[#html+1] = ui_helper.createSwitch(T"Pos on FXS2", "posfxs2", content.posfxs2, Posswitch)
+			end
 			
 			ngx.print(html)
 		
@@ -145,14 +164,15 @@ ngx.print('\
   
 	html = {}
 	
-    html[#html+1] = '<fieldset>'
-    html[#html+1] =   '<legend>' .. T"Codec Assignment on FXS1" .. '</legend>'
-	html[#html+1] = 	ui_helper.createTable(codec_columns, codec_data_FXS1, codec_options[1], nil, codec_helpmsg_FXS1)
-    html[#html+1] = '</fieldset>'
-	html[#html+1] = '<fieldset>'
-    html[#html+1] =   '<legend>' .. T"Codec Assignment on FXS2" .. '</legend>'
-	html[#html+1] = 	ui_helper.createTable(codec_columns, codec_data_FXS2, codec_options[2], nil, codec_helpmsg_FXS2)
-    html[#html+1] = '</fieldset>'
+    local headings = {T"Codec Assignment on FXS1", T"Codec Assignment on FXS2"}
+    for port = 1, 2 do
+        if codec_options[port] then
+            html[#html+1] = '<fieldset>'
+            html[#html+1] = '<legend>' .. headings[port] .. '</legend>'
+            html[#html+1] = ui_helper.createTable(codec_columns, codec_data[port], codec_options[port], nil, codec_helpmsg[port])
+            html[#html+1] = '</fieldset>'
+        end
+    end
 	
 	ngx.print(html)
   end
