@@ -5195,7 +5195,7 @@ form .switch {
 .gateway-hero li .gateway-picture {
 	height: 100px;
 	width: 200px;
-	background-image: url(../image/gateway.png);
+	background-image: url(../img/gateway_icon.png);
 	-webkit-background-size: cover;
 	-moz-background-size: cover;
 	-o-background-size: cover;

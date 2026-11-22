@@ -10,6 +10,7 @@ WWW = Path(__file__).resolve().parents[1] / "decompressed/gui_file/www"
 
 class GuiAssetDependencies(unittest.TestCase):
     def test_newem_pages_bundle_their_native_assets_and_acl_targets(self):
+        self.assertFalse((WWW / 'docroot/img/gateway.png').exists())
         installer = (WWW.parent / 'usr/share/transformer/scripts/unlock_and_refresh_web_config.lua').read_text()
         for name in ('configuration', 'topology', 'devices-info'):
             filename = f'easymesh-{name}-modal-newEM.lp'

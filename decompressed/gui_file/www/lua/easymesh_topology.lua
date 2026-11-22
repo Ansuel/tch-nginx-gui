@@ -1,4 +1,5 @@
 -- Model assets and cycle-safe parent relationships shared by topology views.
+local model_helper = require("model_helper")
 local M = {}
 local function plain(value)
   if value == nil then return "" end
@@ -12,16 +13,8 @@ function M.mac(value)
 end
 
 function M.image(model, fallback)
-  model = plain(model):match("^%s*(.-)%s*$")
-  local ok, models = pcall(require, "model_helper")
-  local short = model:gsub("^MediaAccess%s+", ""):gsub("^Technicolor%s+", "")
-  local token = ok and (models[model] or models[short] or models["MediaAccess " .. short] or models["Technicolor " .. short]) or nil
-  token = token or short
-  if token:match("^[%w _%-]+$") then
-    local name = "gateway_" .. token .. ".png"
-    local f = io.open("/www/docroot/img/" .. name, "r")
-    if f then f:close(); return name, true end
-  end
+  local name = model_helper.gateway_image(plain(model), "png")
+  if name then return name, true end
   return fallback == "gateway" and "gateway_icon.png" or "extender_icon.png", false
 end
 
