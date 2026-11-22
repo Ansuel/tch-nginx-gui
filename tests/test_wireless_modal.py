@@ -115,6 +115,15 @@ assert(has(r.widths, '20') and has(r.widths, 'auto'))
 assert(not has(r.widths, '20/40/80'))
 local old = radio('bgn', '2.4GHz', '20MHz', false)
 assert(has(old.standards, 'bg') and not has(old.standards, 'bgnax'))
+assert(has(old.standards, 'n') and old.controls.n == 'channelwidth40')
+local legacy5g = radio('anac', '5GHz', '20/40MHz', false)
+for _, standard in ipairs({'nac', 'ac'}) do
+  assert(has(legacy5g.standards, standard))
+  assert(legacy5g.controls[standard] == 'channelwidth80')
+  local posted = {standard = standard, requested_channel_width = 'auto'}
+  assert(legacy5g.validate(legacy5g.widths)('20/40MHz', posted, 'channelwidth80'))
+  assert(posted.requested_channel_width == '20/40MHz')
+end
 assert(has(old.widths, '20MHz') and not has(old.widths, '20'))
 local qtn = radio('anac', '5GHz', '20/40MHz', true)
 assert(has(qtn.standards, 'anac') and not has(qtn.standards, 'an'))
