@@ -1,3 +1,4 @@
+--pretranslated: do not change this file
 local content = {}
 require("web.content_helper").addListContent(content, {
     events = "uci.fastweb.topology_events.@topology_events.back_up_events.",

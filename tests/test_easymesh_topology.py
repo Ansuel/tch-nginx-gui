@@ -37,10 +37,12 @@ package.preload['web.web'] = function() return {html_escape=function(value)
 end} end
 T = function(text) return text end
 ngx = {print=function(...) for _, value in ipairs({...}) do output[#output+1] = value end end}
-local page = assert(loadfile(root .. '/www/snippets/easymesh-history.lp'))
+package.path = root .. '/usr/lib/lua/?.lua;' .. package.path
+local lp = require('web.lp')
+lp.setpath(root .. '/www/snippets/')
 local function render(values)
   records, output = values, {}
-  page()
+  lp.include('easymesh-history.lp')
   return table.concat(output)
 end
 assert(render(nil) == '')
