@@ -38,33 +38,43 @@ local ringing_status_map = setmetatable({
 }, untaint_mt)
 
 --To get the number of profile and list of profile Number
-local profileNumber = proxy.get("rpc.mmpbx.sip_profile.")
+local profileNumber = proxy.get("rpc.mmpbx.sip_profile.") or {}
 profileNumber = content_helper.convertResultToObject("rpc.mmpbx.sip_profile.",profileNumber)
 for _,v in pairs(profileNumber) do
-  profileCount = profileCount + 1
-  local name = string.sub(v.paramindex, 2)
-  profileName[#profileName+1]= { name , v.uri }
+  if v.paramindex then
+    profileCount = profileCount + 1
+    local name = string.sub(v.paramindex, 2)
+    profileName[#profileName+1]= { name , v.uri or name }
+  end
 end
 
 --when timer data is not defined in config, then whole rule will be deleted
 for i=1 , profileCount do
   local timer_path = "uci.tod.action.@dnd_profile" ..i..".timers.@1.value"
-  local timer_data = content_helper.convertResultToObject(timer_path, proxy.get(timer_path))
-  if not next(timer_data) then
-    proxy.del("uci.tod.action.@dnd_profile" ..i.. ".")
-    proxy.del("uci.tod.voicednd.@profile" ..i..".")
+  local raw_timer = proxy.get(timer_path)
+  if raw_timer then
+    local timer_data = content_helper.convertResultToObject(timer_path, raw_timer)
+    if not next(timer_data) then
+      proxy.del("uci.tod.action.@dnd_profile" ..i.. ".")
+      proxy.del("uci.tod.voicednd.@profile" ..i..".")
+    end
   end
 end
 
 -- when the timer in the action section of dnd rule is empty, whole rule will be deleted.
-local voice_dnd = content_helper.convertResultToObject(tod_voicednd_path, proxy.get(tod_voicednd_path))
-for k, v in pairs (voice_dnd) do
-  local index = match(v.paramindex, "^@voicednd(%S+)")
-  local dnd_timer = proxy.get(format("uci.tod.action.@action%s.timers.", index))
-  if dnd_timer[1].value == "" then
-     proxy.del(format("uci.tod.action.@action%s." , index))
-     proxy.del(format("uci.tod.voicednd.@voicednd%s.", index))
-     proxy.apply()
+local raw_voice_dnd = proxy.get(tod_voicednd_path)
+if raw_voice_dnd then
+  local voice_dnd = content_helper.convertResultToObject(tod_voicednd_path, raw_voice_dnd)
+  for k, v in pairs (voice_dnd) do
+    local index = v.paramindex and match(v.paramindex, "^@voicednd(%S+)")
+    if index then
+      local dnd_timer = proxy.get(format("uci.tod.action.@action%s.timers.", index))
+      if dnd_timer and dnd_timer[1] and dnd_timer[1].value == "" then
+         proxy.del(format("uci.tod.action.@action%s." , index))
+         proxy.del(format("uci.tod.voicednd.@voicednd%s.", index))
+         proxy.apply()
+      end
+    end
   end
 end
 
@@ -266,7 +276,7 @@ local function validate_voicednd(postcontent, timer_data)
   if postcontent.start_time >= postcontent.stop_time then
     return nil, T"Start time should be less than Stop time."
   end
-  for i, v in ipairs(timer_data) do
+  for i, v in pairs(timer_data or {}) do
     if i ~= postcontent.index then
       if postcontent.profile == v.profile or v.profile == "All" or postcontent.profile == "All" then
         if daysOverlap(postcontent.weekdays, v.days) and -- days overlap
@@ -385,68 +395,78 @@ session:store(tablesessionindexes, tod_index)
 local action_list = content_helper.convertResultToObject(tod_action_path, proxy.get(tod_action_path))
 local timer_list = content_helper.convertResultToObject(tod_timer_path, proxy.get(tod_timer_path))
 local voicednd_list = content_helper.convertResultToObject(tod_voicednd_path, proxy.get(tod_voicednd_path))
-local ringingStatus = proxy.get("uci.tod.todvoicednd.ringing")[1].value
+local ringingStatus = ring_data and ring_data.profileStatus
 local timer_data = {}
 
---To filter out timer section created by ringing schedule rule
-local dnd_timer = {}
-for i, v in ipairs(timer_list) do
-  if timer_list[i].name == "voicednd" then
-    dnd_timer[#dnd_timer+1] = timer_list[i]
+-- Map actions by their target voicednd object or name
+local dnd_action_map = {}
+for _, a in ipairs(action_list) do
+  if a.script == "voicedndscript" and a.object then
+    local obj = a.object:match("^voicednd%.(.*)$") or a.object
+    dnd_action_map[obj] = a
   end
 end
 
---To filter out action section created by ringing schedule rule
-local dnd_action = {}
---To filter out the action sections with no timer
-local tod_without_timer = {}
-for i, v in ipairs(action_list) do
-  if action_list[i].script == "voicedndscript" then
-    dnd_action[#dnd_action+1] = action_list[i]
-  end
-  if action_list[i]["timers.@1.value"] == "" then
-    tod_without_timer[#tod_without_timer+1] = i
+-- Map timers by timer section name
+local dnd_timer_map = {}
+for _, t in ipairs(timer_list) do
+  if t.name == "voicednd" and t.paramindex then
+    local tname = t.paramindex:gsub("^@", "")
+    dnd_timer_map[tname] = t
   end
 end
 
-for i = #tod_without_timer, 1, -1 do
-  table.remove(tod_data, tod_without_timer[i])
-  table.remove(tod_index, tod_without_timer[i])
-  table.remove(action_list, tod_without_timer[i])
+-- Map voicednd entries by section name
+local voicednd_map = {}
+for _, d in ipairs(voicednd_list) do
+  if d.paramindex then
+    local dname = d.paramindex:gsub("^@", "")
+    voicednd_map[dname] = d
+  end
 end
 
 for i, v in ipairs(tod_data) do
-  v[1] = dnd_action[i].enabled -- status
-  local profile = voicednd_list[i]["profile.@1.value"]
+  local name = tod_index[i].paramindex:gsub("^@", "")
+  local action = dnd_action_map[name] or {}
+  local timer = dnd_timer_map[action["timers.@1.value"]] or {}
+  local profile_id = (voicednd_map[name] or {})["profile.@1.value"] or ""
+
+  v[1] = action.enabled or "0" -- status
+  local profile = profile_id
   for _, profileNum in pairs(profileName) do --To get the profile number from profileName table
     if profileNum[1] == profile then
       profile = profileNum[2]
       break
     end
   end
-  v[2] = profile  --profilenumber
-  local days, start_time = dnd_timer[i].start_time:match("^(.-):(.+)$")
-  v[3] = start_time -- start_time
-  v[4] = dnd_timer[i].stop_time:match("^.-:(.+)$") -- stop_time
-  v[5] = ringing_status_map[ringingStatus] -- ringingState
+  v[2] = profile -- profilenumber
+  local days, start_time = (timer.start_time or ""):match("^(.-):(.+)$")
+  local stop_time = (timer.stop_time or ""):match("^.-:(.+)$")
+  v[3] = start_time or ""
+  v[4] = stop_time or ""
+  v[5] = ringing_status_map[ringingStatus] or ""
   v[6] = {} -- days
-  for day in gmatch(days, "[^,]+") do
-    insert(v[6], untaint(day))
+  if days then
+    for day in gmatch(days, "[^,]+") do
+      insert(v[6], untaint(day))
+    end
   end
   -- Sub Columns
   v[7] = {
     [1] = v[1], -- status
-    [2] = voicednd_list[i]["profile.@1.value"], -- profilename
+    [2] = profile_id, -- profilename
     [3] = v[3], -- start_time
     [4] = v[4], -- stop_time
     [5] = v[6] -- days
   }
-  timer_data[i] = {
-    start_time = v[3],
-    stop_time = v[4],
-    days = v[6],
-    profile = voicednd_list[i]["profile.@1.value"]
-  }
+  if start_time and stop_time then
+    timer_data[i] = {
+      start_time = start_time,
+      stop_time = stop_time,
+      days = v[6],
+      profile = profile_id
+    }
+  end
 end
 
 session:store("timer_data", timer_data)
