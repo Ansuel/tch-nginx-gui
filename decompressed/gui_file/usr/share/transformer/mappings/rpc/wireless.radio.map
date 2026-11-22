@@ -161,6 +161,10 @@ local wireless_radio_ = {
                 access = "readWrite",
                 type = "string",
         },
+        max_target_power_adjusted = {
+            access = "readOnly",
+            type = "string",
+        },
         transmit_power = {
                 access = "readWrite",
                 type = "string",

@@ -1451,6 +1451,9 @@ msgstr "Velocità max"
 msgid "Maximum Line rate"
 msgstr "Velocità massima linea"
 
+msgid "Maximum transmit power target"
+msgstr "Potenza massima di trasmissione prevista"
+
 msgid "Message"
 msgstr "Messaggio"
 
