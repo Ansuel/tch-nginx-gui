@@ -134,12 +134,19 @@ end
 table.sort(radios)
 curradio = curradio or radios[1]
 
+local function formatTxPowerTarget(value)
+    local power = tonumber(value)
+    return power and format("%s dBm", power)
+end
+
 ajax_helper.handleAjaxQuery({
     phy_rate = "rpc.wireless.radio.@" .. curradio .. ".phy_rate",
     channel = "rpc.wireless.radio.@" .. curradio .. ".channel",
+    max_target_power_adjusted = "rpc.wireless.radio.@" .. curradio .. ".max_target_power_adjusted",
     }, function(content)
         local rate = tonumber(content.phy_rate)
         content.phy_rate = rate and (rate / 1000 .. "Mbps") or ""
+        content.max_target_power_adjusted = formatTxPowerTarget(content.max_target_power_adjusted) or ""
     end)
 
 local ap_paths={true}
@@ -399,8 +406,9 @@ local wifipower = {}
 
 for i=-6,6 do
 	local power = i <= 0 and i or format("+%s",i)
-	tinsert(wifipower,{tostring(power),format("%s dBm",power)})
+	tinsert(wifipower,{tostring(power),format("%s dB",power)})
 end
+local validateTxPowerAdjust = gVIES(wifipower)
 
 local cw_40 = {
     {"20MHz", T"20MHz"},
@@ -723,9 +731,15 @@ end
 
 local param = {
     allowed_channels = pathradio .. "allowed_channels",
+    max_target_power_adjusted = pathradio .. "max_target_power_adjusted",
+    tx_power_adjust = pathradio .. "tx_power_adjust",
 	supported_countries = pathradio .. "supported_countries"
 }
 content_helper.getExactContent(param)
+local maxTxPowerTarget = formatTxPowerTarget(param.max_target_power_adjusted)
+local canAdjustTxPower = isguest ~= "1" and not stbLimit
+    and isIntRemman ~= "1" and isExtRemman ~= "1"
+    and validateTxPowerAdjust(param.tx_power_adjust)
 local allowed_channels = { {"auto", T"Auto"} }
 for i in string.gmatch(param["allowed_channels"], "%S+") do
     allowed_channels[#allowed_channels + 1] = {i, i}
@@ -822,9 +836,12 @@ local function getParamsAndValidation()
       mapParams.sgi = pathradio .. "sgi"
       mapParams.cdd = pathradio .. "cdd"
       mapParams.stbc = pathradio .. "stbc"
-	  mapParams.tx_power_adjust = pathradio .. "tx_power_adjust"
 	  mapParams.tx_power_overrule_reg = pathradio .. "tx_power_overrule_reg"
     end
+  end
+
+  if canAdjustTxPower then
+    mapParams.tx_power_adjust = pathradio .. "tx_power_adjust"
   end
 
   if bspeerap and not multiap_credential then
@@ -856,7 +873,6 @@ local function getParamsAndValidation()
     sgi = gOV(vB),
     cdd = gVIES(cddList),
     stbc = gOV(vB),
-    tx_power_adjust = gVIES(wifipower),
 	tx_power_overrule_reg = vB,
     channelwidth20 = getValidateChannelWidth(cw_40),
     channelwidth40 = getValidateChannelWidth(cw_40),
@@ -891,6 +907,10 @@ local function getParamsAndValidation()
 	eco_single_rx_chain = vB,
 	eco_fast_radio_toggle = vB,
   }
+
+  if canAdjustTxPower then
+    mapValid.tx_power_adjust = validateTxPowerAdjust
+  end
 
   if multiap_credential then
     mapParams.ssid = multiap_credential .. "ssid"
@@ -1229,6 +1249,12 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
         end]]
 		html[#html + 1] = ui_helper.createLabel(T"Radio", labelstate)
 		html[#html + 1] = ui_helper.createLabel(T"Driver Version", param["driver_version"])
+        if maxTxPowerTarget then
+            html[#html + 1] = ui_helper.createLabel(T"Maximum transmit power target", maxTxPowerTarget, {
+                group = advanced.group,
+                span = { id = "max_target_power_adjusted", ["data-ajaxrefresh"] = "5" },
+            })
+        end
         html[#html + 1] = ui_helper.createLabel(T"Frequency band", content["supported_frequency_bands"])
         -- Label that shows the MAC address of the Wifi interface
         html[#html + 1] = ui_helper.createLabel(T"MAC address", content["macaddress"])
@@ -1306,7 +1332,9 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
             html[#html + 1] = '</div>'
 			if isExtRemman ~= "1" and isIntRemman ~= "1" then
 				html[#html + 1] = ui_helper.createSwitch(T"Bypass Reg Domain Power Rule", "tx_power_overrule_reg", content["tx_power_overrule_reg"], advanced)
-				html[#html + 1] = ui_helper.createSliderSelect(T"Output Power", "tx_power_adjust", wifipower, content["tx_power_adjust"], advanced)
+                if canAdjustTxPower then
+                    html[#html + 1] = ui_helper.createSliderSelect(T"Output Power", "tx_power_adjust", wifipower, content["tx_power_adjust"], advanced)
+                end
                 html[#html + 1] = ui_helper.createSwitch(T"Short Guard Interval", "sgi", content["sgi"], advanced)
                 html[#html + 1] = ui_helper.createInputSelect(T"Cyclic-Delay Diversity", "cdd", cddList, content["cdd"], advanced)
                 html[#html + 1] = ui_helper.createSwitch(T"Space Time Block Code", "stbc", content["stbc"], advanced)

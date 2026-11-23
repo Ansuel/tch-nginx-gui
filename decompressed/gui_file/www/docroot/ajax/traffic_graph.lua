@@ -1,10 +1,8 @@
 local json = require("dkjson")
 local netrate = require("netrate")
 local ngx = ngx
-local data = {valid = false}
-
-if ngx.req.get_method() == "POST" then
-    local args = ngx.req.get_uri_args()
+local function traffic(args)
+    local data = {valid = false}
     local sample, reason, interface
     local previous_interface = args.interface
     if args.source == "wan" then
@@ -35,6 +33,25 @@ if ngx.req.get_method() == "POST" then
         }
     end
     data.reason = reason
+    if args.source == "wan" and args.resources == "1" then
+        local resources = require("resource_usage")
+        local memory = resources.memory()
+        data.cpu = resources.cpu()
+        data.ram_percent = memory and (memory.used * 100 / memory.total)
+    end
+    return data
+end
+
+local data = {valid = false}
+if ngx.req.get_method() == "POST" then
+    local args = ngx.req.get_uri_args()
+    if args.source == "wan" and args.resources == "history" then
+        local interval = args.live == "3" and 1 or (args.live == "2" and 2 or (args.live == "1" and 3 or nil))
+        data = require("resource_usage").history(ngx.time(), tonumber(args.after), interval)
+        data.now = ngx.now()
+    else
+        data = traffic(args)
+    end
 end
 
 ngx.header["Content-Type"] = "application/json"

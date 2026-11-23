@@ -279,6 +279,292 @@ var modgui = modgui || {};
 		});
 	}
 
+    // Share resource samples when switching between the dashboard and statistics.
+    var resourceSamples = [], lastFetch = 0;
+    var lifetime = 600;
+    var liveWindow = 20;
+    var liveDelay = 2;
+    var serverTime, clockAt;
+
+    function initResourceCharts(cardId, compact) {
+        var card = document.getElementById(cardId);
+        if (!card || typeof Chart !== "function") return;
+
+        function element(id) {
+            return card.querySelector('[data-resource="' + id + '"]');
+        }
+
+        var range = !compact && element("chart-range");
+        function clock() {
+            return window.performance ? window.performance.now() : Date.now();
+        }
+
+        function isLive() {
+            return compact || (range && range.value === "live");
+        }
+
+        function moveAxis(graph) {
+            var end = serverTime + Math.max(0, clock() - clockAt) / 1000 - liveDelay;
+            var ticks = graph.options.scales.xAxes[0].ticks;
+            ticks.min = end - liveWindow;
+            ticks.max = end;
+        }
+
+        function series(label, color, key) {
+            if (!compact) element(key).style.backgroundColor = color;
+            return {label: label, borderColor: color, backgroundColor: color + (compact ? "66" : "40"),
+                borderWidth: compact ? 1 : 2, pointBackgroundColor: color,
+                pointRadius: compact ? 0 : 2.5,
+                fill: "origin",
+                lineTension: 0, data: []};
+        }
+
+        function chart(id, datasets, format, maximum, tickFormat) {
+            var color = window.getComputedStyle(card).color;
+            return new Chart(element(id), {
+                type: "line",
+                data: {datasets: datasets},
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {duration: 0},
+                    events: compact ? [] : Chart.defaults.global.events,
+                    legend: {display: false},
+                    scales: {
+                        xAxes: [{
+                            type: "linear",
+                            display: !compact,
+                            afterBuildTicks: function (scale) {
+                                var bounds = scale.options.ticks;
+                                if (bounds.min === undefined) return;
+                                if (isLive()) {
+                                    var step = scale.maxWidth >= 320 ? 5 : 10;
+                                    var labels = [];
+                                    for (var time = Math.ceil((bounds.min + 1) / step) * step; time <= bounds.max - 1; time += step) {
+                                        labels.push(time);
+                                    }
+                                    return labels;
+                                }
+                                var span = bounds.max - bounds.min;
+                                var labelSpace = span < 300 ? 68 : 50;
+                                var count = Math.min(5, span + 1,
+                                    Math.max(1, Math.floor((scale.maxWidth - 48) / labelSpace)));
+                                var labels = [bounds.min];
+                                for (var i = 1; i < count; i++) {
+                                    labels.push(bounds.min + Math.round(i * span / (count - 1)));
+                                }
+                                return labels;
+                            },
+                            ticks: {
+                                fontColor: color, autoSkip: false, maxRotation: 0,
+                                callback: function (value) {
+                                    var bounds = this.options.ticks;
+                                    if (bounds.min === undefined) return "";
+                                    var clock = {hour: "2-digit", minute: "2-digit", hourCycle: "h23"};
+                                    if (bounds.max - bounds.min < 300) clock.second = "2-digit";
+                                    return new Date(value * 1000).toLocaleTimeString([], clock);
+                                }
+                            }
+                        }],
+                        yAxes: [{display: !compact, ticks: {min: 0, max: maximum, fontColor: color, callback: tickFormat || format}}]
+                    },
+                    tooltips: {enabled: !compact, mode: "index", intersect: false, callbacks: {
+                        title: function (items, data) {
+                            if (!items.length) return "";
+                            var item = items[0];
+                            return new Date(data.datasets[item.datasetIndex].data[item.index].x * 1000).toLocaleTimeString();
+                        },
+                        label: function (item, data) {
+                            return data.datasets[item.datasetIndex].label + " " + format(item.yLabel);
+                        }
+                    }}
+                }
+            });
+        }
+
+        function percentage(value) {
+            return Number(value.toFixed(1)) + "%";
+        }
+
+        function reading(value, format) {
+            return typeof value === "number" ? format(value) : "–";
+        }
+
+        function compactBitrate(bytes) {
+            var bits = Math.round(bytes * 8);
+            if (bits < 1000) return bits + " bit/s";
+            var kilobits = Math.round(bits / 1000);
+            if (kilobits < 1000) return kilobits + " Kbit/s";
+            return bits <= 1000000 ? "1.0 Mbit/s" : get_bitrate(bytes);
+        }
+
+        function update(graph, samples, fields) {
+            var first, last;
+            graph.data.datasets.forEach(function (dataset, index) {
+                var field = fields[index], previous;
+                dataset.data = [];
+                samples.forEach(function (sample, position) {
+                    var value = sample[field];
+                    if (typeof value !== "number") {
+                        // Archived metrics can be sparse. CPU and WAN also lack a rate
+                        // on the first live sample, which only establishes the baseline.
+                        if (sample.historical || (!compact && previous && previous.historical) ||
+                            (position > 0 && samples[position - 1].historical)) return;
+                        dataset.data.push({x: sample.time, y: null});
+                        previous = undefined;
+                        return;
+                    }
+                    // Keep missing intervals visible without inventing measurements.
+                    var gap = previous && previous.historical ? 660 : (isLive() ? 6 : 20);
+                    var archiveTransition = !compact && previous && previous.historical && !sample.historical;
+                    if (previous && sample.time - previous.time > gap && !archiveTransition) {
+                        dataset.data.push({x: previous.time + 1, y: null});
+                    }
+                    dataset.data.push({x: sample.time, y: value});
+                    if (first === undefined || sample.time < first) first = sample.time;
+                    if (last === undefined || sample.time > last) last = sample.time;
+                    previous = sample;
+                });
+            });
+            if (isLive()) {
+                moveAxis(graph);
+            } else if (!compact) {
+                var ticks = graph.options.scales.xAxes[0].ticks;
+                ticks.min = first;
+                ticks.max = last;
+            }
+            graph.update();
+        }
+
+        var usage = chart("resource-chart", [series("CPU", "#3487c9", "cpu-key"),
+            series("RAM", "#ad68bd", "ram-key")], percentage, 100);
+        var traffic = chart("wan-chart", [series(element("traffic-download-label").textContent, "#379962", "rx-key"),
+            series(element("traffic-upload-label").textContent, "#df7951", "tx-key")], get_bitrate, undefined, compactBitrate);
+        var trafficFields = compact ? ["lan_rx", "lan_tx"] : ["rx", "tx"];
+        var interfaceField = compact ? "lan" : "interface";
+        var renderedDevice, renderedHistory;
+
+        function render() {
+            if (resourceSamples === renderedHistory) return;
+            renderedHistory = resourceSamples;
+            var latest = resourceSamples[resourceSamples.length - 1];
+            if (!latest) return;
+            var device = latest[interfaceField];
+            element("resource-cpu").textContent = reading(latest.cpu, percentage);
+            $(element("traffic-unavailable")).toggleClass("hide", !!device);
+            $(element("wan-chart-frame")).toggleClass("hide", !device);
+            if (device && device !== renderedDevice) traffic.resize();
+            renderedDevice = device;
+
+            var received = latest[trafficFields[0]], sent = latest[trafficFields[1]];
+            var download = reading(received, get_bitrate), upload = reading(sent, get_bitrate);
+            if (compact) {
+                element("wan-chart").setAttribute("aria-label", "br-lan RX " + download + " · TX " + upload);
+            } else {
+                element("resource-ram").textContent = reading(latest.ram, percentage);
+                $(element("historical-source")).toggleClass("hide", isLive() || !resourceSamples[0].historical);
+                element("traffic-interface").textContent = device || "";
+                $(element("traffic-reading")).toggleClass("hide", !device);
+                element("traffic-download").textContent = download;
+                element("traffic-upload").textContent = upload;
+            }
+
+            var shown = resourceSamples;
+            if (isLive()) {
+                shown = resourceSamples.filter(function (sample) {
+                    return !sample.historical && latest.time - sample.time <= liveWindow + 6;
+                });
+            }
+            var start = shown.length;
+            if (device) {
+                while (start > 0 && shown[start - 1][interfaceField] === device) start--;
+            }
+            update(usage, shown, ["cpu", "ram"]);
+            update(traffic, shown.slice(start), trafficFields);
+            if (compact) {
+                var scale = traffic.scales["y-axis-0"];
+                element("traffic-scale").textContent = typeof received === "number" && scale ?
+                    reading(scale.max, compactBitrate) : "–";
+            }
+        }
+
+        if (range) {
+            $(range).on("change", function () {
+                renderedHistory = undefined;
+                render();
+            });
+        }
+        var scrollTimer = setInterval(function () {
+            if (document.getElementById(cardId) !== card) {
+                clearInterval(scrollTimer);
+                return;
+            }
+            if (document.hidden || !isLive() || serverTime === undefined) return;
+            moveAxis(usage);
+            usage.update();
+            if (renderedDevice) {
+                moveAxis(traffic);
+                traffic.update();
+            }
+        }, 40);
+
+        if (window.MutationObserver) {
+            var observer = new MutationObserver(function () {
+                if (document.getElementById(cardId) === card) return;
+                observer.disconnect();
+                clearInterval(scrollTimer);
+                usage.destroy();
+                traffic.destroy();
+            });
+            observer.observe(document.body, {childList: true, subtree: true});
+        }
+
+        function refresh() {
+            var latest = resourceSamples[resourceSamples.length - 1];
+            var after = latest && latest.time;
+            return $.ajax({
+                url: "/ajax/traffic_graph.lua?source=wan&resources=history&auto_update=true" +
+                    (isLive() ? "&live=3" : "") +
+                    (after === undefined ? "" : "&after=" + after),
+                type: "POST",
+                data: [tch.elementCSRFtoken()],
+                dataType: "json",
+                timeout: 8000,
+                success: function (data) {
+                    if (document.getElementById(cardId) !== card || !data || !Array.isArray(data.samples)) return;
+                    var received = clock();
+                    // Keep the scrolling clock independent of individual responses.
+                    // Correct it only after a large clock change or a long interruption.
+                    if (typeof data.now === "number" &&
+                        (serverTime === undefined || Math.abs(data.now - serverTime - (received - clockAt) / 1000) > 2)) {
+                        serverTime = data.now;
+                        clockAt = received;
+                    }
+                    lastFetch = Date.now();
+                    var current = resourceSamples[resourceSamples.length - 1];
+                    if (data.replace && after === (current && current.time)) {
+                        resourceSamples = data.samples;
+                    } else if (!data.replace && data.samples.length) {
+                        var fresh = data.samples.filter(function (sample) { return !current || sample.time > current.time; });
+                        if (fresh.length) resourceSamples = resourceSamples.concat(fresh);
+                    }
+                    if (resourceSamples !== renderedHistory) {
+                        var last = resourceSamples[resourceSamples.length - 1];
+                        if (last) resourceSamples = resourceSamples.slice(-600).filter(function (sample) {
+                            return last.time - sample.time < (sample.historical ? 3600 : lifetime);
+                        });
+                    }
+                    render();
+                }
+            });
+        }
+
+        if (Date.now() - lastFetch >= lifetime * 1000) resourceSamples = [];
+        render();
+        module.createAjaxUpdateCard(cardId, null, cardId + "ChartsInterval", 1000, refresh);
+    }
+
+    module.initResourceCharts = initResourceCharts;
 	module.postAction = postAction,
 	module.createAjaxUpdateCard = createAjaxUpdateCard,
 	module.linkCheckUpdate = linkCheckUpdate,

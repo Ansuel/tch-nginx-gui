@@ -157,6 +157,17 @@ function M.vlanContext(uplink)
     }
 end
 
+function M.findVlanDevice(parent, vid)
+    for _, entry in ipairs(proxy.getPN("uci.network.device.", true) or {}) do
+        local path = entry.path
+        if get(path .. "type") == "8021q" and get(path .. "ifname") == parent
+            and tonumber(get(path .. "vid")) == tonumber(vid) and get(path .. "enabled") ~= "0" then
+            local name = get(path .. "name")
+            if name and name ~= "" then return name end
+        end
+    end
+end
+
 local function xtmDevices(kind)
     local result = {}
     for _, entry in ipairs(proxy.getPN("uci.xtm." .. kind .. "device.", true) or {}) do

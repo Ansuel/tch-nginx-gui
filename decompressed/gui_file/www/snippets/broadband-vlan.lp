@@ -5,45 +5,15 @@
 -- Enable localization
 gettext.textdomain('webui-core')
 
-local lp = require("web.lp")
 local post_helper = require("web.post_helper")
 local message_helper = require("web.uimessage_helper")
-local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 local proxy = require("datamodel")
-local bmh = require("broadbandmode_helper")
 
 local session = ngx.ctx.session
 local tech = false
 if session:getrole() == "engineer" then
    tech = true
-end
-
-function getValidateNumberInRange(min, max, value)
-    local helptext = T"Input must be a number"
-    if min and max then
-        helptext = string.format(T"Input must be a number between %d and %d included", min, max)
-    elseif not min and not max then
-        helptext = T"Input must be a number"
-    elseif not min then
-        helptext = string.format(T"Input must be a number smaller than %d included", max)
-    elseif not max then
-        helptext = string.format(T"Input must be a number greater than %d included", min)
-    end
-
-
-        local num = tonumber(value)
-        if not num then
-            return nil, helptext
-        end
-        if min and num < min then
-            return nil, helptext
-        end
-        if max and num > max then
-            return nil, helptext
-        end
-        return true
-
 end
 
 local bridge = require("bridgehelper")
@@ -53,12 +23,19 @@ local helpmes
 
 if tech and manual and ngx.var.request_method == "POST" then
     local content = ngx.req.get_post_args()
-    if content.action == "SAVE" and content.intf_vlan ~= nil then
-        local enabled = content.intf_vlan ~= "0"
-        local valid = true
+    if content.action == "SAVE" and content.intf_vlan ~= nil
+        and (content.intf_vlan ~= "0" or channel.difname ~= "") then
+        local enabled = content.intf_vlan == "1"
+        local valid = enabled or content.intf_vlan == "0"
+        local vid
         if enabled then
-            valid, helpmes = getValidateNumberInRange(2, 2048, content.intf_vlanid)
-            valid = valid and type(content.intf_vlanid) == "string" and content.intf_vlanid:match("^%d+$")
+            -- Homeware wraps POST strings in tainted userdata.
+            vid = string.untaint and string.untaint(content.intf_vlanid) or content.intf_vlanid
+            if type(vid) == "string" and vid:match("^%d+$") then
+                valid, helpmes = post_helper.getValidateNumberInRange(2, 2048)(vid)
+            else
+                valid = false
+            end
             valid = valid and (content.auswahlliste == "devnot" or content.auswahlliste == "dotnot")
         end
         if channel.connection == "" then valid = false end
@@ -66,27 +43,37 @@ if tech and manual and ngx.var.request_method == "POST" then
             local ok, err = true, nil
             local ifname = channel.connection
             if enabled and content.auswahlliste == "devnot" then
-                local name = bridge.get(channel.path .. "name")
-                if not name then
-                    name = channel.path:match("@([^%.]+)%.$")
-                    ok, err = proxy.add("uci.network.device.", name)
+                if channel.notation == "devnot" and channel.difname ~= "" then
+                    ifname = bridge.getUplink()
+                    ok, err = proxy.set(channel.path .. "vid", vid)
+                else
+                    ifname = bridge.findVlanDevice(channel.connection, vid)
+                    if not ifname then
+                        ifname = bridge.get(channel.path .. "name")
+                        local section = channel.path:match("@([^%.]+)%.$")
+                        if not bridge.get(channel.path .. "type") then
+                            ok, err = proxy.add("uci.network.device.", section)
+                        end
+                        if not ifname or ifname == "" then
+                            ifname = section
+                        end
+                        if ok then
+                            ok, err = proxy.set({
+                                [channel.path .. "type"] = channel.vlanType,
+                                [channel.path .. "name"] = ifname,
+                                [channel.path .. "vid"] = vid,
+                                [channel.path .. "ifname"] = channel.connection,
+                            })
+                        end
+                    end
                 end
-                if ok then
-                    ok, err = proxy.set({
-                        [channel.path .. "type"] = channel.vlanType,
-                        [channel.path .. "name"] = name,
-                        [channel.path .. "vid"] = content.intf_vlanid,
-                        [channel.path .. "ifname"] = channel.connection,
-                    })
-                end
-                ifname = name
             else
                 -- Release the previous named VLAN before using dot notation or
                 -- the untagged parent. Do not alter an unrelated fallback device.
                 if channel.notation == "devnot" and channel.difname ~= "" then
                     ok, err = proxy.set(channel.path .. "ifname", "")
                 end
-                if enabled then ifname = channel.connection .. "." .. content.intf_vlanid end
+                if enabled then ifname = channel.connection .. "." .. vid end
             end
             if ok then ok, err = bridge.setUplink(ifname) end
             if ok then ok, err = proxy.apply() end
@@ -103,7 +90,7 @@ end
 local vid = channel.vid
 local difname = channel.difname or ""
 local check = channel.notation
-local b = difname ~= "" and channel.connection or "empty"
+local vlanEnabled = difname ~= "" and "1" or "0"
 
 local intf_state = "disabled"
 
@@ -141,17 +128,15 @@ ngx.print('\
         input = {
             class = "monitor-changes"
         },
-		values = {on = b, off = ""},
-
     }
 	
     local vlanidclass = {
         group = {
-            class =string.format("monitor-intf_vlan monitor-%s",b),
+            class = "monitor-intf_vlan monitor-1",
         },
     }
 	if tech and manual then
-    html[#html + 1] = ui_helper.createSwitch(T"Using VLAN", "intf_vlan", difname, vlanswitchclass)
+    html[#html + 1] = ui_helper.createSwitch(T"Using VLAN", "intf_vlan", vlanEnabled, vlanswitchclass)
 	html[#html + 1] = ui_helper.createInputRadio(T"Notation", "auswahlliste" , liste, check, vlanidclass)
     html[#html + 1] = ui_helper.createInputText(T"VLAN ID", "intf_vlanid", vid, vlanidclass, helpmes)
 	else

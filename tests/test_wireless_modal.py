@@ -148,6 +148,34 @@ assert(not has(powers, '+0'))
 assert(has(powers, '-6') and has(powers, '+1') and has(powers, '+2'))
 local validate = gVIES(powers)
 assert(validate('0') and validate('+2') and validate('-3'))
+assert(powers[1][2] == '-6 dB')
+''')
+
+    def test_power_target_is_independent_of_offset_controls(self):
+        modal = (GUI / 'www/docroot/modals/wireless-modal.lp').read_text()
+        start = modal.index('local function formatTxPowerTarget(')
+        power_format = modal[start:modal.index('ajax_helper.handleAjaxQuery(', start)]
+        start = modal.index('local maxTxPowerTarget = ')
+        power_controls = modal[start:modal.index('local allowed_channels = ', start)]
+        self.run_radio(power_format + r'''
+local validateTxPowerAdjust = gVIES(radio('bgn', '2.4GHz', '20MHz', false).powers)
+local function power(param, isguest, stbLimit, isIntRemman, isExtRemman)
+''' + power_controls + r'''
+    return maxTxPowerTarget, canAdjustTxPower
+end
+local broadcom = {max_target_power_adjusted = '16.50', tx_power_adjust = '+1'}
+local quantenna = {max_target_power_adjusted = '21.0', tx_power_adjust = '0'}
+local target, editable = power(broadcom, '0', false, '0', '0')
+assert(target == '16.5 dBm' and editable)
+target, editable = power(quantenna, '0', false, '1', '0')
+assert(target == '21 dBm' and not editable)
+target, editable = power({max_target_power_adjusted = '21.0'}, '0', false, '0', '0')
+assert(target == '21 dBm' and not editable)
+target, editable = power({tx_power_adjust = '0'}, '0', false, '0', '0')
+assert(target == nil and editable)
+assert(not select(2, power(broadcom, '1', false, '0', '0')))
+assert(not select(2, power(broadcom, '0', true, '0', '0')))
+assert(not select(2, power(broadcom, '0', false, '0', '1')))
 ''')
 
 
