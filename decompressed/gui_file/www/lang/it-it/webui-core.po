@@ -4813,5 +4813,8 @@ msgstr "Carica temporaneamente"
 msgid "module from github.com/pedro-n-rocha/secr to read the device keys from kernel RAM and decrypt the encrypted parameters below. The module is never written to flash, it is removed immediately after the dump and everything is lost on reboot. Use at your own risk."
 msgstr "il modulo da github.com/pedro-n-rocha/secr per leggere le chiavi del dispositivo dalla RAM del kernel e decriptare i parametri crittografati riportati di seguito. Il modulo non viene mai scritto nella memoria flash, viene rimosso immediatamente dopo il dump e tutto va perso al riavvio. Utilizzarlo a proprio rischio e pericolo."
 
+msgid "Extract keys"
+msgstr "Estrai chiavi"
+
 msgid "RIP Parameters"
 msgstr "RIP Parametri"
