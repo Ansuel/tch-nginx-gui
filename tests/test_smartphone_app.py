@@ -108,7 +108,8 @@ esac
         self.assert_ok(self.run_app('remove'))
         self.assertFalse((self.root / 'etc/.modgui-smartphone-installed').exists())
         self.assertFalse((self.root / 'www/cards/017_smartphone.lp').exists())
-        self.assertIn('remove adb', (self.root / 'opkg.log').read_text())
+        self.assertEqual((self.root / 'opkg.log').read_text().splitlines(),
+                         ['update', 'install adb', 'remove adb'])
         self.assert_ok(self.run_app('install'))
         self.assertEqual((self.root / 'driver-installs').read_text().splitlines(), ['install', 'install'])
 

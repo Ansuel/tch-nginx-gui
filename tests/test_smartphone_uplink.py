@@ -20,6 +20,7 @@ class SmartphoneUplinkTest(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_hysteresis_and_recovery_in_both_modes(self): self.run_case('health')
+    def test_status_distinguishes_disabled_monitoring_from_checks(self): self.run_case('disabled_status')
     def test_apply_and_stop_preserve_wan_and_other_zone_members(self): self.run_case('apply')
     def test_failed_apply_restores_network_firewall_dns_and_mode(self): self.run_case('rollback')
     def test_mode_change_preserves_original_dns_and_metric(self): self.run_case('change')

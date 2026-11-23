@@ -1,6 +1,7 @@
 """Exercise USB mode changes through the shell helper with mocked ADB and sysfs."""
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -36,13 +37,19 @@ class SmartphoneUsbTest(unittest.TestCase):
         binary.mkdir()
         self.mock(binary, 'sleep', 'exit 0')
         self.mock(binary, 'uname', 'echo "${MOCK_KERNEL:-6.6.0}"')
+        self.mock(binary, 'uci', '''
+[ "$*" = '-q get smartphone.usb.mode' ] && printf '%s\n' "${USB_MODE:-}"
+''')
         self.mock(binary, 'timeout', '[ "$1" != --help ] || exit 0\nshift\nexec "$@"')
         self.mock(binary, 'adb', '''
 case "$*" in
     start-server) exit 0 ;;
     devices) printf 'List of devices attached\nexample-usb\tdevice\n'; exit ;;
     get-state|'-s example-usb get-state') echo device; exit ;;
-    '-s example-usb shell svc usb getFunctions') cat "$FIXTURE/mode"; exit ;;
+    '-s example-usb shell svc usb getFunctions')
+        if [ "${ADB_RECONNECT_DELAY:-0}" = 1 ] && [ "$(cat "$FIXTURE/mode")" = ncm ]; then exit 1; fi
+        cat "$FIXTURE/mode" >&2
+        exit ;;
     '-s example-usb shell svc usb setFunctions '*)
         echo "$*" >> "$FIXTURE/calls"
         echo "$7" > "$FIXTURE/mode"
@@ -74,6 +81,22 @@ exit 91
         return subprocess.run(['sh', str(self.helper), action], capture_output=True,
                               text=True, env={**self.env, **env}, timeout=5)
 
+    def test_unbound_rndis_control_interface_reports_expected_driver(self):
+        interface = self.driver.parents[3]
+        for attribute, value in zip(('Class', 'SubClass', 'Protocol'), ('ef', '04', '01')):
+            (interface / ('bInterface' + attribute)).write_text(value + '\n')
+        shutil.rmtree(interface / 'net')
+
+        info = self.run_helper('get_usb_info').stdout.splitlines()
+        self.assertIn('USB_NETWORK|1', info)
+        self.assertIn('HOST_UNBOUND_DRIVER|rndis_host', info)
+        self.assertFalse(any(line.startswith('HOST_IF|') for line in info))
+
+        (interface / 'driver').symlink_to('rndis_host')
+        info = self.run_helper('get_usb_info').stdout.splitlines()
+        self.assertIn('USB_NETWORK|1', info)
+        self.assertNotIn('HOST_UNBOUND_DRIVER|rndis_host', info)
+
     def test_switches_both_ways_and_checks_bound_driver(self):
         result = self.run_helper('usb_ncm')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -98,6 +121,22 @@ exit 91
         self.assertIn('non ha confermato', result.stdout)
         self.assertEqual((self.root / 'mode').read_text().strip(), 'rndis')
         self.assertFalse((self.root / 'var/run/modgui-smartphone-usb-switch').exists())
+
+    def test_adb_watch_applies_ncm_only_when_configured(self):
+        self.assertEqual(self.run_helper('check_adb').returncode, 0)
+        self.assertFalse((self.root / 'calls').exists())
+        for delayed_adb in ('1', '0'):
+            result = self.run_helper('check_adb', USB_MODE='ncm', ADB_RECONNECT_DELAY=delayed_adb)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.driver.readlink(), Path('cdc_ncm'))
+        self.assertEqual(len((self.root / 'calls').read_text().splitlines()), 1)
+        self.assertFalse((self.root / 'var/run/modgui-smartphone-ncm-last').exists())
+
+    def test_failed_automatic_switch_restores_rndis_and_backs_off(self):
+        self.assertNotEqual(self.run_helper('check_adb', USB_MODE='ncm', NO_BIND='1').returncode, 0)
+        self.assertEqual(self.run_helper('check_adb', USB_MODE='ncm').returncode, 0)
+        self.assertEqual(self.driver.readlink(), Path('rndis_host'))
+        self.assertEqual(len((self.root / 'calls').read_text().splitlines()), 2)
 
     def test_legacy_kernel_blocks_ncm_before_sending_the_command(self):
         legacy = {'MOCK_KERNEL': '4.1.38'}

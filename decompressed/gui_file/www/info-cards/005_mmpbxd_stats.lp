@@ -7,6 +7,7 @@ local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 
 local content = {
+  enabled = "uci.mmpbx.mmpbx.@global.enabled",
   status = "rpc.mmpbx.state",
   accCode = "uci.mmpbxbrcmdectdev.dect_base.access_code",
   baseName = "uci.mmpbxbrcmdectdev.dect_base.user_friendly_name",
@@ -14,6 +15,8 @@ local content = {
 }
 
 content_helper.getExactContent(content)
+
+if content.enabled == "0" then return end
 
 local status_map = {
 	STARTING = T"Starting",

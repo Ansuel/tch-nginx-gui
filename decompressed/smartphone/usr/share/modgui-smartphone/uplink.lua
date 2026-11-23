@@ -385,15 +385,17 @@ function M.new(env)
     end
     function self.status()
         local c=settings(); local state={}
+        local mode=c.enabled=='1' and c.mode or 'off'
+        local monitoring=mode=='fallback' or mode=='primary'
         local f=io.open(file('status.json'),'r'); if f then state=json.decode(f:read('*a')) or {}; f:close() end
         if c.enabled=='1' and (not state.timestamp or os.time()-state.timestamp>45) then
             state={message='Avvio DHCP/monitor in corso o monitor non attivo.'}
         end
-        local out={UPLINK_MODE=c.enabled=='1' and c.mode or 'off',UPLINK_WAN=c.wan,
+        local out={UPLINK_MODE=mode,UPLINK_WAN=c.wan,
             UPLINK_IPV4=state.phone_ip,UPLINK_GATEWAY=state.gateway,
             UPLINK_ACTIVE=state.active or 'none',UPLINK_MESSAGE=state.message,
-            UPLINK_WAN_HEALTH=state.wan_health or 'checking',
-            UPLINK_PHONE_HEALTH=state.phone_health or 'checking'}
+            UPLINK_WAN_HEALTH=monitoring and (state.wan_health or 'checking') or 'disabled',
+            UPLINK_PHONE_HEALTH=monitoring and (state.phone_health or 'checking') or 'disabled'}
         for k,v in pairs(out) do if v then print(k..'|'..tostring(v):gsub('[\r\n|]',' ')) end end
     end
     function self.control(action)

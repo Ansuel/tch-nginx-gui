@@ -2,6 +2,7 @@
 # Run by Transformer as root; the web worker never needs USB or shell access.
 CMD=${1:-get_stats}
 USB_SWITCH_LOCK=/var/run/modgui-smartphone-usb-switch
+AUTO_NCM_LAST=/var/run/modgui-smartphone-ncm-last
 if [ "$CMD" = watch_adb ]; then
     watch_child=""
     trap '[ -z "$watch_child" ] || { kill "$watch_child" 2>/dev/null; wait "$watch_child" 2>/dev/null; }; exit 0' HUP INT TERM
@@ -32,15 +33,27 @@ usb_diagnostics() {
         candidate=0
         usb_adb=0
         usb_network=0
+        network_bound=0
+        unbound_driver=""
         for interface in "$usb":*; do
             [ -r "$interface/bInterfaceClass" ] || continue
             read -r class < "$interface/bInterfaceClass"
             read -r subclass < "$interface/bInterfaceSubClass"
             read -r protocol < "$interface/bInterfaceProtocol"
             case "$class:$subclass:$protocol" in
-                ff:42:01) candidate=1; usb_adb=1 ;;
-                e0:01:03|ef:04:01|ef:01:01|02:02:ff|02:06:00|02:0d:00) candidate=1; usb_network=1 ;;
+                ff:42:01) candidate=1; usb_adb=1; continue ;;
+                e0:01:03|ef:04:01|ef:01:01|02:02:ff) expected_driver=rndis_host ;;
+                02:06:00) expected_driver=cdc_ether ;;
+                02:0d:00) expected_driver=cdc_ncm ;;
+                *) continue ;;
             esac
+            candidate=1
+            usb_network=1
+            if [ -L "$interface/driver" ]; then
+                network_bound=1
+            else
+                unbound_driver="$expected_driver"
+            fi
         done
         [ "$candidate" = 1 ] || continue
         product=$(tr '\r\n|' '   ' < "$usb/product" 2>/dev/null | cut -c1-120 | sed 's/[[:space:]]*$//')
@@ -66,8 +79,11 @@ usb_diagnostics() {
             case "$carrier" in 0|1) printf 'HOST_CARRIER|%s\n' "$carrier" ;; esac
             ip -o -4 addr show dev "$iface" 2>/dev/null | awk '$3 == "inet" {print "HOST_IPV4|" $4; exit}'
             ip -4 route show dev "$iface" 2>/dev/null | awk '$1 == "default" && $2 == "via" {print "HOST_GATEWAY|" $3; exit}'
-            break
+            return
         done
+        if [ "$network_bound" = 0 ] && [ -n "$unbound_driver" ]; then
+            printf 'HOST_UNBOUND_DRIVER|%s\n' "$unbound_driver"
+        fi
         return
     done
 }
@@ -197,7 +213,6 @@ case "$states" in
     *) error "The ADB device is unavailable. Check USB permissions and USB debugging." adb_error ;;
 esac
 adb get-state >/dev/null 2>&1 || error "ADB connection failed. Reconnect the phone and check USB debugging." adb_error
-[ "$CMD" != check_adb ] || exit 0
 android_shell() {
     # ADB 1.0.32 does not propagate Android shell exit codes. Read our marker
     # instead, including when su is absent or authorization is rejected.
@@ -209,6 +224,11 @@ android_shell() {
 }
 android_root() { android_shell "su -c '$1'" "${2:-2}"; }
 has_root() { [ "$(android_root "id -u" 2>/dev/null | tr -d '\r')" = 0 ]; }
+
+usb_functions() {
+    # Some Android builds write the functions to stderr.
+    adb -s "$1" shell svc usb getFunctions 2>&1 | tr -d '\r'
+}
 
 switch_usb_transport() (
     mode=$1
@@ -226,16 +246,27 @@ switch_usb_transport() (
     trap 'rmdir "$USB_SWITCH_LOCK"' EXIT
     trap 'exit 1' HUP INT TERM
 
-    previous=$(adb -s "$serial" shell svc usb getFunctions 2>/dev/null | tr -d '\r')
+    previous=$(usb_functions "$serial")
     case "$previous" in
-        *rndis*) previous=rndis ;;
-        *ncm*) previous=ncm ;;
+        rndis|rndis,adb|adb,rndis) previous=rndis ;;
+        ncm|ncm,adb|adb,ncm) previous=ncm ;;
         mtp|ptp|midi|none|adb|mtp,adb|ptp,adb|midi,adb) previous="" ;;
         *) error "Android non espone il controllo delle funzioni USB tramite ADB." ;;
     esac
     if [ "$previous" = "$mode" ] && usb_diagnostics "$serial" | grep -qx "HOST_DRIVER|$driver"; then exit 0; fi
     if [ "$previous" = ncm ] && ! ncm_switch_supported; then
         error "Scollega il telefono e seleziona RNDIS sul telefono prima di ricollegarlo."
+    fi
+    if [ "${2:-}" = auto ]; then
+        # A failed switch can re-enumerate the old mode. Give tethering time
+        # to recover before trying again.
+        now=$(date +%s) || exit 1
+        last=$(cat "$AUTO_NCM_LAST" 2>/dev/null)
+        case "$last" in
+            ''|*[!0-9]*) ;;
+            *) [ "$now" -lt "$last" ] || [ "$((now - last))" -ge 300 ] || exit 0 ;;
+        esac
+        (umask 077; printf '%s\n' "$now" > "$AUTO_NCM_LAST") || exit 1
     fi
 
     # USB can disconnect before Android returns a shell status. Check the
@@ -244,8 +275,11 @@ switch_usb_transport() (
     for attempt in 1 2 3 4 5 6 7; do
         sleep 1
         if usb_diagnostics "$serial" | grep -qx "HOST_DRIVER|$driver" &&
-           adb -s "$serial" shell svc usb getFunctions 2>/dev/null | tr -d '\r' |
-               grep -Eq "(^|,)$mode(,|$)"; then
+           { [ "${2:-}" = auto ] || usb_functions "$serial" | grep -Eq "(^|,)$mode(,|$)"; }; then
+            if [ "${2:-}" = auto ]; then
+                rm -f "$AUTO_NCM_LAST"
+                logger -t modgui-smartphone 'CDC NCM enabled on the USB phone.'
+            fi
             exit 0
         fi
     done
@@ -280,6 +314,10 @@ capture_screen() {
 }
 
 case "$CMD" in
+    check_adb)
+        [ "$(uci -q get smartphone.usb.mode)" = ncm ] && ncm_switch_supported || exit 0
+        switch_usb_transport ncm auto
+        exit $? ;;
     usb_ncm|usb_rndis) switch_usb_transport "${CMD#usb_}"; exit $? ;;
     screen_wake) android_shell "input keyevent 224" >/dev/null 2>&1 || error "Unable to wake the display."; exit 0 ;;
     screen_sleep) android_shell "input keyevent 223" >/dev/null 2>&1 || error "Unable to turn off the display."; exit 0 ;;
