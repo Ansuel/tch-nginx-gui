@@ -478,27 +478,49 @@ assert(values[lan] == 'eth0 eth1 eth2 eth3 vlan_eth4')
 values[sensing] = '0'
 local path = device('vlan_eth4', 'vlan_eth4', 'eth4', '835')
 local other = device('waneth4', 'waneth4', 'eth4', '100')
-values[wan .. 'ifname'] = 'vlan_eth4'
-assert(bridge.enter() and bridge.setLocalProtocol('dhcp'))
-local posted = {action = 'SAVE', intf_vlan = 'eth4', intf_vlanid = '836', auswahlliste = 'devnot'}
+local posted = {action = 'SAVE', intf_vlan = '0', auswahlliste = 'devnot'}
 local errors, shown = {}, {}
 ngx = {var = {request_method = 'POST'}, print = function() end,
     ctx = {session = {getrole = function() return 'engineer' end}},
     req = {get_post_args = function() return posted end}}
-package.preload['web.lp'] = function() return {} end
-package.preload['web.post_helper'] = function() return {} end
-package.preload['web.content_helper'] = function() return {} end
-package.preload.broadbandmode_helper = function() return {} end
+package.preload['web.post_helper'] = function() return {
+    getValidateNumberInRange = function(min, max)
+        return function(value) return tonumber(value) >= min and tonumber(value) <= max end
+    end,
+} end
 package.preload['web.uimessage_helper'] = function() return {
     pushMessage = function(message) errors[#errors + 1] = message end,
     popMessages = function() return {} end,
 } end
 package.preload['web.ui_helper'] = function() return setmetatable({}, {__index = function(_, key)
     return function(label, name, value)
-        if key == 'createInputText' then shown[name] = value end
+        if key == 'createInputText' or key == 'createSwitch' then shown[name] = value end
         return ''
     end
 end}) end
+
+-- Emulate a Homeware POST VID with userdata even on stock Lua.
+local wrapped = io.stdin
+local untaint = string.untaint
+string.untaint = function(value)
+    if value == wrapped then return '835' end
+    return untaint and untaint(value) or value
+end
+local count = #events
+dofile(VLAN_MODAL)
+assert(#errors == 0 and #events == count and shown.intf_vlan == '0')
+posted.intf_vlan, posted.intf_vlanid = '1', wrapped
+dofile(VLAN_MODAL)
+assert(#errors == 0 and shown.intf_vlan == '1')
+assert(values[wan .. 'ifname'] == 'vlan_eth4' and values[other .. 'vid'] == '100')
+values[wan .. 'ifname'] = '@vlan_wan_eth4'
+values['uci.network.interface.@vlan_wan_eth4.ifname'] = 'vlan_eth4'
+posted.intf_vlanid = '836'
+dofile(VLAN_MODAL)
+assert(#errors == 0 and values[path .. 'vid'] == '836')
+assert(values[wan .. 'ifname'] == '@vlan_wan_eth4')
+
+assert(bridge.enter() and bridge.setLocalProtocol('dhcp'))
 dofile(VLAN_MODAL)
 assert(#errors == 0 and values[path .. 'vid'] == '836' and values[other .. 'vid'] == '100')
 assert(shown.intf_vlanid == '836' and values[wan .. 'ifname'] == 'br-lan')
@@ -507,10 +529,12 @@ dofile(VLAN_MODAL)
 assert(#errors == 0 and values[wan .. 'ifname'] == 'br-lan')
 assert(values[lan] == 'eth0 eth1 eth2 eth3 eth4.836')
 assert(values[path .. 'ifname'] == '')
-local count = #events
-posted.intf_vlanid = '835.5'
-dofile(VLAN_MODAL)
-assert(#errors == 1 and #events == count)
+count = #events
+for index, invalid in ipairs({'835.5', '2049', true, {'835', '836'}}) do
+    posted.intf_vlanid = invalid
+    dofile(VLAN_MODAL)
+    assert(#errors == index and #events == count)
+end
 posted.intf_vlan = '0'
 dofile(VLAN_MODAL)
 assert(values[lan] == 'eth0 eth1 eth2 eth3 eth4')
@@ -518,12 +542,21 @@ assert(bridge.leave('dhcp') and values[wan .. 'ifname'] == 'eth4')
 -- A SAVE that re-enables sensing also contains stale VLAN form fields.
 -- Those fields must not override the interface selected by the daemon.
 values[sensing] = '1'
-posted.intf_vlan = 'eth4'
+posted.intf_vlan = '1'
 posted.intf_vlanid = '100'
 posted.auswahlliste = 'devnot'
 count = #events
 dofile(VLAN_MODAL)
 assert(#events == count and values[wan .. 'ifname'] == 'eth4')
+
+-- On older firmware there may be no native Ethernet VLAN device.
+values[sensing] = '0'
+assert(proxy.del(path) and proxy.del(other))
+posted.intf_vlanid = wrapped
+dofile(VLAN_MODAL)
+assert(#errors == 4 and values[wan .. 'ifname'] == 'waneth4')
+assert(values[other .. 'type'] == '8021q' and values[other .. 'vid'] == '835')
+assert(values[other .. 'ifname'] == 'eth4')
 '''.replace('VLAN_MODAL', repr(str(ROOT / 'www/snippets/broadband-vlan.lp'))))
 
     def test_physical_device_is_not_mistaken_for_a_vlan(self):
