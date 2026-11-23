@@ -36,8 +36,8 @@ for index = 1, 5 do
 end
 ngx.print('</div>')
 ngx.print(ui_helper.createSimpleLight("0", '<span data-bind="text: phoneOperator"></span> <span data-bind="text: phoneDevice"></span><span data-bind="text: phoneBattery"></span>'))
-ngx.print('<div style="height:25px;display:flex;align-items:center;gap:5px"><label class="card-label">', T"Status", ':</label> ',
-    '<strong class="smartphone-status" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" data-bind="text: phoneStatus"></strong></div>')
+ngx.print('<div style="min-height:25px;display:flex;align-items:baseline;gap:5px"><label class="card-label" style="flex-shrink:0">', T"Status", ':</label> ',
+    '<strong class="smartphone-status" style="min-width:0;white-space:normal;overflow-wrap:anywhere" data-bind="text: phoneStatus"></strong></div>')
 ngx.print('<div class="smartphone-signal-row" style="display:none;height:25px" title="', escape(T"Estimated from LTE RSRP"), '"><label class="card-label">',
     T"Signal", ':</label> <strong data-bind="text: phoneSignal"></strong></div>')
 ngx.print('<div class="smartphone-tether-row" style="display:none;height:25px"><label class="card-label">', T"Tethering", ':</label> ',
