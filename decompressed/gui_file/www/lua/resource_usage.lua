@@ -106,52 +106,6 @@ local samples = {}
 local previous_cpu, previous_wan, previous_lan
 local lan_interface = "br-lan"
 
-local directory = "/tmp/trafficmon/"
-
-local function read_archive_file(name, now)
-    local lfs = require("lfs")
-    local path = directory .. name
-    local updated = lfs.attributes(path, "modification")
-    if not updated or updated > now or now - updated >= archive_lifetime then return {}, {} end
-    local file = io.open(path, "r")
-    if not file then return {}, {} end
-
-    -- trafficmon stores local HH:MM only. Anchor it to the file's latest write
-    -- and verify the wall clock after crossing midnight or a DST boundary.
-    local anchor = updated - updated % 60
-    local minute = tonumber(os.date("%H", anchor)) * 60 + tonumber(os.date("%M", anchor))
-    local header = tonumber(file:read("*l"))
-    local slots = {}
-    local rows = 0
-    for line in file:lines() do
-        rows = rows + 1
-        if rows > 145 then break end
-        local value, hour, min = line:match("^%s*(%d+%.?%d*)%s+(%d%d):(%d%d)%s*$")
-        if value and tonumber(hour) < 24 and tonumber(min) < 60 then
-            local difference = (minute - (tonumber(hour) * 60 + tonumber(min))) % 1440
-            local time = anchor - difference * 60
-            if now - time < archive_lifetime and time < now and os.date("%H:%M", time) == hour .. ":" .. min then
-                -- The service overwrites matching HH:MM rows only. Older days
-                -- can leave a second row one minute off the current schedule.
-                local slot = math.floor((difference + 5) / 10)
-                local distance = math.abs(difference - slot * 10)
-                if not slots[slot] or distance < slots[slot].distance then
-                    slots[slot] = {time = time, value = tonumber(value), distance = distance}
-                end
-            end
-        end
-    end
-    file:close()
-    if lfs.attributes(path, "modification") ~= updated then return {}, {} end
-    local values, times = {}, {}
-    for _, sample in pairs(slots) do
-        values[sample.time] = sample.value
-        times[#times + 1] = sample.time
-    end
-    table.sort(times)
-    return values, times, header
-end
-
 local function rates(values, times)
     local result = {}
     for i = 2, #times do
@@ -165,8 +119,9 @@ local function rates(values, times)
 end
 
 local function read_archive(now, interface, lan_interface)
-    local cpu = read_archive_file("stats_cpu", now)
-    local mem, _, total = read_archive_file("stats_mem", now)
+    local history = require("traffic_history")
+    local cpu = history.read("stats_cpu", now, archive_lifetime)
+    local mem, _, total = history.read("stats_mem", now, archive_lifetime)
     local points = {}
     local function point(time)
         if not points[time] then
@@ -184,8 +139,8 @@ local function read_archive(now, interface, lan_interface)
     end
     local function add_traffic(device, rx_field, tx_field)
         if type(device) ~= "string" or #device > 15 or not device:match("^[%w_.-]+$") then return end
-        local rx = rates(read_archive_file(device .. "_rx_bytes", now))
-        local tx = rates(read_archive_file(device .. "_tx_bytes", now))
+        local rx = rates(history.read(device .. "_rx_bytes", now, archive_lifetime))
+        local tx = rates(history.read(device .. "_tx_bytes", now, archive_lifetime))
         for time, received in pairs(rx) do
             if tx[time] then
                 local sample = point(time)
@@ -196,7 +151,9 @@ local function read_archive(now, interface, lan_interface)
     add_traffic(interface, "rx", "tx")
     add_traffic(lan_interface, "lan_rx", "lan_tx")
     local result = {}
-    for _, sample in pairs(points) do result[#result + 1] = sample end
+    for time, sample in pairs(points) do
+        if time < now then result[#result + 1] = sample end
+    end
     table.sort(result, function(a, b) return a.time < b.time end)
     return result
 end

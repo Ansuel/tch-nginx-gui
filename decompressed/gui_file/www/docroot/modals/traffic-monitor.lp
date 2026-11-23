@@ -182,44 +182,8 @@ local wantotal = wantx + wanrx
 local lantotal = lantx + lanrx
 local wifitotal = wifitx + wifirx
 
-local function getTrafficData(dtype, name)
-    local nline = 1
-    local data = {}
-	local datatime = {}
-    filename = format("/tmp/trafficmon/%s_%s", name, dtype)
-    f = io.open(filename, "r")
-    if f then
-        for line in f:lines() do
-            if (nline < 2 ) then
-                nline = nline + 1 --skip first line
-            elseif (nline == 2) then
-				nline = nline +1
-				data[#data+1] = line:match(".*%s"):gsub("%s+", "") or "NaN"
-				datatime[#datatime+1] = '"'
-				datatime[#datatime+1] = line:match("%s.*"):gsub("%s+","") or "NaN"
-				datatime[#datatime+1] = '"'
-            else
-				data[#data+1] = ","
-				data[#data+1] = line:match(".*%s"):gsub("%s+", "") or "NaN"
-				datatime[#datatime+1] = ","
-				datatime[#datatime+1] = '"'
-				datatime[#datatime+1] = line:match("%s.*"):gsub("%s+","") or "NaN"
-				datatime[#datatime+1] = '"'
-            end
-        end
-        f:close()
-    end
-	
-	local ret = {
-		data = concat(data),
-		time = concat(datatime),
-	}
-	
-    return ret
-end
-
-proxy.set("rpc.system.lock.datadir", "/tmp/trafficmon/")
-proxy.apply()
+local history = require("traffic_history")
+local now = ngx.time()
 
 local interface = proxy.get("rpc.network.interface.@wan.ifname")
 local wan = proxy.get("rpc.network.interface.@wan.up") 
@@ -234,23 +198,11 @@ if graph_interface:match("wan") then
 	end
 end
 
-local traffic = {}
-
-local TrafficIntf = {
-	wan = graph_interface,
-	lan = lan_intf,
-	wifi = curiface,
+local traffic = {
+    wan = history.traffic_chart(graph_interface, now),
+    lan = history.traffic_chart(lan_intf, now),
+    wifi = history.traffic_chart(curiface, now),
 }
-
-for Intf, IntfName in pairs (TrafficIntf) do
-	traffic[Intf] = {}
-	for _,TrafficType in pairs({"rx","tx"}) do
-		traffic[Intf][TrafficType] = getTrafficData(TrafficType.."_bytes",IntfName)
-	end
-end
-
-proxy.set("rpc.system.lock.free", "0")
-proxy.apply()
 
 ngx.print(ui_helper.createHeader(T"Traffic Monitor", false, true) ); ngx.print('\
 <div class="modal-body update no-save">\
@@ -412,10 +364,16 @@ function formatBytes(bytes,decimals) {\
 $(".traffic_data").each(function() {\
 	$(this).text(formatBytes($(this).text(),2));\
 });\
+var HistoryTicks = {autoSkip: false, maxRotation: 0, callback: function(value, index, labels) {\
+    var last = labels.length - 1;\
+    var stride = Math.max(1, Math.ceil(last / 4));\
+    return (last - index) % stride === 0 ? value : null;\
+}};\
 var TrafficChartOption = {\
 		maintainAspectRatio: false,\
         legend: {display: false},\
         scales: {\
+		xAxes: [{ticks: HistoryTicks}],\
 		yAxes: [{ticks: {\
 				callback: function(value) { \
 					return formatBytes(value,2)},\
@@ -424,21 +382,20 @@ var TrafficChartOption = {\
                 enabled: true,\
                 mode: "single",\
                 callbacks: {\
+                    title: function(items, data) { return items.length ? data.labels[items[0].index] : ""; },\
                     label: function(tooltipItems, data) { \
-                        return formatBytes(tooltipItems.yLabel , 2);},\
-					title: function(tooltipItems, data) {\
-						return;}}},\
-		spanGaps:true,\
+                        return formatBytes(tooltipItems.yLabel , 2);}}},\
+		spanGaps:false,\
 		legend: {display: false},};\
 var wan_ctx = document.getElementById("WANChart").getContext("2d");\
 var WANChart = new Chart(wan_ctx, {\
     type: "line",\
-    data: {labels: ['); ngx.print(traffic.wan.tx.time); ngx.print('],\
-	"datasets":[{"data":['); ngx.print(traffic.wan.tx.data); ngx.print('],\
+    data: {labels: ['); ngx.print(traffic.wan.time); ngx.print('],\
+	"datasets":[{"data":['); ngx.print(traffic.wan.tx); ngx.print('],\
 			"pointBackgroundColor": "#90cd8a",\
 			"backgroundColor": "#90cd8a50",\
 		},\
-		{"data":['); ngx.print(traffic.wan.rx.data); ngx.print('],\
+		{"data":['); ngx.print(traffic.wan.rx); ngx.print('],\
 			"pointBackgroundColor": "#f58368",\
 			"backgroundColor": "#f5836850",\
     }]},\
@@ -447,12 +404,12 @@ var WANChart = new Chart(wan_ctx, {\
 var lan_ctx = document.getElementById("LANChart").getContext("2d");\
 var LANChart = new Chart(lan_ctx, {\
     type: "line",\
-    data: {labels: ['); ngx.print(traffic.lan.tx.time); ngx.print('],\
-		"datasets":[{"data":['); ngx.print(traffic.lan.tx.data); ngx.print('],\
+    data: {labels: ['); ngx.print(traffic.lan.time); ngx.print('],\
+		"datasets":[{"data":['); ngx.print(traffic.lan.tx); ngx.print('],\
 			"pointBackgroundColor": "#90cd8a",\
 			"backgroundColor": "#90cd8a50",\
 		},\
-		{"data":['); ngx.print(traffic.lan.rx.data); ngx.print('],\
+		{"data":['); ngx.print(traffic.lan.rx); ngx.print('],\
 			"pointBackgroundColor": "#f58368",\
 			"backgroundColor": "#f5836850",\
     }]},\
@@ -461,12 +418,12 @@ var LANChart = new Chart(lan_ctx, {\
 var wifi_ctx = document.getElementById("WiFiChart").getContext("2d");\
 var WiFiChart = new Chart(wifi_ctx, {\
     type: "line",\
-    data: {labels: ['); ngx.print(traffic.wifi.tx.time); ngx.print('],\
-		"datasets":[{"data":['); ngx.print(traffic.wifi.tx.data); ngx.print('],\
+    data: {labels: ['); ngx.print(traffic.wifi.time); ngx.print('],\
+		"datasets":[{"data":['); ngx.print(traffic.wifi.tx); ngx.print('],\
 			"pointBackgroundColor": "#90cd8a",\
 			"backgroundColor": "#90cd8a50",\
 		},\
-		{"data":['); ngx.print(traffic.wifi.rx.data); ngx.print('],\
+		{"data":['); ngx.print(traffic.wifi.rx); ngx.print('],\
 			"	pointBackgroundColor": "#f58368",\
 				"backgroundColor": "#f5836850",\
 		}]},\

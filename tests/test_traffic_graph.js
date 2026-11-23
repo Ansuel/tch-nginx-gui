@@ -222,3 +222,20 @@ range.change();
 assert.strictEqual(poll().get('live'), null);
 assert.strictEqual(liveAxis.min, 1000);
 console.log('Resource charts share history, render gaps, retain a bounded window and reset WAN on interface changes');
+
+const ChartJS = require('../decompressed/gui_file/www/docroot/js/Chart.min.js');
+const CategoryScale = ChartJS.scaleService.getScaleConstructor('category');
+for (const filename of [
+    'decompressed/gui_file/www/docroot/modals/modem-stats-modal.lp',
+    'decompressed/gui_file/www/docroot/modals/traffic-monitor.lp',
+    'decompressed/telstra_gui/www/docroot/telstra-modals/traffic.lp',
+]) {
+    const source = fs.readFileSync(filename, 'utf8').replace(/\\\n/g, '\n');
+    const tickOptions = vm.runInNewContext(source.match(/var HistoryTicks = \{[\s\S]*?\}\};/)[0] + '\nHistoryTicks');
+    const labels = Array.from({length: 144}, (_, index) => String(index));
+    const scale = {options: {ticks: tickOptions}, ticks: labels};
+    CategoryScale.prototype.convertTicksToLabels.call(scale);
+    assert.strictEqual(tickOptions.autoSkip, false, filename);
+    assert.strictEqual(scale.ticks.at(-1), labels.at(-1), filename);
+    assert(scale.ticks.filter(Boolean).length <= 5, filename);
+}

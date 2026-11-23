@@ -6,6 +6,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 GUI = ROOT / 'decompressed/gui_file'
+HISTORY = ROOT / 'decompressed/traffic_mon/usr/lib/lua/traffic_history.lua'
 LUA = shutil.which('luajit') or shutil.which('lua')
 
 
@@ -32,10 +33,11 @@ io.popen = function() error('unexpected subprocess') end
 os.execute = function() error('unexpected subprocess') end
 local netrate = dofile(NETRATE_PATH)
 package.preload.netrate = function() return netrate end
+package.preload.traffic_history = function() return dofile(HISTORY_PATH) end
 local function counters(interface, rx, tx)
     return interface .. ': ' .. rx .. ' 1 2 3 4 5 6 7 ' .. tx .. ' 9 10 11 12 13 14 15\n'
 end
-'''.replace('NETRATE_PATH', repr(str(GUI / 'usr/lib/lua/netrate.lua')))
+'''.replace('NETRATE_PATH', repr(str(GUI / 'usr/lib/lua/netrate.lua'))).replace('HISTORY_PATH', repr(str(HISTORY)))
         result = subprocess.run([LUA, '-'], input=setup + body,
                                 text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
