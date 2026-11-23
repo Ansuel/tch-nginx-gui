@@ -4756,3 +4756,24 @@ msgstr "Contatori WAN non disponibili"
 
 msgid "Used"
 msgstr "Usata"
+
+msgid "Reboot Cause"
+msgstr "Causa del riavvio"
+
+msgid "Power Supply"
+msgstr "Alimentazione"
+
+msgid "Support"
+msgstr "Assistenza"
+
+msgid "User Initiated"
+msgstr "Avviato dall'utente"
+
+msgid "Factory Reset"
+msgstr "Ripristino delle impostazioni di fabbrica"
+
+msgid "Upgrade"
+msgstr "Aggiornamento"
+
+msgid "System Self"
+msgstr "Riavvio automatico del sistema"

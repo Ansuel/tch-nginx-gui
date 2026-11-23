@@ -4543,3 +4543,24 @@ msgstr "Punkte"
 
 msgid "Line"
 msgstr "Linie"
+
+msgid "Reboot Cause"
+msgstr "Neustartgrund"
+
+msgid "Power Supply"
+msgstr "Stromversorgung"
+
+msgid "Support"
+msgstr "Support"
+
+msgid "User Initiated"
+msgstr "Vom Benutzer ausgelöst"
+
+msgid "Factory Reset"
+msgstr "Auf Werkseinstellungen zurückgesetzt"
+
+msgid "Upgrade"
+msgstr "Aktualisierung"
+
+msgid "System Self"
+msgstr "Automatischer Neustart"

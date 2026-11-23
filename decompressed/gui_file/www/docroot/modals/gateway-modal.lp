@@ -359,14 +359,34 @@ local content = {
 
 content_helper.getExactContent(content)
 
-local optionalVersions = {
+local optionalInfo = {
   firmware_oid = "uci.version.version.@version[0].oid",
   bootloader_oid = "uci.env.var.bootloader_oid",
+  reboot_cause = "rpc.system.RebootCause",
 }
 if require("bridgehelper").hasXdsl() then
-  optionalVersions.dsl_firmware = "sys.class.xdsl.@line0.FirmwareVersion"
+  optionalInfo.dsl_firmware = "sys.class.xdsl.@line0.FirmwareVersion"
 end
-require("internethelper").getOptionalContent(optionalVersions)
+require("internethelper").getOptionalContent(optionalInfo)
+
+local reboot_causes = {
+  PWR = T"Power Supply",
+  CLI = T"Support",
+  BOOTP = T"Support",
+  CWMP = T"Support",
+  STS = T"Support",
+  TR64 = T"Support",
+  GUI = T"User Initiated",
+  RTFD = T"Factory Reset",
+  UPGRADE = T"Upgrade",
+  ROLLBACK = T"Upgrade",
+  SWOVER = T"Upgrade",
+  CRASH = T"System Self",
+  UERR = T"System Self",
+  WATCHDOG = T"System Self",
+  WANSENS = T"System Self",
+}
+local reboot_cause = untaint(optionalInfo.reboot_cause)
 
 if content["friendly_product_name"] and content["friendly_product_name"] == "AGHP" then
 	content["friendly_product_name"] = "AGTHP" --Wrong product name by telecom!
@@ -771,20 +791,23 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	html[#html + 1] = ui_helper.createLabel(T"Hostname", system_data["system_hostname"], advancedshow )
 	html[#html + 1] = ui_helper.createInputText(T"Hostname", "system_hostname", system_data["system_hostname"], advanced , system_helpmsg["system_hostname"] )
     --html[#html + 1] = ui_helper.createLabel(T"Firmware Version", content["firmware_version"], basic)
-    if optionalVersions.dsl_firmware and optionalVersions.dsl_firmware ~= "" then
-        html[#html + 1] = ui_helper.createLabel(T"Datapump Version", optionalVersions.dsl_firmware, basic)
+    if optionalInfo.dsl_firmware and optionalInfo.dsl_firmware ~= "" then
+        html[#html + 1] = ui_helper.createLabel(T"Datapump Version", optionalInfo.dsl_firmware, basic)
     end
-    if optionalVersions.firmware_oid ~= "" then
-        html[#html + 1] = ui_helper.createLabel(T"Firmware OID", optionalVersions.firmware_oid, basic)
+    if optionalInfo.firmware_oid ~= "" then
+        html[#html + 1] = ui_helper.createLabel(T"Firmware OID", optionalInfo.firmware_oid, basic)
     end
     html[#html + 1] = ui_helper.createLabel(T"Bootloader Version", content["bootloader_version"], long_basic)
-    if optionalVersions.bootloader_oid ~= "" then
-        html[#html + 1] = ui_helper.createLabel(T"Bootloader OID", optionalVersions.bootloader_oid, basic)
+    if optionalInfo.bootloader_oid ~= "" then
+        html[#html + 1] = ui_helper.createLabel(T"Bootloader OID", optionalInfo.bootloader_oid, basic)
     end
     html[#html + 1] = ui_helper.createLabel(T"Hardware Version", content["hardware_version"], basic)
     html[#html + 1] = ui_helper.createLabel(T"Serial Number", content["serial_number"], basic)
     html[#html + 1] = ui_helper.createLabel(T"MAC Address", content["mac_address"], basic)
     html[#html + 1] = ui_helper.createLabel(T"Uptime", post_helper.secondsToTime(content["uptime"]), basic)
+    if reboot_cause ~= "" then
+      html[#html + 1] = ui_helper.createLabel(T"Reboot Cause", reboot_causes[reboot_cause] or T"Unknown", basic)
+    end
     html[#html + 1] = ui_helper.createLabel(T"System Time", content["system_time"], system_time)
 --  html[#html + 1] = ui_helper.createInputSelect(T"Timezone", "system_timezone", timezones, system_data["system_timezone"], basic)
 
