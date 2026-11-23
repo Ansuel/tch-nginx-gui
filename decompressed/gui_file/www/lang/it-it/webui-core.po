@@ -4720,3 +4720,30 @@ msgstr "Punti"
 
 msgid "Line"
 msgstr "Linea"
+
+msgid "Memory"
+msgstr "Memoria"
+
+msgid "System resources"
+msgstr "Risorse di sistema"
+
+msgid "Available"
+msgstr "Disponibile"
+
+msgid "Free"
+msgstr "Libera"
+
+msgid "Cache"
+msgstr "Cache"
+
+msgid "Resources"
+msgstr "Risorse"
+
+msgid "Upload"
+msgstr "Upload"
+
+msgid "No WAN counters available"
+msgstr "Contatori WAN non disponibili"
+
+msgid "Used"
+msgstr "Usata"

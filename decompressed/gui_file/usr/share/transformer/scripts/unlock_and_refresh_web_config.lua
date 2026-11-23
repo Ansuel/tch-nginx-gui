@@ -66,6 +66,7 @@ local check_rule = {
 	{ name = 'ecomodal', target = '/modals/eco-modal.lp' },
 	{ name = 'modguimodal', target = '/modals/modgui-modal.lp' },
 	{ name = 'ajaxgatewaytab', target = '/ajax/cpuload.lua' },
+	{ name = 'trafficmonitor', target = '/modals/traffic-monitor.lp' },
 	{ name = 'ajaxinternet', target = '/ajax/internet.lua' },
 	{ name = 'ajaxinfoconndevicecard', target = '/ajax/connected_device.lua' },
 	{ name = 'ajaxinfoportscard', target = '/ajax/port_status.lua' },
@@ -150,6 +151,7 @@ uci:foreach('web', 'ruleset', function(s)
   
 local card_check_rule = {
 	{ name = 'gateway_card', card = '001_gateway.lp', modal = 'gatewaymodal' },
+	{ name = 'system_resources_card', card = '001_system_resources.lp', modal = 'trafficmonitor', hide = '1' },
 	{ name = 'modgui_card', card = '001_modgui.lp', modal = 'modguimodal' },
 	{ name = 'boradband_card', card = '002_broadband.lp', modal = 'broadbandmodal' },
 	{ name = 'internet_card', card = '003_internet.lp', modal = 'internetmodal' },
@@ -183,13 +185,34 @@ local card_check_rule = {
 	{ name = 'wifiExtender_card', card = '020_wifiExtender.lp', modal = 'easyMeshConfiguration' },
 }
 
+-- Preserve the visibility preference from the preview card.
+if uci:get('web', 'memory_card') == 'card' then
+	local visible = uci:get('web', 'memory_card', 'visible')
+	if visible and not uci:get('web', 'system_resources_card', 'visible') then
+		uci:set('web', 'system_resources_card', 'card')
+		uci:set('web', 'system_resources_card', 'visible', visible)
+	end
+	uci:delete('web', 'memory_card')
+	new_rule = true
+end
+if uci:get('web', 'memorymodal') == 'rule' then
+	uci:delete('web', 'memorymodal')
+	new_rule = true
+end
+for i = #ruleset, 1, -1 do
+	if ruleset[i] == 'memorymodal' then
+		table.remove(ruleset, i)
+		new_rule = true
+	end
+end
+
 --Check every element in table
 for _ , elem in pairs(card_check_rule) do
 	if not contains(elem.name, cardset) then
 		uci:set('web', elem.name ,'card')
 		uci:set('web', elem.name , 'card', elem.card)
 		uci:set('web', elem.name , 'modal', elem.modal)
-		uci:set('web', elem.name , 'hide', '0')
+		uci:set('web', elem.name , 'hide', elem.hide or '0')
 	end
 end
 
