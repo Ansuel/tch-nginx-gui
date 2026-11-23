@@ -98,8 +98,34 @@ local function state()
     local s=assert(io.open(folder..'/runtime/status.json')):read('*a')
     return package.loaded.dkjson.decode(s)
 end
+local function status_output()
+    local lines={}
+    local original_print=print
+    print=function(line) lines[#lines+1]=line end
+    app.status()
+    print=original_print
+    return table.concat(lines,'\n')
+end
 local before=encode(db)
-if case=='invalid' then
+if case=='disabled_status' then
+    local function assert_disabled(mode)
+        local output=status_output()
+        assert(output:find('UPLINK_MODE|'..mode,1,true))
+        assert(output:find('UPLINK_WAN_HEALTH|disabled',1,true))
+        assert(output:find('UPLINK_PHONE_HEALTH|disabled',1,true))
+    end
+    assert_disabled('off')
+    assert(app.apply('link'))
+    assert(app.step())
+    assert_disabled('link')
+    assert(not table.concat(commands,'\n'):find('ping ',1,true))
+    assert(app.apply('fallback'))
+    assert(status_output():find('UPLINK_WAN_HEALTH|checking',1,true))
+    assert(app.step()); assert(app.step())
+    assert(status_output():find('UPLINK_WAN_HEALTH|online',1,true))
+    assert(app.stop())
+    assert_disabled('off')
+elseif case=='invalid' then
     assert(not pcall(app.apply,'fallback; reboot')); assert(#commands==0); assert(encode(db)==before)
 elseif case=='conflict' then
     pending=true; assert(not pcall(app.apply,'fallback')); assert(encode(db)==before)
@@ -173,12 +199,7 @@ elseif case=='monitor' or case=='unplug' or case=='usb_race' or case=='migration
         assert(app.step()); assert(state().active=='phone' and state().phone_ip=='198.51.100.3')
         local last=state(); last.timestamp=os.time()-60
         local f=assert(io.open(folder..'/runtime/status.json','w')); f:write(encode(last)); f:close()
-        local lines={}
-        local original_print=print
-        print=function(line) lines[#lines+1]=line end
-        app.status()
-        print=original_print
-        local output=table.concat(lines,'\n')
+        local output=status_output()
         assert(output:find('UPLINK_ACTIVE|none',1,true))
         assert(output:find('UPLINK_PHONE_HEALTH|checking',1,true))
         assert(not output:find('UPLINK_IPV4|',1,true))

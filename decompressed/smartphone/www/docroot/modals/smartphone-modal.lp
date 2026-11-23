@@ -122,7 +122,7 @@ end
         if not d.HOST_IF and d.USB_NETWORK == "1" then return "Interfaccia non rilevata", "offline" end
         return nil, ""
     end
-    local health = {online = "Raggiungibile", offline = "Non raggiungibile", checking = "In verifica"}
+    local health = {online = "Raggiungibile", offline = "Non raggiungibile", checking = "In verifica", disabled = "Monitor disattivato"}
     local modes = {off = "Disattivato", link = "Solo DHCP", fallback = "Telefono di riserva", primary = "Telefono principale"}
     local lines = {phone = "Telefono", wan = "WAN", none = "Nessuna linea selezionata"}
 
@@ -363,7 +363,7 @@ end
     $("#phone-usb-mode").on("change", refreshPhoneUsbButton);
     var ltePoints=[], nrPoints=[], sampleIndex=0, plot;
     var statusIcons={online:"icon-ok icon-large green",offline:"icon-ban-circle icon-large red",checking:"icon-time"};
-    var healthLabels={online:"Raggiungibile",offline:"Non raggiungibile",checking:"In verifica"};
+    var healthLabels={online:"Raggiungibile",offline:"Non raggiungibile",checking:"In verifica",disabled:"Monitor disattivato"};
     var modes={off:"Disattivato",link:"Solo DHCP",fallback:"Telefono di riserva",primary:"Telefono principale"};
     var lines={phone:"Telefono",wan:"WAN",none:"Nessuna linea selezionata"};
     function available(value){

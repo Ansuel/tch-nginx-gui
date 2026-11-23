@@ -92,8 +92,12 @@ else: raise AssertionError(args)
                 result = self.run_manager(KERNEL_RELEASE=release, MODULE_LAYOUT=layout,
                                           KERNEL_ABI=release+'-build', FEED_ABI=release+'-build')
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-                self.assertTrue((self.root/'lib/modules'/release/layout/'rndis_host.ko').exists())
-                self.assertIn('rndis_host', (self.root/'etc/modules.d/60-modgui-smartphone-net').read_text())
+                autoload = (self.root/'etc/modules.d/60-modgui-smartphone-net').read_text().splitlines()
+                for package in ('kmod-usb-net', 'kmod-usb-net-cdc-ether', 'kmod-usb-net-rndis'):
+                    module = PACKAGES[package]
+                    self.assertTrue((self.root/'state'/package).is_file())
+                    self.assertTrue((self.root/'lib/modules'/release/layout/f'{module}.ko').is_file())
+                    self.assertIn(module, autoload)
         self.assertNotIn('--force', (self.root/'opkg.log').read_text())
         self.assertNotIn('install kmod-rndis-host-otherboard', (self.root/'opkg.log').read_text())
 
