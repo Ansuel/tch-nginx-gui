@@ -129,6 +129,19 @@ local retained = resources.history(now, 170)
 assert(retained.replace and #retained.samples == 60 and retained.samples[1].time == 190)
 now = 50
 assert(#resources.history(now).samples == 1 and resources.history(now).samples[1].rx == nil)
+now = 52
+assert(#resources.history(now, 50, 3).samples == 0)
+now = 53
+local live = resources.history(now, 50, 3).samples
+assert(#live == 1 and live[1].time == 53 and live[1].lan_rx == 40)
+now = 56
+assert(#resources.history(now, 53).samples == 0)
+now = 57
+assert(#resources.history(now, 53, 2).samples == 1)
+now = 58
+assert(#resources.history(now, 57, 2).samples == 0)
+now = 59
+assert(#resources.history(now, 57, 2).samples == 1)
 '''.replace('RESOURCE_PATH', repr(str(GUI / 'www/lua/resource_usage.lua'))))
 
     def test_trafficmon_import_anchors_timestamps_and_rejects_long_wan_intervals(self):

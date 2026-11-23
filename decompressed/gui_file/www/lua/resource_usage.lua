@@ -98,9 +98,8 @@ function M.storage()
     return capacity(posix.statvfs, "/usr"), usb
 end
 
-local interval = 9 -- Coalesce requests from dashboard and statistics.
 local lifetime = 600
-local limit = 60
+local limit = 600 -- Up to ten minutes of samples at the fastest cadence.
 local archive_lifetime = 3600
 -- The GUI runs with one nginx worker and loads this module once per worker.
 local samples = {}
@@ -240,13 +239,14 @@ local function collect(now, elapsed)
     samples[#samples + 1] = point
 end
 
-function M.history(now, after)
+function M.history(now, after, live)
     local last = samples[#samples]
     if last and now < last.time then
         samples, previous_cpu, previous_wan, previous_lan = {}, nil, nil, nil
         last = nil
     end
     local elapsed = last and (now - last.time)
+    local interval = live or 9 -- Coalesce requests from different clients.
     if not elapsed or elapsed >= interval then collect(now, elapsed) end
     for i = #samples, 1, -1 do
         local age = now - samples[i].time

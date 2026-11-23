@@ -29,7 +29,8 @@ ngx.print([[
     #system-resources-card .resources-chart { display:flex; flex-direction:column; flex:1; min-width:0; }
     #system-resources-card .resources-plot { position:relative; flex:1; min-height:28px; margin-top:2px; }
     #system-resources-card .resources-lan { position:absolute; inset:0; }
-    #system-resources-card .resources-caption { font-size:11px; white-space:nowrap; }
+    #system-resources-card .resources-caption { display:flex; justify-content:space-between; gap:3px; font-size:11px; white-space:nowrap; }
+    #system-resources-card .resources-scale { font-size:10px; }
   </style>
   <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">
 ]], header, [[
@@ -51,8 +52,10 @@ ngx.print([[
         <div class="resources-charts">
           <div class="resources-chart">
             <div class="resources-caption">
-              <span style="border-bottom:2px solid #3487c9">CPU <strong data-resource="resource-cpu">–</strong></span>
-              <span style="border-bottom:2px solid #ad68bd">RAM</span>
+              <span>
+                <span style="border-bottom:2px solid #ad68bd">RAM</span>
+                <span style="border-bottom:2px solid #3487c9">CPU <strong data-resource="resource-cpu">–</strong></span>
+              </span>
             </div>
             <div class="resources-plot">
               <canvas data-resource="resource-chart" role="img" aria-label="CPU / RAM"></canvas>
@@ -60,10 +63,13 @@ ngx.print([[
           </div>
           <div class="resources-chart">
             <div class="resources-caption">
-              br-lan <span data-resource="traffic-download-label" class="hide">RX</span>
-              <span data-resource="traffic-upload-label" class="hide">TX</span>
-              <span aria-hidden="true" style="color:#379962">↓</span>
-              <span aria-hidden="true" style="color:#df7951">↑</span>
+              <span>
+                br-lan <span data-resource="traffic-download-label" class="hide">RX</span>
+                <span data-resource="traffic-upload-label" class="hide">TX</span>
+                <span aria-hidden="true" style="color:#379962">↓</span>
+                <span aria-hidden="true" style="color:#df7951">↑</span>
+              </span>
+              <span class="resources-scale"><span data-resource="traffic-scale">–</span> max</span>
             </div>
             <div class="resources-plot">
               <div data-resource="wan-chart-frame" class="resources-lan">

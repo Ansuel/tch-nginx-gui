@@ -4727,6 +4727,15 @@ msgstr "Memoria"
 msgid "System resources"
 msgstr "Risorse di sistema"
 
+msgid "Graph range"
+msgstr "Intervallo del grafico"
+
+msgid "Live · 20 seconds"
+msgstr "In tempo reale · 20 secondi"
+
+msgid "History"
+msgstr "Storico"
+
 msgid "Available"
 msgstr "Disponibile"
 

@@ -6,6 +6,8 @@ ngx.print([[
 <div class="infocard" id="graphtab">
   <style>
     #graphtab .resources-layout { box-sizing:border-box; padding:12px 14px; }
+    #graphtab .resources-range { display:flex; justify-content:flex-end; margin-bottom:10px; }
+    #graphtab .resources-range select { width:auto; margin:0; }
     #graphtab .resources-section + .resources-section { margin-top:18px; }
     #graphtab .resources-heading {
       display:grid; grid-template-columns:auto minmax(0,1fr); align-items:baseline; column-gap:10px;
@@ -33,6 +35,12 @@ ngx.print([[
 ]], ui_helper.createCardHeader(T"Resources", nil, nil, nil, nil), [[
     <div class="content">
       <div class="divtable resources-layout">
+        <div class="resources-range">
+          <select data-resource="chart-range" aria-label="]], T"Graph range", [[">
+            <option value="live">]], T"Live · 20 seconds", [[</option>
+            <option value="history">]], T"History", [[</option>
+          </select>
+        </div>
         <section class="resources-section">
           <div class="resources-heading">
             <h4>CPU / RAM</h4>
@@ -60,7 +68,6 @@ ngx.print([[
         </section>
         <div class="resources-frequency">
           <span class="hide" data-resource="historical-source">]], T"Traffic Monitor", [[ · 10 min</span>
-          <span>]], T"Polling every 10 seconds", [[</span>
         </div>
       </div>
     </div>

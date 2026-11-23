@@ -46,7 +46,9 @@ local data = {valid = false}
 if ngx.req.get_method() == "POST" then
     local args = ngx.req.get_uri_args()
     if args.source == "wan" and args.resources == "history" then
-        data = require("resource_usage").history(ngx.time(), tonumber(args.after))
+        local interval = args.live == "3" and 1 or (args.live == "2" and 2 or (args.live == "1" and 3 or nil))
+        data = require("resource_usage").history(ngx.time(), tonumber(args.after), interval)
+        data.now = ngx.now()
     else
         data = traffic(args)
     end
