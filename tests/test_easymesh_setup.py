@@ -128,6 +128,30 @@ assert(staged.multiap.factory.state=='0' and staged.multiap.factory.wpa_psk_key=
 assert(staged.multiap.main24.ssid=='Existing 24' and staged.multiap.main24.wpa_psk_key=='existing-key-24')
 assert(staged.multiap.main5.frequency_bands=='radio_5G' and staged.multiap.main5.backhaul=='0')
 assert(staged.multiap.agent.bss_list=='wl0,wl1')
+reset(); source.web.main.splitssid=nil; assert(setup.seed(cursor(staged),cursor(source)))
+assert(staged.multiap.main24.state=='1' and staged.multiap.main5.state=='1')
+reset(); source.web.main.splitssid=nil
+source.wireless.wl1.ssid=source.wireless.wl0.ssid
+source.wireless.ap1.wpa_psk_key=source.wireless.ap0.wpa_psk_key
+assert(setup.seed(cursor(staged),cursor(source)))
+assert(staged.multiap.main24.frequency_bands=='radio_2G,radio_5G' and staged.multiap.main5.state=='0')
+local function with_native_backhaul()
+ reset()
+ staged.multiap.agent.backhaul_list='wl1_2'
+ staged.multiap.factory.backhaul='1'
+ staged.multiap.factory.fronthaul='0'
+ staged.multiap.factory.security_mode='wpa2-psk'
+ source.wireless.wl1_2={mode='ap', network='lan', backhaul='1', state='1', ssid='Existing backhaul'}
+ source.wireless.ap4={['.type']='wifi-ap', iface='wl1_2', state='1',
+  security_mode='wpa2-psk', wpa_psk_key='existing-backhaul-key'}
+end
+with_native_backhaul();assert(setup.seed(cursor(staged),cursor(source)))
+assert(staged.multiap.factory.state=='1' and staged.multiap.factory.wpa_psk_key=='existing-backhaul-key')
+assert(staged.multiap.factory.ssid=='Existing backhaul' and staged.multiap.agent.backhaul_list=='wl1_2')
+assert(staged.multiap.agent.bss_list=='wl0,wl1,wl1_2' and staged.multiap.agent.fronthaul_list=='wl0,wl1')
+with_native_backhaul();source.wireless.ap4.state='0';assert(setup.seed(cursor(staged),cursor(source)))
+assert(staged.multiap.factory.state=='0' and staged.multiap.factory.wpa_psk_key=='')
+assert(staged.multiap.agent.backhaul_list=='' and staged.multiap.agent.bss_list=='wl0,wl1')
 reset();source.web.main.splitssid='0';source.wireless.wl1.ssid=source.wireless.wl0.ssid
 source.wireless.ap1.wpa_psk_key=source.wireless.ap0.wpa_psk_key
 assert(setup.seed(cursor(staged),cursor(source)))

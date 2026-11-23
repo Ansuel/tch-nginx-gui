@@ -47,7 +47,45 @@ function M.can_initialize()
   return ok and valid or false
 end
 
--- Seed only the native main-network associations, never factory credentials.
+local function valid_credentials(ssid, key)
+  return ssid and #ssid > 0 and #ssid <= 32 and key and
+    ((#key >= 8 and #key <= 63) or (#key == 64 and key:match("^%x+$")))
+end
+
+-- Retain an existing native backhaul only if its APs are provisioned on this
+-- device. Use their active credentials instead of the ROM credential values.
+local function native_backhaul(c, source, main)
+  local list = c:get("multiap", "agent", "backhaul_list") or ""
+  if not list:match("^[%w_,%-]+$") then return nil end
+  local profile, count = nil, 0
+  c:foreach("multiap", "controller_credentials", function(s)
+    if s.backhaul == "1" and s.fronthaul == "0" and s.state == "1" and s.security_mode == "wpa2-psk" then
+      profile, count = s, count + 1
+    end
+  end)
+  if count ~= 1 or main[profile[".name"]] then return nil end
+
+  local aps = {}
+  source:foreach("wireless", "wifi-ap", function(ap)
+    if ap.iface then aps[ap.iface] = aps[ap.iface] == nil and ap or false end
+  end)
+  local interfaces, ssid, key = {}, nil, nil
+  for name in list:gmatch("[^,]+") do
+    local ap = aps[name]
+    local candidate = source:get("wireless", name, "ssid")
+    if main[name] or source:get("wireless", name, "mode") ~= "ap" or
+      source:get("wireless", name, "network") ~= "lan" or source:get("wireless", name, "backhaul") ~= "1" or
+      source:get("wireless", name, "state") ~= "1" or not ap or ap.state ~= "1" or
+      ap.security_mode ~= "wpa2-psk" or not valid_credentials(candidate, ap.wpa_psk_key) or
+      (ssid and (ssid ~= candidate or key ~= ap.wpa_psk_key)) then return nil end
+    interfaces[#interfaces + 1] = name
+    ssid, key = candidate, ap.wpa_psk_key
+  end
+  if not ssid then return nil end
+  return {name=profile[".name"], interfaces=interfaces, ssid=ssid, key=key}
+end
+
+-- Seed active native network associations, never factory credentials.
 -- Split and shared profiles follow the original web.main association lists.
 function M.seed(c, source)
   local interfaces = source:get("web", "main", "intf")
@@ -55,7 +93,7 @@ function M.seed(c, source)
   local split = source:get("web", "main", "splitssid")
   if type(interfaces) ~= "table" or type(credentials) ~= "table" or
     #interfaces == 0 or #interfaces ~= #credentials or
-    (split ~= "0" and split ~= "1") then
+    (split ~= nil and split ~= "0" and split ~= "1") then
     return nil, "Complete native network associations are required for initialization."
   end
   local profiles, seen = {}, {}
@@ -78,10 +116,8 @@ function M.seed(c, source)
     end)
     local device = source:get("wireless", intf, "device")
     local ssid = source:get("wireless", intf, "ssid")
-    if not ap or not device or not device:match("^[%w_%-]+$") or not ssid or #ssid == 0 or #ssid > 32 or
-      ap.security_mode ~= "wpa2-psk" or not ap.wpa_psk_key or
-      not ((#ap.wpa_psk_key >= 8 and #ap.wpa_psk_key <= 63) or
-        (#ap.wpa_psk_key == 64 and ap.wpa_psk_key:match("^%x+$"))) or
+    if not ap or not device or not device:match("^[%w_%-]+$") or
+      ap.security_mode ~= "wpa2-psk" or not valid_credentials(ssid, ap.wpa_psk_key) or
       source:get("wireless", intf, "backhaul") == "1" or
       source:get("wireless", intf, "network") ~= "lan" then
       return nil, "Initialization requires native LAN interfaces using WPA2-PSK."
@@ -91,15 +127,26 @@ function M.seed(c, source)
     end
     profiles[#profiles + 1] = {name=cred, radio=device, ssid=ssid, key=ap.wpa_psk_key}
   end
-  if split == "0" then
-    for _, p in ipairs(profiles) do
-      if p.ssid ~= profiles[1].ssid or p.key ~= profiles[1].key then
-        return nil, "Shared-network metadata does not match the active Wi-Fi credentials."
-      end
+  local shared = true
+  for _, p in ipairs(profiles) do
+    if p.ssid ~= profiles[1].ssid or p.key ~= profiles[1].key then
+      shared = false
+      break
     end
   end
+  -- Some native configurations omit splitssid and store only the associations.
+  if split == nil then split = shared and "0" or "1" end
+  if split == "0" and not shared then
+    return nil, "Shared-network metadata does not match the active Wi-Fi credentials."
+  end
+  local backhaul = native_backhaul(c, source, seen)
   -- Validate everything before changing the staging cursor.
   c:foreach("multiap", "controller_credentials", function(s)
+    if backhaul and s[".name"] == backhaul.name then
+      assert(c:set("multiap", backhaul.name, "ssid", backhaul.ssid))
+      assert(c:set("multiap", backhaul.name, "wpa_psk_key", backhaul.key))
+      return
+    end
     c:set("multiap", s[".name"], "state", "0")
     c:set("multiap", s[".name"], "operational_state", "0")
     c:set("multiap", s[".name"], "ssid", "")
@@ -126,10 +173,16 @@ function M.seed(c, source)
   end
   for _, role in ipairs({"agent", "controller"}) do assert(c:set("multiap", role, "enabled", "0")) end
   if c:get("multiap", "controller_selection") then c:set("multiap", "controller_selection", "enabled", "0") end
-  for _, key in ipairs({"bss_list", "fronthaul_list", "home_list"}) do
+  for _, key in ipairs({"fronthaul_list", "home_list"}) do
     assert(c:set("multiap", "agent", key, table.concat(interfaces, ",")))
   end
-  for _, key in ipairs({"backhaul_list", "bh_list", "guest_list"}) do c:set("multiap", "agent", key, "") end
+  local bss = table.concat(interfaces, ",")
+  if backhaul then bss = bss .. "," .. table.concat(backhaul.interfaces, ",") end
+  assert(c:set("multiap", "agent", "bss_list", bss))
+  if not backhaul then
+    for _, key in ipairs({"backhaul_list", "bh_list"}) do c:set("multiap", "agent", key, "") end
+  end
+  c:set("multiap", "agent", "guest_list", "")
   return true
 end
 

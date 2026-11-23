@@ -1,8 +1,8 @@
-# Native Ethernet EasyMesh setup
+# Native EasyMesh setup
 
-The EasyMesh card provides **Setup and role** for native controller and Ethernet
-booster operation. A network needs one controller; each participating access
-point runs an agent. This setup does not configure wireless backhaul.
+The EasyMesh card provides **Setup and role** for native controllers and Ethernet
+boosters. Compatible wireless repeaters use the firmware's WPS flow in the
+**Wireless** panel.
 
 ## Compatibility
 
@@ -49,9 +49,11 @@ were not tested on hardware as part of this validation.
 1. Open the EasyMesh card and confirm native initialization if it is
    offered. Initialization validates the native `web.main` interface/credential
    associations and seeds the controller profiles from the active main Wi-Fi
-   configuration. Both services remain disabled until a role is selected.
+   configuration. On firmware that provisions a dedicated backhaul AP, the
+   initializer preserves the native profile and seeds it from the active AP.
+   Both services remain disabled until a role is selected.
 2. Select **Controller and local agent** on the controller. Only one device on
-   the Ethernet network should use this role.
+   the network should use this role.
 3. Prepare each booster as an Ethernet bridge using Broadband and Internet.
    A DHCP or static management connection on `br-lan` can retain management
    access. LAN DHCP, DHCPv6, RA and NDP services must be disabled so the booster
@@ -63,6 +65,16 @@ were not tested on hardware as part of this validation.
 5. Refresh the setup page and check **Agent connection** and the controller's
    extender count. Edit managed Wi-Fi settings on the controller and verify
    propagation to each participating radio.
+
+### Wi-Fi repeater
+
+1. Open **Wireless** on the controller and start WPS PBC on an access point
+   where WPS is enabled.
+2. Press WPS on the repeater to start the firmware's pairing flow.
+3. Open **Topology** to view the controller's native MultiAP inventory.
+
+The Ethernet booster role still requires an Ethernet bridge. A wireless
+repeater needs its own native EasyMesh station and pairing support.
 
 Check for PPPoE relay restrictions on the chosen Ethernet port and duplicate
 secondary LAN addresses when preparing existing router configurations. Use the
@@ -144,7 +156,16 @@ Before declaring a firmware combination stable, validate:
   and throughput measurements.
 - Additional native firmware/backend versions with the same detected features.
 
-Client roaming, throughput, over-air packet capture, wireless backhaul, guest
-propagation, power removal and simultaneous startup were not validated.
-The live results above establish an Ethernet proof of concept on that tested
-pair; capability detection is not a compatibility guarantee for all devices.
+The Ethernet tests leave client roaming, throughput, guest propagation, power
+removal and simultaneous startup unverified.
+
+On a DGA4331 controller with a Repeater TIM, the native backhaul AP reported
+an authorized 5 GHz association. The LAN bridge learned the repeater's
+management MAC through WDS and the repeater answered pings over that link.
+The controller's MultiAP inventory initially reported an unknown link and
+later omitted the repeater while the Wi-Fi link remained active. The GUI
+reflects the native inventory. An isolated initialization using the DGA4331's
+ROM template preserved its native profile and matched the live AP credentials
+without starting either service. A test of the native WPS RPC opened and closed
+both WPS sessions while the existing repeater remained reachable. Pairing a
+repeater from factory settings remains unverified.
