@@ -1,6 +1,7 @@
 """Exercise USB mode changes through the shell helper with mocked ADB and sysfs."""
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -73,6 +74,22 @@ exit 91
     def run_helper(self, action, **env):
         return subprocess.run(['sh', str(self.helper), action], capture_output=True,
                               text=True, env={**self.env, **env}, timeout=5)
+
+    def test_unbound_rndis_control_interface_reports_expected_driver(self):
+        interface = self.driver.parents[3]
+        for attribute, value in zip(('Class', 'SubClass', 'Protocol'), ('ef', '04', '01')):
+            (interface / ('bInterface' + attribute)).write_text(value + '\n')
+        shutil.rmtree(interface / 'net')
+
+        info = self.run_helper('get_usb_info').stdout.splitlines()
+        self.assertIn('USB_NETWORK|1', info)
+        self.assertIn('HOST_UNBOUND_DRIVER|rndis_host', info)
+        self.assertFalse(any(line.startswith('HOST_IF|') for line in info))
+
+        (interface / 'driver').symlink_to('rndis_host')
+        info = self.run_helper('get_usb_info').stdout.splitlines()
+        self.assertIn('USB_NETWORK|1', info)
+        self.assertNotIn('HOST_UNBOUND_DRIVER|rndis_host', info)
 
     def test_switches_both_ways_and_checks_bound_driver(self):
         result = self.run_helper('usb_ncm')

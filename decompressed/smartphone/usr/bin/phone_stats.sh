@@ -32,15 +32,27 @@ usb_diagnostics() {
         candidate=0
         usb_adb=0
         usb_network=0
+        network_bound=0
+        unbound_driver=""
         for interface in "$usb":*; do
             [ -r "$interface/bInterfaceClass" ] || continue
             read -r class < "$interface/bInterfaceClass"
             read -r subclass < "$interface/bInterfaceSubClass"
             read -r protocol < "$interface/bInterfaceProtocol"
             case "$class:$subclass:$protocol" in
-                ff:42:01) candidate=1; usb_adb=1 ;;
-                e0:01:03|ef:04:01|ef:01:01|02:02:ff|02:06:00|02:0d:00) candidate=1; usb_network=1 ;;
+                ff:42:01) candidate=1; usb_adb=1; continue ;;
+                e0:01:03|ef:04:01|ef:01:01|02:02:ff) expected_driver=rndis_host ;;
+                02:06:00) expected_driver=cdc_ether ;;
+                02:0d:00) expected_driver=cdc_ncm ;;
+                *) continue ;;
             esac
+            candidate=1
+            usb_network=1
+            if [ -L "$interface/driver" ]; then
+                network_bound=1
+            else
+                unbound_driver="$expected_driver"
+            fi
         done
         [ "$candidate" = 1 ] || continue
         product=$(tr '\r\n|' '   ' < "$usb/product" 2>/dev/null | cut -c1-120 | sed 's/[[:space:]]*$//')
@@ -66,8 +78,11 @@ usb_diagnostics() {
             case "$carrier" in 0|1) printf 'HOST_CARRIER|%s\n' "$carrier" ;; esac
             ip -o -4 addr show dev "$iface" 2>/dev/null | awk '$3 == "inet" {print "HOST_IPV4|" $4; exit}'
             ip -4 route show dev "$iface" 2>/dev/null | awk '$1 == "default" && $2 == "via" {print "HOST_GATEWAY|" $3; exit}'
-            break
+            return
         done
+        if [ "$network_bound" = 0 ] && [ -n "$unbound_driver" ]; then
+            printf 'HOST_UNBOUND_DRIVER|%s\n' "$unbound_driver"
+        fi
         return
     done
 }

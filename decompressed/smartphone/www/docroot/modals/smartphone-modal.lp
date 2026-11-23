@@ -116,10 +116,17 @@ end
         if value == "0" then return no, "offline" end
         return nil, ""
     end
+    local function interfaceStatus()
+        if d.HOST_IF then return d.HOST_IF, "" end
+        if d.HOST_UNBOUND_DRIVER then
+            return "Nessuna interfaccia USB: driver " .. d.HOST_UNBOUND_DRIVER .. " non associato", "offline"
+        end
+        if d.USB_NETWORK == "1" then return "Interfaccia non rilevata", "offline" end
+        return nil, ""
+    end
     local function linkStatus()
         if d.HOST_IF and d.HOST_ADMIN == "up" and d.HOST_CARRIER == "1" then return "Attivo", "online" end
         if d.HOST_IF and (d.HOST_ADMIN == "down" or d.HOST_CARRIER == "0") then return "Inattivo", "offline" end
-        if not d.HOST_IF and d.USB_NETWORK == "1" then return "Interfaccia non rilevata", "offline" end
         return nil, ""
     end
     local health = {online = "Raggiungibile", offline = "Non raggiungibile", checking = "In verifica", disabled = "Monitor disattivato"}
@@ -134,7 +141,7 @@ end
     })
 
     ngx.print('<fieldset><legend>Tethering sul router</legend>')
-    row("Interfaccia:", "host_if", d.HOST_IF)
+    row("Interfaccia:", "host_if", interfaceStatus())
     row("Driver in uso:", "host_driver", d.HOST_DRIVER)
     row("Link USB:", "host_link", linkStatus())
     row("IPv4:", "host_ipv4", d.HOST_IPV4)
@@ -382,13 +389,20 @@ end
     function showHealth(id, state){
       showRow(id, healthLabels[state], state || "");
     }
+    function showInterface(data){
+      if (data.HOST_IF) {
+        showRow("host_if", data.HOST_IF, "");
+      } else if (data.HOST_UNBOUND_DRIVER) {
+        showRow("host_if", "Nessuna interfaccia USB: driver " + data.HOST_UNBOUND_DRIVER + " non associato", "offline");
+      } else {
+        showRow("host_if", data.USB_NETWORK === "1" ? "Interfaccia non rilevata" : undefined, "offline");
+      }
+    }
     function showLink(data){
       if (data.HOST_IF && data.HOST_ADMIN === "up" && data.HOST_CARRIER === "1") {
         showRow("host_link", "Attivo", "online");
       } else if (data.HOST_IF && (data.HOST_ADMIN === "down" || data.HOST_CARRIER === "0")) {
         showRow("host_link", "Inattivo", "offline");
-      } else if (!data.HOST_IF && data.USB_NETWORK === "1") {
-        showRow("host_link", "Interfaccia non rilevata", "offline");
       } else {
         showRow("host_link", undefined, "");
       }
@@ -433,7 +447,7 @@ end
         var error = j.ERROR || (j.status === "error" && j.message);
         $("#phone-error").text(error || "").toggle(!!error);
         showRow("live_model", j.DEV || j.USB_DEV);
-        showRow("host_if", j.HOST_IF);
+        showInterface(j);
         showRow("host_driver", j.HOST_DRIVER);
         $("#phone-usb-mode option[value=ncm]").prop("disabled", !!error || j.HOST_NCM !== "1");
         $("#phone-usb-mode option[value=rndis]").prop("disabled", !!error || j.HOST_RNDIS !== "1");
