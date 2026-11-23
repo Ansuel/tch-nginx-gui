@@ -33,7 +33,18 @@ mkdir -p "$FIXTURE/sys/module/$1"
         self.mock('insmod', '''echo "insmod $1" >> "$FIXTURE/modules.log"
 module=${1##*/}; module=${module%.ko}
 [ "$FAIL_LOAD" != "$module" ] || exit 1
+if [ "$FAIL_NEW_RNDIS" = 1 ] && [ "$module" = rndis_host ] &&
+   grep -q '^module from feed 2.0$' "$1"; then exit 1; fi
 mkdir -p "$FIXTURE/sys/module/$module"
+echo 0 > "$FIXTURE/sys/module/$module/refcnt"
+''')
+        self.mock('rmmod', '''
+echo "rmmod $1" >> "$FIXTURE/modules.log"
+rm -rf "$FIXTURE/sys/module/$1"
+if [ "$1" = rndis_host ]; then
+  rm -f "$FIXTURE/sys/module/cdc_ether/holders/rndis_host"
+  echo 0 > "$FIXTURE/sys/module/cdc_ether/refcnt"
+fi
 ''')
         self.mock('opkg', f'''#!{sys.executable}
 import os, pathlib, sys
@@ -59,11 +70,13 @@ elif op in ('install', 'upgrade'):
         assert name in packages, name
         if os.environ.get('FAIL_PACKAGE') == name: sys.exit(1)
         version = os.environ.get('FEED_VERSION', '1.0')
+        if os.environ.get('ONLY_UPGRADE') == '1' and name not in ('kmod-usb-net-cdc-ether', 'kmod-usb-net-rndis'):
+            continue
         if op == 'upgrade' and (r/'state'/name).read_text() == version: continue
         (r/'state'/name).write_text(version)
         folder = r/'lib/modules'/os.environ['KERNEL_RELEASE']/os.environ.get('MODULE_LAYOUT', '')
         folder.mkdir(parents=True, exist_ok=True)
-        (folder/(packages[name]+'.ko')).write_text('module from feed')
+        (folder/(packages[name]+'.ko')).write_text('module from feed 2.0' if version == '2.0' else 'module from feed')
 else: raise AssertionError(args)
 ''', python=True)
         source = MANAGER.read_text()
@@ -82,6 +95,49 @@ else: raise AssertionError(args)
     def run_manager(self, **env):
         return subprocess.run(['sh', str(self.script)], text=True, capture_output=True,
                               env={**self.env, **env}, timeout=15)
+
+    def prepare_running_rndis_pair(self):
+        self.assertEqual(self.run_manager().returncode, 0)
+        for module, refs in (('rndis_host', '0'), ('cdc_ether', '1')):
+            (self.root/'sys/module'/module/'refcnt').write_text(refs + '\n')
+            (self.root/'sys/bus/usb/drivers'/module).mkdir(parents=True)
+        holders = self.root/'sys/module/cdc_ether/holders'
+        holders.mkdir()
+        (holders/'rndis_host').symlink_to('../../rndis_host')
+        (self.root/'modules.log').write_text('')
+
+    def test_upgrade_reloads_idle_pair_in_dependency_order(self):
+        self.prepare_running_rndis_pair()
+        result = self.run_manager(FEED_VERSION='2.0', ONLY_UPGRADE='1')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        module_dir = self.root/'lib/modules'/self.env['KERNEL_RELEASE']
+        self.assertEqual((self.root/'modules.log').read_text().splitlines(),
+                         ['rmmod rndis_host', 'rmmod cdc_ether',
+                          f'insmod {module_dir}/cdc_ether.ko', f'insmod {module_dir}/rndis_host.ko'])
+        self.assertIn('reloaded without restarting', result.stdout)
+        self.assertFalse((self.root/'tmp/modgui-smartphone-drivers-reboot').exists())
+
+    def test_bound_interface_prevents_reloading_even_with_zero_references(self):
+        self.prepare_running_rndis_pair()
+        (self.root/'sys/bus/usb/drivers/rndis_host/2-1:1.0').symlink_to('../../devices/2-1:1.0')
+        result = self.run_manager(FEED_VERSION='2.0', ONLY_UPGRADE='1')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('reboot the router', result.stdout)
+        self.assertEqual((self.root/'modules.log').read_text(), '')
+
+    def test_failed_reload_restores_previous_pair(self):
+        self.prepare_running_rndis_pair()
+        result = self.run_manager(FEED_VERSION='2.0', ONLY_UPGRADE='1', FAIL_NEW_RNDIS='1')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('reboot the router', result.stdout)
+        operations = (self.root/'modules.log').read_text().splitlines()
+        self.assertEqual(operations[-3], 'rmmod cdc_ether')
+        for operation, module in zip(operations[-2:], ('cdc_ether', 'rndis_host')):
+            action, path = operation.split(' ', 1)
+            self.assertEqual(action, 'insmod')
+            self.assertEqual(Path(path).name, module + '.ko')
+            self.assertTrue(Path(path).parent.name.startswith('modgui-smartphone-drivers.'))
+            self.assertTrue((self.root/'sys/module'/module).is_dir())
 
     def test_installs_native_packages_across_kernel_versions_and_layouts(self):
         for release, layout in [('4.1.38', ''), ('4.1.52', 'kernel/drivers/net/usb'),

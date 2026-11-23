@@ -33,12 +33,67 @@ load_module() {
     case "$file" in *.ko) insmod "$file" 2>/dev/null ;; *) return 1 ;; esac
 }
 
+usb_driver_idle() (
+    module=$1
+    [ -d "/sys/bus/usb/drivers/$module" ] || exit 1
+    for interface in "/sys/bus/usb/drivers/$module/"*:*; do
+        [ ! -L "$interface" ] || exit 1
+    done
+    refs=$(cat "/sys/module/$module/refcnt" 2>/dev/null) || exit 1
+    if [ "$module" = cdc_ether ] && [ -L /sys/module/cdc_ether/holders/rndis_host ]; then
+        [ "$refs" = 1 ]
+    else
+        [ "$refs" = 0 ]
+    fi
+)
+
+reload_rndis_pair() (
+    # usbnet is shared by other adapters. Only replace the CDC/RNDIS pair.
+    [ -n "$previous_pair" ] || exit 1
+    cdc=$(module_file cdc_ether)
+    rndis=$(module_file rndis_host)
+    case "$cdc:$rndis" in *.ko:*.ko) ;; *) exit 1 ;; esac
+    usb_driver_idle rndis_host && usb_driver_idle cdc_ether || exit 1
+    rmmod rndis_host || exit 1
+    if usb_driver_idle cdc_ether && rmmod cdc_ether; then
+        if insmod "$cdc" && insmod "$rndis"; then exit 0; fi
+        # Restore the former drivers if loading the new pair failed.
+        if [ -d /sys/module/cdc_ether ] && usb_driver_idle cdc_ether; then
+            rmmod cdc_ether
+        fi
+        [ -d /sys/module/cdc_ether ] || insmod "$previous_pair/cdc_ether.ko"
+    fi
+    insmod "$previous_pair/rndis_host.ko"
+    exit 1
+)
+
 if ! opkg update; then
     report 'Driver feed update failed; existing USB drivers retained.'
     exit 1
 fi
 catalog=$(opkg list) || { report 'USB driver catalog unavailable.'; exit 1; }
+previous_pair=""
+if [ -d /sys/module/cdc_ether ] && [ -d /sys/module/rndis_host ]; then
+    cdc=$(module_file cdc_ether)
+    rndis=$(module_file rndis_host)
+    case "$cdc:$rndis" in
+        *.ko:*.ko)
+            if previous_pair=$(mktemp -d /tmp/modgui-smartphone-drivers.XXXXXX); then
+                if cp "$cdc" "$previous_pair/cdc_ether.ko" &&
+                   cp "$rndis" "$previous_pair/rndis_host.ko"; then
+                    trap 'rm -rf "$previous_pair"' EXIT
+                else
+                    rm -rf "$previous_pair"
+                    previous_pair=""
+                fi
+            fi
+            ;;
+    esac
+fi
 failed=0
+pair_updated=0
+pair_reloaded=0
+reboot_needed=0
 missing=""
 modules=""
 boot_modules=""
@@ -63,12 +118,13 @@ for spec in kmod-usb-net:usbnet kmod-usb-net-cdc-ether:cdc_ether \
             fi
             result=$?
             new_version=$(version "$package")
-            # Never unload a live tethering driver. /tmp retains the notice
-            # across refreshes and clears it on the next router boot.
             if [ -d "/sys/module/$module" ] &&
                 { [ "$old_version" != "$new_version" ] ||
                   { [ "$was_installed" = 0 ] && installed "$package"; }; }; then
-                touch "$reboot_file"
+                case "$module" in
+                    cdc_ether|rndis_host) pair_updated=1 ;;
+                    *) reboot_needed=1 ;;
+                esac
             fi
             [ "$result" = 0 ] || failed=1
         elif ! present "$module" && ! installed "$package"; then
@@ -85,6 +141,19 @@ for spec in kmod-usb-net:usbnet kmod-usb-net-cdc-ether:cdc_ether \
     fi
 done
 
+if [ "$pair_updated" = 1 ]; then
+    if [ "$failed" = 0 ] && [ "$reboot_needed" = 0 ] && reload_rndis_pair; then
+        pair_reloaded=1
+    else
+        reboot_needed=1
+        if [ -n "$previous_pair" ] &&
+           { [ ! -d /sys/module/cdc_ether ] || [ ! -d /sys/module/rndis_host ]; }; then
+            failed=1
+        fi
+    fi
+fi
+[ "$reboot_needed" = 0 ] || touch "$reboot_file"
+
 if [ -n "$modules" ]; then
     mkdir -p /etc/modules.d
     printf '%s\n' $boot_modules > "$boot_file"
@@ -95,8 +164,11 @@ if [ "$failed" = 1 ]; then
 elif [ -z "$modules" ]; then
     report 'No USB network drivers available in the configured feeds.'
     exit 1
-elif [ -f "$reboot_file" ]; then
+elif [ "$pair_reloaded" = 1 ] || [ -f "$reboot_file" ]; then
     message='USB driver packages updated from feeds.'
+    if [ "$pair_reloaded" = 1 ]; then
+        message="$message CDC Ethernet and RNDIS reloaded without restarting the router."
+    fi
     [ -z "$missing" ] || message="$message Optional packages not supplied by the feeds:$missing"
     report "$message"
 elif [ -n "$missing" ]; then

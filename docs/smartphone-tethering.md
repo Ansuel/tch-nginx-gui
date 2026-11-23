@@ -59,9 +59,11 @@ manual compatibility packages nor force options are selected. Existing modules
 are retained when no matching feed package is available. Drivers built into the
 kernel are reused because installing a module cannot replace them.
 
-The installer never unloads active modules. When a package for a loaded driver
-is installed or changes version, the modal reports that a router reboot is
-required to use the updated driver. This notice survives refreshes until reboot.
+When CDC Ethernet or RNDIS is updated, the installer reloads the pair if neither
+driver has a bound USB interface or another consumer. The shared `usbnet` module
+stays loaded. If the pair is in use, the reload fails, or another loaded driver
+is updated, the modal reports that a router reboot is needed. This notice
+survives refreshes until reboot.
 Discovery uses the running kernel's module directory and supports flat and
 nested layouts. Shared drivers and their autoload entries remain installed when
 Smartphone USB is removed. Recovery archives from earlier manual replacements
