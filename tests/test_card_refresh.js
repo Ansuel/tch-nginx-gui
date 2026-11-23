@@ -29,7 +29,7 @@ $ = selector => selector === document ? {on: (event, target, callback) => {handl
 $.get = (url, callback) => {requests++; complete = callback;};
 const document = {}, window = {location: {reload: () => {throw Error('unexpected reload');}}};
 const start = source.indexOf('\t$(document).on("hidden", ".modal"');
-eval(source.slice(start, source.indexOf('\n\tvar y = !1;', start)));
+eval(source.slice(start, source.indexOf('\n\tvar modalOpening', start)));
 count = 1;
 handler({target: {}});
 assert.strictEqual(count, 0);

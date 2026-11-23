@@ -77,7 +77,7 @@ end
     ngx.print(ui_helper.createHeader("Dettagli Smartphone", false, true))
     ngx.print('\n<div class="modal-body update no-save" id="lte-body">\n')
 
-    ngx.print('<form class="form-horizontal">')
+    ngx.print('<form class="form-horizontal" action="/modals/smartphone-modal.lp">')
     ngx.print('<input type="hidden" id="global-csrf-token" name="CSRFtoken" value="' .. session:getCSRFtoken() .. '">')
 
     local lbl = { span = { class = "span4" } }
@@ -352,13 +352,13 @@ end
     $("#lte-body").removeClass("loading-hidden").css("visibility","visible");
 
     function stopPolling() {
+        modal.off("hide.smartphone tch:modal-content-replacing.smartphone", stopPolling);
         isModalActive = false;
         clearTimeout(pollTimer);
         if(currentAjax) currentAjax.abort();
     }
     var modal = $('#lte-body').closest('.modal');
-    modal.one('hidden', stopPolling);
-    modal.find('.nav-tabs a, [data-dismiss="modal"]').one('click', stopPolling);
+    modal.on("hide.smartphone tch:modal-content-replacing.smartphone", stopPolling);
 
     $("#phone-usb-mode").on("change", refreshPhoneUsbButton);
     var ltePoints=[], nrPoints=[], sampleIndex=0, plot;

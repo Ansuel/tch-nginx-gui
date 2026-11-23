@@ -2053,28 +2053,85 @@ function confirmationDialogue(t, e) {
 		g && (window.clearTimeout(g), g = void 0)
 	}
 	function n(t, n, o) {
-		(typeof n === "function") && (o = n, n = void 0),
-		(null == n || 1 > n.length || "REFRESH" != n[0].value) && ($(window).scrollTop(0), p(waitMsg));
-		var a = $(".modal-action-advanced:first").is(":visible");
-		e(),
-		$.ajaxSetup({
-			beforeSend: function (t) {
-				$.xhrPool.push(t)
+		if (typeof n === "function") {
+			o = n;
+			n = undefined;
+		}
+		var modal = $(".modal").first();
+		if (!modal.length) return;
+		var advanced = modal.find(".modal-action-advanced").first().is(":visible");
+		var silent = n && n[0] && n[0].value === "REFRESH";
+		requestModal(t, n, silent ? null : waitMsg, function (url, content, html, status, xhr) {
+			setModalContent(modal, url, content);
+			i();
+			if (advanced) r();
+			if (typeof o === "function") o(html, status, xhr);
+		}, function (xhr, status) {
+			httpErrorMessage(xhr, modal, status);
+		});
+	}
+	var modalRequest;
+	function requestModal(url, data, progress, render, showError) {
+		if (modalRequest) modalRequest.abort();
+		if (typeof url !== "string" || !url.trim()) {
+			showError(null, "invalid");
+			return;
+		}
+		url = url.trim();
+		e();
+		var xhr;
+		function finish() {
+			modalRequest = undefined;
+			if (progress) m();
+		}
+		try {
+			if (progress) {
+				$(window).scrollTop(0);
+				p(progress);
 			}
-		}),
-		$(".modal").load(t, n, function (t, e, n) {
-			$.xhrPool = [],
-			m();
-			if (403 === n.status || 0 < $("#sign-me-in").length) {
-				p(loginMsg), window.location = "/login.lp";
-				return
+			xhr = modalRequest = $.ajax({
+				url: url,
+				type: data && typeof data === "object" ? "POST" : "GET",
+				data: data,
+				dataType: "html",
+				timeout: 60000
+			});
+		} catch (error) {
+			finish();
+			console.error(error);
+			showError(null, "error");
+			return;
+		}
+		xhr.done(function (html, status, xhr) {
+			finish();
+			try {
+				var content = $($.parseHTML(html, document, true));
+				if (content.find("#sign-me-in").addBack("#sign-me-in").length) {
+					window.location = "/login.lp";
+				} else if (!content.find(".modal-body").addBack(".modal-body").length) {
+					showError(null, "invalid");
+				} else {
+					render(url, content, html, status, xhr);
+				}
+			} catch (error) {
+				console.error(error);
+				showError(null, "invalid");
 			}
-			if ("error" === e || "timeout" === e) {
-				httpErrorMessage(n);
-				return
+		}).fail(function (xhr, status) {
+			finish();
+			if (xhr.status === 403 || xhr.status === 401) {
+				window.location = "/login.lp";
+			} else if (status !== "abort") {
+				showError(xhr, status);
 			}
-			i(), a && r(), (typeof o === "function") && o(t, e, n)
-		})
+		});
+	}
+	function setModalContent(modal, url, content) {
+		modal.triggerHandler("tch:modal-content-replacing");
+		modal.data("tch-modal-url", url).empty().append(content);
+	}
+	function modalRefreshUrl() {
+		return $(".modal form").attr("action") || $(".modal").data("tch-modal-url");
 	}
 	function i() {
 		if ("1" === $("meta[name=Advanced]").attr("content") && ($(".advanced.hide").removeClass("hide"), $(".advanced.show").remove(), $(".modal-action-advanced").parent().remove()), function () {
@@ -2190,7 +2247,7 @@ function confirmationDialogue(t, e) {
 				name: "operation",
 				value: "REFRESH"
 			}, a()],
-		e = $(".modal form").attr("action"),
+		e = modalRefreshUrl(),
 		i = $(".modal-body").scrollTop();
 		n(e, t, function () {
 			i && $(".modal-body").scrollTop(i)
@@ -2283,32 +2340,32 @@ function confirmationDialogue(t, e) {
 		0 < i.length && $(".modal-body").scrollTop(i.position().top)
 	}
 	var lastCardClicked;
-	function u(t, e) {
-		if (!y) {
-			y = !0,
-			$(".modal").remove();
-			try {
-				p(openMsg)
-			} catch (t) {
-				return void(y = !1)
+	function u(url, id) {
+		if (modalOpening) return;
+		var modal = $(".modal.in").first();
+		modalOpening = true;
+		requestModal(url, undefined, openMsg, function (url, content) {
+			if (!modal.length) {
+				$(".modal").remove();
+				modal = $('<div class="modal fade"></div>').appendTo(document.body);
 			}
-			$.get(t, function (t) {
-				var n = $(t);
-				0 < n.find("#sign-me-in").length ? (p(loginMsg), window.location = "/login.lp") : ("1" === $("meta[name=Advanced]").attr("content") && (n.find(".advanced.hide").removeClass("hide"), n.find(".modal-action-advanced").parent().remove()), $('<div class="modal fade" id="' + e + '">' + t + "</div>").modal(), m(), y = !1, i())
-			}).fail(function (t) {
-				if (y = !1, 403 === t.status)
-					p(loginMsg), window.location = "/login.lp";
-				else if (500 === t.status) {
-					httpErrorMessage(t)
-					window.location = "/error.lp?err=" + t.getResponseHeader("error-msg") + "&status=" + t.status;
-				} else {
-					$(".header-title").filter('[data-id="' + e + '"]').children().html(),
-					$(n).modal();
-					var n = '<div class="modal fade" id="' + e + '"></div>';
-					httpErrorMessage(t)
-				}
-			})
-		}
+			modal.attr("id", id || "");
+			setModalContent(modal, url, content);
+			if (modal.hasClass("in")) i();
+			else modal.modal("show");
+		}, function (xhr, status) {
+			if (!modal.length) {
+				$(".modal").remove();
+				modal = $('<div class="modal fade"><div class="modal-header">' +
+					'<div class="modal-action-close"><button type="button" class="button btn-primary btn-close" data-dismiss="modal">' +
+					'<i class="icon-remove" aria-hidden="true"></i></button></div></div><div class="modal-body"></div></div>');
+				modal.find("[data-dismiss=modal]").attr("aria-label", cancelButton);
+				modal.modal("show");
+			}
+			httpErrorMessage(xhr, modal, status);
+		});
+		if (modalRequest) modalRequest.always(function () { modalOpening = false; });
+		else modalOpening = false;
 	}
 	function h(t) {
 		var e = $(".wizard");
@@ -2361,8 +2418,7 @@ function confirmationDialogue(t, e) {
 	}
 	var v,
 	g;
-	count = 0,
-	$.xhrPool = [];
+	count = 0;
 	var w = 0;
 	$(document).on("change", '.header input[type="hidden"]', function () {
 		p(waitMsg);
@@ -2414,7 +2470,7 @@ function confirmationDialogue(t, e) {
 		r()
 	}),
 	$(document).on("click", ".modal-action-refresh", function () {
-		var t = $(".modal form").attr("action"),
+		var t = modalRefreshUrl(),
 		e = $(".modal-body").scrollTop();
 		n(t, function () {
 			$(".modal-body").scrollTop(e)
@@ -2483,7 +2539,9 @@ function confirmationDialogue(t, e) {
 		$(t.target).hasClass("modal") && i()
 	}),
 	$(document).on("hide", ".modal", function (t) {
-		$(t.target).hasClass("modal") && e()
+		if (t.target !== this) return;
+		if (modalRequest) modalRequest.abort();
+		e();
 	}),
 	$(document).on("hidden", ".modal", function (t) {
 		modalToCard = lastCardClicked ? lastCardClicked.find(".settings").data("remote") : null;
@@ -2499,8 +2557,9 @@ function confirmationDialogue(t, e) {
 			count = 0;
 		}
 	});
-	var y = !1;
+	var modalOpening = false;
 	$(document).on("click touchend", '[data-toggle="modal"]', function (t) {
+		if (!$(this).attr("data-remote")) return;
 		t.preventDefault();
 		lastCardClicked = $(this).closest(".smallcard");
 		if (!lastCardClicked.length) lastCardClicked = null;
@@ -2544,8 +2603,6 @@ function confirmationDialogue(t, e) {
 		h(-1)
 	}),
 	$(document).on("click", "#wizard-complete", function () {
-		$(".loading-wrapper").removeClass("hide"),
-		$(".btn").hide();
 		var t = $(".wizard").attr("card-previous"),
 		e = $(".modal form"),
 		i = e.serializeArray();
@@ -2560,20 +2617,9 @@ function confirmationDialogue(t, e) {
 			0 === $(".error").length ? ($(".loading-wrapper").removeClass("hide"), $(".btn").hide(), window.location.reload(!0)) : $('.error input:not([type="hidden"])').first().focus()
 		})
 	}),
-	$(document).on("click", ".nav a", function () {
-		var t = $(this),
-		e = t.attr("data-remote");
-		$(".nav li").each(function () {
-			$(this).removeClass("active")
-		}),
-		t.parent().addClass("active"),
-		$.xhrPool.abortAll = function () {
-			$(this).each(function (t, e) {
-				e.abort()
-			})
-		},
-		0 < $.xhrPool.length && $.xhrPool.abortAll(),
-		n(e)
+	$(document).on("click", ".modal .nav a[data-remote]", function (event) {
+		event.preventDefault();
+		n($(this).attr("data-remote"));
 	}),
 	$(document).on("keydown", ".modal input:not(.no-save):not(.disabled)", f),
 	$(document).on("change", ".modal select:not(.no-save):not(.disabled)", f),
