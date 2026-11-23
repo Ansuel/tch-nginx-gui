@@ -200,6 +200,22 @@ and the driver matching the function exposed by the phone: commonly
 kernel and ABI from its configured feeds. Loading a driver does not enable
 tethering on the phone or configure a DHCP/WAN connection on the router.
 
+To prefer CDC NCM from the router, set `smartphone.usb.mode` to `ncm`:
+
+```sh
+[ -f /etc/config/smartphone ] || touch /etc/config/smartphone
+uci set smartphone.usb=usb
+uci set smartphone.usb.mode=ncm
+uci commit smartphone
+```
+
+The existing ADB watcher applies the preference when one authorized USB phone
+is available. Some Android devices expose ADB only after the first unlock
+following a reboot. The switch uses Android's current USB functions and does
+not change the phone's default USB configuration. If the switch fails, the
+watcher backs off for five minutes. Delete `smartphone.usb.mode` and commit to
+return to manual mode selection.
+
 Read-only checks on 2026-10-27 found:
 
 | Router | USB network drivers | Phone state |
