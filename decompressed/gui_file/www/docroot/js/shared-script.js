@@ -197,16 +197,17 @@ var modgui = modgui || {};
 					if (data.state === "Error") { finish(data.log || "Update check failed. Please retry."); return; }
 					if (data.state !== "Complete") return;
 					if (!data.new_version_text) { finish("Unable to read update result. Please retry."); return; }
-					var outdated = data.new_version_text !== "Unknown";
+					var version = data.new_version_text;
+					var outdated = version !== "Unknown";
 					$(".gui_version_status").removeClass("yellow green").addClass(outdated ? "yellow" : "green");
-					$(".gui_version_status_text").text(outdated ? gui_var.gui_outdated : gui_var.gui_updated);
-					if (outdated) $(".gui_update_action").each(function () {
-						$(this).empty().append($("<a>").attr("href", "#").addClass("upgrade_gui").text(gui_var.gui_outdated));
+					$(".gui_version_status_text").text(function () {
+						if (!outdated) return gui_var.gui_updated;
+						var label = this.getAttribute("data-available-version");
+						return label ? label.replace("%s", function () { return version; }) : gui_var.gui_outdated;
 					});
-					$("#upgradebtn,#upgrade-alert").toggleClass("hide", !outdated);
-					$("#new-version-text").text(data.new_version_text);
+					$(".upgrade_gui,#upgradebtn,#upgrade-alert").toggleClass("hide", !outdated);
+					$("#new-version-text").text(version);
 					finish();
-					linkCheckUpdate();
 				}).fail(function (request) {
 					finish(request.responseJSON && request.responseJSON.error || "Unable to check updates. Please retry.");
 				}).always(function () { pending = false; });

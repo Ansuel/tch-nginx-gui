@@ -1,38 +1,19 @@
 --pretranslated: do not change this file
 
+gettext.textdomain('webui-core')
+
 local ui_helper = require("web.ui_helper")
-local proxy = require("datamodel")
+local download = io.popen([[text=$(curl -kfLsS -m 5 https://raw.githubusercontent.com/Ansuel/tch-nginx-gui/master/CHANGELOG.md) && printf '%s' "$text"]])
+local changelog = download and download:read("*a") or ""
+if download then download:close() end
 
-local function call_popen(cmd)
-
-	local handle = io.popen(cmd)
-	local result = handle:read("*a")
-	handle:close()
-
-	return result
+ngx.print(ui_helper.createHeader(T"Changelog", false, false))
+ngx.print('<div class="modal-body no-save">')
+if changelog ~= "" then
+  ngx.print('<pre style="white-space:pre-wrap;overflow-wrap:break-word">', string.taint(changelog), '</pre>')
+else
+  ngx.print('<p>', T"Unable to download the changelog.", '</p>')
+  ngx.print('<a target="_blank" rel="noopener noreferrer" href="https://github.com/Ansuel/tch-nginx-gui/blob/master/CHANGELOG.md">')
+  ngx.print(T"View changelog on GitHub", '</a>')
 end
-
-ngx.print(ui_helper.createHeader("Changelog", false, false))
-
-ngx.print('\
-<div class="modal-body no-save fake_console">\
-  <fieldset>\
-    <form class="form-horizontal" method="post" action="modals/changelog.lp">\
-    ');
-	  local html = {}
-
-	  html[#html + 1] = '<fieldset style="white-space: pre-wrap" >'
-	  html[#html + 1] = 'This is directly downloaded from https://raw.githubusercontent.com/Ansuel/tch-nginx-gui/master/CHANGELOG.md'
-	  html[#html + 1] = '<div id="changelog_div">'
-      html[#html + 1] = call_popen("curl -m 2 https://raw.githubusercontent.com/Ansuel/tch-nginx-gui/master/CHANGELOG.md")
-	  html[#html + 1] = '</div>'
-	  html[#html + 1] = '</fieldset>'
-
-	ngx.print(html)
-
-ngx.print('\
-	</form>\
-  </fieldset>\
-</div>\
-');  ngx.print( ui_helper.createFooter() ); ngx.print('\
-');
+ngx.print('</div>', ui_helper.createFooter())

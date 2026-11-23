@@ -1,15 +1,22 @@
 const fs = require('fs'), vm = require('vm'), assert = require('assert');
 const source = fs.readFileSync('decompressed/gui_file/www/docroot/js/shared-script.js', 'utf8');
 const handlers = {}, requests = [], errors = [], timers = new Map();
-let spinning = false, modal = 0, counter = 0, now = 0, label = '';
+let spinning = false, modal = 0, counter = 0, now = 0, label = '', cardLabel = '', upgradeHidden = true;
 function $(selector) {
   return {attr(key, value) {if (value !== undefined) return this; return selector === 'meta[name=CSRFtoken]' ? 'csrf' : undefined;},
     off() {return this;}, on(name, fn) {handlers[selector] = fn; return this;},
     addClass(name) {if (name === 'fa-spin') spinning = true; return this;},
     removeClass(name) {if (name === 'fa-spin') spinning = false; return this;},
     remove() {return this;}, parent() {return this;}, appendTo() {errors.push(this.value); return this;},
-    text(value) {this.value = value; if(selector === '.gui_version_status_text') label = value; return this;},
-    each() {return this;}, toggleClass() {return this;}};
+    text(value) {
+      this.value = value;
+      if (selector === '.gui_version_status_text') {
+        label = value.call({getAttribute: () => null});
+        cardLabel = value.call({getAttribute: () => 'Versione GUI disponibile: %s'});
+      }
+      return this;
+    },
+    toggleClass(name, hidden) {if (selector.includes('.upgrade_gui') && name === 'hide') upgradeHidden = hidden; return this;}};
 }
 $.ajax = options => {
   const callbacks = {};
@@ -35,10 +42,12 @@ requests[1].resolve({state:'Checking',new_version_text:'Unknown'}); assert.equal
 timers.values().next().value(); requests[2].resolve({state:'Error',log:'HTTP 404'});
 assert(!spinning); assert.equal(timers.size,0); assert.equal(errors.pop(),'HTTP 404'); assert.equal(modal,0);
 click(); requests[3].reject({responseJSON:{error:'busy'}}); assert.equal(errors.pop(),'busy'); assert(!spinning);
-click(); requests[4].resolve({success:true}); requests[5].resolve({state:'Complete',new_version_text:'9.9.0'});
+click(); requests[4].resolve({success:true}); requests[5].resolve({state:'Complete',new_version_text:'9.9.0 STABLE'});
 assert.equal(label,'outdated'); assert(!spinning); assert.equal(timers.size,0);
+assert.equal(cardLabel,'Versione GUI disponibile: 9.9.0 STABLE'); assert(!upgradeHidden);
 click(); requests[6].resolve({success:true}); requests[7].resolve({state:'Complete',new_version_text:'Unknown'});
 assert.equal(label,'updated'); assert(!spinning);
+assert.equal(cardLabel,'updated'); assert(upgradeHidden);
 click(); requests[8].resolve({success:true}); requests[9].reject({status:0}); assert(!spinning); assert.equal(timers.size,0);
 click(); requests[10].resolve({success:true}); now=100000; timers.values().next().value(); assert(!spinning); assert.equal(timers.size,0);
 assert.equal(modal,0);
