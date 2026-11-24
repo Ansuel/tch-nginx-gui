@@ -25,8 +25,8 @@ if protocol == "dhcp" or protocol == "pppoe" or protocol == "static" then
         up = "rpc.network.interface.@wan.up",
         uptime = "rpc.network.interface.@wan.uptime",
     }
-    for key, path in pairs(internethelper.getIpv6Content()) do runtime[key] = path end
     internethelper.getOptionalContent(runtime)
+    local _, ipv6_data = internethelper.getIpv6Content(false)
     local auto = internethelper.getValue("uci.network.interface.@wan.auto")
     local state, light = T"Connecting", "2"
     if auto == "0" then state, light = T"Disabled", "0"
@@ -34,7 +34,7 @@ if protocol == "dhcp" or protocol == "pppoe" or protocol == "static" then
     ngx.print('<div data-bind="html: status_light">', ui_helper.createSimpleLight(light, state), '</div>')
     local ipv4, ipv6, uptime = "", "", ""
     if runtime.ipaddr ~= "" then ipv4 = format(T'WAN IP is <strong>%s</strong><br/>', runtime.ipaddr) end
-    if (runtime.ip6addr or "") ~= "" then ipv6 = format(T'WAN IPv6 is <strong>%s</strong><br/>', runtime.ip6addr) end
+    if (ipv6_data.ip6addr or "") ~= "" then ipv6 = format(T'WAN IPv6 is <strong>%s</strong><br/>', ipv6_data.ip6addr) end
     if tonumber(runtime.uptime) then
         uptime = format(T'Uptime: <strong>%s</strong>', post_helper.secondsToTimeShort(tonumber(runtime.uptime)) or "")
     end

@@ -157,8 +157,10 @@ function M.getOptionalContent(content)
 	end
 end
 
-function M.getIpv6Content()
-	local content = {}
+-- Return paths for form refreshes and the values already read while choosing
+-- those paths so read-only cards can render from the same snapshot.
+function M.getIpv6Content(include_dns)
+	local content, values = {}, {}
 	local base = "rpc.network.interface.@"
 	local supported = {wan = true, wan6 = true, wan_6 = true, ["6rd"] = true}
 	local available = {}
@@ -176,6 +178,7 @@ function M.getIpv6Content()
 				if result and result[1] and result[1].value ~= "" then
 					selected = intf
 					content.ip6addr = path
+					values.ip6addr = result[1].value
 				end
 			end
 		end
@@ -188,32 +191,43 @@ function M.getIpv6Content()
 			local result = proxy.get(path)
 			wanAddr = result and result[1]
 		end
-		if wanAddr then content.ip6addr = path end
+		if wanAddr then
+			content.ip6addr = path
+			values.ip6addr = wanAddr.value
+		end
 	end
 	available.wan = true
-	if selected ~= "wan" then
+	if include_dns ~= false and selected ~= "wan" then
 		local path = base .. selected .. ".dnsservers"
 		local result = proxy.get(path)
-		if result and result[1] then content.dnsv6 = path end
+		if result and result[1] then
+			content.dnsv6 = path
+			values.dnsv6 = result[1].value
+		end
 	end
 	local prefixPath = base .. selected .. ".ip6prefix"
 	local prefix = proxy.get(prefixPath)
-	if prefix and prefix[1] then content.ip6prefix = prefixPath end
+	if prefix and prefix[1] then
+		content.ip6prefix = prefixPath
+		values.ip6prefix = prefix[1].value
+	end
 
 	-- DHCPv6-PD can succeed without assigning a global address to the WAN.
 	if not prefix or not prefix[1] or prefix[1].value == "" then
 		for _, intf in ipairs({"wan6", "wan_6", "6rd", "wan"}) do
 			if intf ~= selected and (available[intf] or not interfaces) then
 				local path = base .. intf .. ".ip6prefix"
-				if M.getValue(path) ~= "" then
+				local value = M.getValue(path)
+				if value ~= "" then
 					content.ip6prefix = path
+					values.ip6prefix = value
 					break
 				end
 			end
 		end
 	end
 
-	return content
+	return content, values
 end
 
 function M.getWanStats()
@@ -245,8 +259,10 @@ function M.getWanStats()
 		end
 		uplink = bridge.resolveUplink(uplink)
 		if uplink then
-			for _, mode in ipairs(require("broadbandmode_helper")) do
-				if mode.check(uplink) then
+			local modes = require("broadbandmode_helper")
+			local active = modes.getActiveMode(uplink)
+			for _, mode in ipairs(modes) do
+				if mode.name == active then
 					stats.broadband = mode.description
 					break
 				end
@@ -265,12 +281,12 @@ function M.getWanStats()
 		uptime = path .. "uptime",
 	}
 	if ppp then content.concentrator = path .. "ppp.access_concentrator_name" end
+	M.getOptionalContent(content)
 	if not phone then
-		local ipv6 = M.getIpv6Content()
+		local _, ipv6 = M.getIpv6Content(false)
 		content.ipv6 = ipv6.ip6addr
 		content.delegated_prefix = ipv6.ip6prefix
 	end
-	M.getOptionalContent(content)
 
 	if link.up == "1" or link.up == "0" then
 		stats.connected = link.up == "1"

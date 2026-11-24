@@ -11,6 +11,38 @@ CARD = ROOT / 'decompressed/gui_file/www/cards/004_wireless.lp'
 
 @unittest.skipUnless(LUA, 'Lua runtime required')
 class WirelessCard(unittest.TestCase):
+    def test_ssid_labels_are_batched_and_optional_fields_can_be_missing(self):
+        helper = CARD.parent.parent / 'lua/wirelessSSID_helper.lua'
+        source = r'''
+local prefix = 'rpc.wireless.ssid.@first.'
+local values = {radio='radio0', ssid='Network', oper_state='1', ap_display_name='', stb='1'}
+local requests = 0
+package.loaded.datamodel = {
+  getPN = function() return {{path=prefix}} end,
+  get = function(...)
+    requests = requests + 1
+    local result = {}
+    for _,path in ipairs({...}) do
+      local value = path:find('frequency_bands', 1, true) and '2.4GHz' or values[path:sub(#prefix + 1)]
+      if value == nil then return nil end
+      result[#result+1] = {value=value}
+    end
+    return result
+  end,
+}
+local helper = dofile(HELPER)
+local network = helper.getSSID()[1]
+assert(requests == 2 and network.ssid == 'IPTV' and network.state == '1' and network.radio == '2.4GHz')
+values.ap_display_name = 'Custom'
+requests = 0
+assert(helper.getSSID()[1].ssid == 'Custom' and requests == 1)
+values.ap_display_name, values.stb = nil, nil
+assert(helper.getSSID()[1].ssid == 'Network')
+'''
+        result = subprocess.run([LUA, '-'], input='local HELPER=' + repr(str(helper)) + '\n' + source,
+                                text=True, capture_output=True, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_every_ssid_has_its_own_label_band_and_state(self):
         source = r'''
 gettext={textdomain=function() end}

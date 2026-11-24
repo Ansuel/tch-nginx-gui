@@ -27,13 +27,18 @@ function M.getSSID()
   local ssid_list = {}
   for _, v in ipairs(proxy.getPN("rpc.wireless.ssid.", true) or {}) do
     local path = v.path
-    local values = proxy.get(path .. "radio" , path .. "ssid", path .. "oper_state")
+    local values = proxy.get(path .. "radio", path .. "ssid", path .. "oper_state",
+                             path .. "ap_display_name", path .. "stb")
+    -- Older firmware may omit either of the optional label parameters.
+    if not values then
+      values = proxy.get(path .. "radio", path .. "ssid", path .. "oper_state")
+    end
     if values and values[1] and values[2] and values[3] then
-      local ap_display_name = getValue(path .. "ap_display_name")
+      local ap_display_name = values[4] and values[4].value or getValue(path .. "ap_display_name")
       local display_ssid
       if ap_display_name ~= "" then
         display_ssid = ap_display_name
-      elseif getValue(path .. "stb") == "1" then
+      elseif (values[5] and values[5].value or getValue(path .. "stb")) == "1" then
         display_ssid = "IPTV"
       else
         display_ssid = values[2].value

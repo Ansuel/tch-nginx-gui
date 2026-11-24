@@ -27,12 +27,9 @@ local content_rpc = {
 
 local internethelper = require("internethelper")
 
-for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
-	content_rpc[v6Key] = v6Value
-end
-
-
 internethelper.getOptionalContent(content_rpc)
+local _, ipv6 = internethelper.getIpv6Content(false)
+content_rpc.ip6addr, content_rpc.ip6prefix = ipv6.ip6addr, ipv6.ip6prefix
 
 local IPv6State = "none"
 
