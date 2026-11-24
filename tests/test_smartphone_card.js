@@ -5,7 +5,7 @@ const card = fs.readFileSync('decompressed/smartphone/www/cards/017_smartphone.l
 const client = card.match(/<script>\n([\s\S]*?)\n<\/script>/)[1];
 const shared = fs.readFileSync('decompressed/gui_file/www/docroot/js/shared-script.js', 'utf8');
 const factory = shared.slice(shared.indexOf('\tfunction createAjaxUpdateCard('), shared.indexOf('\n\tfunction linkCheckUpdate()'));
-let element = {}, requests = [], timers = new Map(), nextTimer = 0;
+let element = {}, requests = [], timers = new Map(), nextTimer = 0, clock = 0;
 const classes = {}, attributes = {}, visibility = {}, labels = {
   'data-connected': 'Connected', 'data-tether-off': 'USB tethering disabled',
   'data-data-off': 'Mobile data disabled', 'data-unavailable': 'Phone unavailable', 'data-checking': 'Checking connection',
@@ -40,10 +40,13 @@ function $(value) {
   return selection(String(value));
 }
 $.ajax = options => {
+  const done = [], fail = [];
   const handle = {
-    options, done(callback) { this.success = callback; return this; },
-    fail(callback) { this.failure = callback; return this; },
+    options, done(callback) { done.push(callback); return this; },
+    fail(callback) { fail.push(callback); return this; },
     always(callback) { this.finish = callback; return this; },
+    success(data) { done.forEach(callback => callback(data)); },
+    failure(xhr, status) { fail.forEach(callback => callback(xhr, status)); },
     abort() { this.aborted = true; this.failure({statusText: 'abort'}, 'abort'); this.finish(); },
     deliver(data) { this.success(data); this.finish(); },
     reject() { this.failure({}, 'error'); this.finish(); }
@@ -51,7 +54,7 @@ $.ajax = options => {
   requests.push(handle); return handle;
 };
 const context = {
-  $, jQuery: $, window: {}, document: {hidden: false, getElementById: () => element}, KoRequest: {},
+  $, jQuery: $, window: {}, Date: {now: () => clock}, document: {hidden: false, getElementById: () => element}, KoRequest: {},
   setInterval(callback, delay, binding) {
     assert.strictEqual(delay, 30000);
     timers.set(++nextTimer, () => callback(binding)); return nextTimer;
@@ -76,7 +79,7 @@ const binding = element.bindings;
 assert.strictEqual(binding.phoneStatus(), 'Checking connection');
 const sample = {DEV: 'Example phone', BATT: '72%', BATT_STAT: 'In Carica', OPER: 'VERY',
   NET: '5G (NSA)', SIGNAL_RAW: '-90', TETHER: 'Attivo (rndis0)', DATA_ST: '1'};
-const tick = () => timers.get(context.KoRequest.SmartphoneCardInterval.interval)();
+const tick = () => {clock += 30000; timers.get(context.KoRequest.SmartphoneCardInterval.interval)();};
 tick(); assert.strictEqual(requests.length, 1, 'Shared polling must prevent overlap');
 requests[0].deliver(sample);
 assert.strictEqual(binding.phoneStatus(), 'Connected · 5G (NSA)');
@@ -138,7 +141,7 @@ requests[4].failure({}, 'timeout');
 assert.strictEqual(binding.phoneStatus(), 'Smartphone request timed out');
 requests[4].reject();
 assert.strictEqual(binding.phoneStatus(), 'Smartphone backend unavailable');
-tick();
+tick(); tick();
 const pending = requests[5];
 element = {};
 vm.runInContext(client, context);

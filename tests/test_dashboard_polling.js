@@ -3,7 +3,7 @@ const vm = require('vm');
 const assert = require('assert');
 const source = fs.readFileSync('decompressed/gui_file/www/docroot/js/shared-script.js', 'utf8');
 const script = source.slice(source.indexOf('\tfunction createAjaxUpdateCard('), source.indexOf('\n\tfunction linkCheckUpdate()'));
-let elements = {}, timers = new Map(), requests = [], nextTimer = 0, popup = false;
+let elements = {}, timers = new Map(), requests = [], nextTimer = 0, popup = false, clock = 0;
 const progress = [];
 function $(selector) {
   if (typeof selector === 'object') return {data: () => selector.bind};
@@ -14,11 +14,11 @@ $.ajax = options => {
   const callbacks = {};
   const request = {
     options, aborted: false,
-    done(fn) {callbacks.done = fn; return this;},
-    fail(fn) {callbacks.fail = fn; return this;},
+    done(fn) {(callbacks.done ||= []).push(fn); return this;},
+    fail(fn) {(callbacks.fail ||= []).push(fn); return this;},
     always(fn) {callbacks.always = fn; return this;},
-    resolve(data) {options.success(data); callbacks.done(data); callbacks.always();},
-    reject(data) {callbacks.fail(data); callbacks.always();},
+    resolve(data) {options.success(data); (callbacks.done || []).forEach(fn => fn(data)); callbacks.always();},
+    reject(data) {(callbacks.fail || []).forEach(fn => fn(data)); callbacks.always();},
     abort() {this.aborted = true; this.reject({statusText: 'abort'});},
   };
   requests.push(request);
@@ -29,7 +29,7 @@ $.ajax = options => {
   return request;
 };
 const context = {
-  $, document: {hidden: false, getElementById: id => elements[id]}, KoRequest: {}, connectionissue: 0,
+  $, Date: {now: () => clock}, document: {hidden: false, getElementById: id => elements[id]}, KoRequest: {},
   ko: {
     observable: () => {let value; return function(next) {if (arguments.length) value = next; return value;};},
     dataFor: element => element.bindings,
@@ -48,10 +48,11 @@ vm.createContext(context);
 vm.runInContext(script, context);
 const initialize = (id = 'card', timer = 'CardInterval', custom) =>
   context.createAjaxUpdateCard(id, '/ajax/test.lua?number=1', timer, 3000, custom);
-const tick = timer => timers.get(context.KoRequest[timer || 'CardInterval'].interval)();
+const tick = timer => {clock += 3000; timers.get(context.KoRequest[timer || 'CardInterval'].interval)();};
 elements.card = {};
 initialize();
 assert.strictEqual(requests.length, 1);
+assert.strictEqual(elements.card.bindings, undefined, 'leave the server-rendered card intact while loading');
 assert(requests[0].options.url.endsWith('?number=1&auto_update=true'));
 tick(); tick(); assert.strictEqual(requests.length, 1, 'requests must not overlap');
 requests[0].resolve({value: 0});
@@ -64,10 +65,11 @@ tick(); assert.strictEqual(requests.length, 1);
 context.document.hidden = false;
 tick(); assert.strictEqual(requests.length, 2);
 requests[1].reject({status: 0, statusText: 'timeout'});
-assert.strictEqual(context.connectionissue, 1);
+tick(); assert.strictEqual(requests.length, 2, 'back off after a timeout');
+popup = true;
 tick(); requests[2].resolve({value: 'recovered'});
-assert.strictEqual(context.connectionissue, 0);
-assert(progress.includes('hide'));
+assert(popup, 'polling must leave an unrelated progress overlay alone');
+assert.deepStrictEqual(progress, []);
 assert.strictEqual(elements.card.bindings.value(), 'recovered');
 tick();
 const oldRequest = requests[3], oldCard = elements.card;
@@ -78,7 +80,7 @@ assert(oldRequest.aborted, 'replacement must abort the old request');
 assert.strictEqual(timers.size, 1);
 oldRequest.options.success({value: 'stale'});
 assert.strictEqual(oldCard.bindings.value(), 'recovered');
-assert.strictEqual(currentCard.bindings.value(), undefined);
+assert.strictEqual(currentCard.bindings, undefined);
 requests[4].resolve({value: 'current'});
 assert.strictEqual(currentCard.bindings.value(), 'current');
 tick();
@@ -104,11 +106,11 @@ initialize('auth', 'AuthInterval');
 requests[6].reject({status: 200, responseText: '<div id="sign-me-in">login</div>'});
 assert.strictEqual(context.window.location.href, '/');
 
-tick('AuthInterval');
+tick('AuthInterval'); tick('AuthInterval');
 requests[7].reject({status: 500, getResponseHeader: () => 'example'});
-assert(context.window.location.href.includes('/error.lp?status=500'));
-tick('AuthInterval'); requests[8].resolve(null);
-assert.strictEqual(elements.auth.bindings.value(), undefined);
+assert.strictEqual(context.window.location.href, '/', 'background errors must not navigate');
+tick('AuthInterval'); tick('AuthInterval'); tick('AuthInterval'); tick('AuthInterval'); requests[8].resolve(null);
+assert.strictEqual(elements.auth.bindings, undefined);
 // Returned custom jqXHRs share pending/abort ownership with standard cards.
 const customRequest = binding => $.ajax({url: '/custom', type: 'POST', dataType: 'json', timeout: 8000,
   data: [{name: 'CSRFtoken', value: 'test'}], success() {}

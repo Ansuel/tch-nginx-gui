@@ -81,7 +81,8 @@ $(function () {
     var element = document.getElementById("tailscale-card");
     if (!element) return;
     function refresh() {
-        return $.ajax({url: "/ajax/get_card.lua?modal=/modals/tailscale-modal.lp",
+        var send = window.modguiDashboardRead || $.ajax;
+        return send({url: "/ajax/get_card.lua?modal=/modals/tailscale-modal.lp",
             type: "GET", dataType: "html", timeout: 8000, cache: false
         }).done(function (html) {
             if (document.getElementById("tailscale-card") !== element) return;
@@ -91,7 +92,7 @@ $(function () {
             if (content.length === 1) $(element).find(".content").replaceWith(content);
         });
     }
-    new modgui.createAjaxUpdateCard("tailscale-card", null, "TailscaleCardInterval", 30000, refresh);
+    new modgui.createAjaxUpdateCard("tailscale-card", null, "TailscaleCardInterval", 30000, refresh, true);
 });
 </script>
 ]===])

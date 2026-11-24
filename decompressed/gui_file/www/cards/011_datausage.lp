@@ -41,7 +41,7 @@ if session:hasAccess("/modals/datausage.lp") then
   local datausage_enabled_val = datausage_enabled and "1" or "0"
     ngx.print('\
 \
-  <div class="span3">\
+  <div class="span3" id="datausage-card">\
     <div class="smallcard">\
       ');  ngx.print( ui_helper.createCardHeader(T"Data Usage", "modals/datausage.lp") ); ngx.print('\
       ');  if post_helper.isFeatureEnabled("noCardBackgroundIcons", role) then   ngx.print('\
@@ -62,23 +62,28 @@ if session:hasAccess("/modals/datausage.lp") then
     </div>\
   </div>\
 ');  
+  if datausage_enabled then
+    ngx.print([=[
+<script>
+$(function () {
+    var card = document.getElementById("datausage-card");
+    if (!card) return;
+    var download = $(card).find("#downloadlink"), upload = $(card).find("#uploadlink");
+    function refresh() {
+        var send = window.modguiDashboardRead || $.ajax;
+        return send({url: "/ajax/datausage.lua?auto_update=true", type: "POST", dataType: "text",
+            data: [{name: "action", value: "overview"}, tch.elementCSRFtoken()], timeout: 8000
+        }).done(function (data) {
+            if (document.getElementById("datausage-card") !== card) return;
+            var rates = data.split(",");
+            if (rates.length !== 2 || !isFinite(rates[0]) || !isFinite(rates[1])) return;
+            download.text(get_bitrate(rates[0]));
+            upload.text(get_bitrate(rates[1]));
+        });
+    }
+    modgui.createAjaxUpdateCard("datausage-card", null, "DataUsageCardInterval", 3000, refresh);
+});
+</script>
+]=])
+  end
 end
-  ngx.print('\
-\
-<script>\
-\
-var params = [ { name: \'action\', value: "overview" }, tch.elementCSRFtoken() ];\
-var data_usage = ');  ngx.print(datausage_enabled); ngx.print(';\
-\
-function updatelink(){\
-  $.post("/ajax/datausage.lua",params, function(datausage) {\
-    $("#downloadlink").text(get_bitrate(datausage.split(",")[0]));\
-    $("#uploadlink").text(get_bitrate(datausage.split(",")[1]));\
-  });\
-}\
-\
-if (data_usage){\
-  var stopUpdateLink = setInterval(updatelink, 3000);\
-}\
-</script>\
-');

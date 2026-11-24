@@ -37,7 +37,8 @@ $(function () {
     var element = document.getElementById("openvpn-card");
     if (!element) return;
     function refresh() {
-        return $.ajax({url: "/ajax/get_card.lua?modal=/modals/openvpn-server-modal.lp",
+        var send = window.modguiDashboardRead || $.ajax;
+        return send({url: "/ajax/get_card.lua?modal=/modals/openvpn-server-modal.lp",
             type: "GET", dataType: "html", timeout: 8000, cache: false
         }).done(function (html) {
             if (document.getElementById("openvpn-card") !== element) return;
@@ -47,7 +48,7 @@ $(function () {
             if (content.length === 1) $(element).find(".content").replaceWith(content);
         });
     }
-    new modgui.createAjaxUpdateCard("openvpn-card", null, "OpenvpnCardInterval", 30000, refresh);
+    new modgui.createAjaxUpdateCard("openvpn-card", null, "OpenvpnCardInterval", 30000, refresh, true);
 });
 </script>
 ]===])
