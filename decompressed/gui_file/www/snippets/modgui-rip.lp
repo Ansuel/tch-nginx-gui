@@ -18,8 +18,8 @@ local packed_index = rpc_value("rpc.system.modgui.utility.rip_index")
 local index
 if packed_index ~= "" then
   index = {}
-  for id, encrypted in packed_index:gmatch("(%x%x%x%x)=([01])") do
-    index[id] = encrypted == "1"
+  for id, encrypted, writable in packed_index:gmatch("(%x%x%x%x)=([01])([01])") do
+    index[id] = { encrypted = encrypted == "1", writable = writable == "1" }
   end
 end
 
@@ -198,14 +198,19 @@ else
     ngx.print('<p>', T"The modem could not report the encryption status.", '</p>')
   end
   ngx.print('<table class="table table-striped"><thead><tr><th>', T"ID",
-    '</th><th>', T"Parameter", '</th><th>', T"Storage", '</th><th>', T"Value", '</th></tr></thead><tbody>')
+    '</th><th>', T"Parameter", '</th><th>', T"Storage", '</th><th>', T"Access",
+    '</th><th>', T"Value", '</th></tr></thead><tbody>')
   for _, id in ipairs(ids) do
     local entry = catalog[id]
     local name = entry and ("RIP_ID_" .. entry.name) or T"Unknown"
-    local encrypted = index and index[id]
-    local storage = T"Unknown"
-    if encrypted ~= nil then
-      storage = encrypted and T"Encrypted" or T"Unencrypted"
+    local meta = index and index[id]
+    local storage, access = T"Unknown", T"Unknown"
+    if meta then
+      storage = meta.encrypted and T"Encrypted" or T"Unencrypted"
+      -- ripdrv rewrites a record in place only when its attribute flags
+      -- allow it (plain records: 0x0119, 0x8001, 0x8003 on BCMBCA); the
+      -- others answer /proc/rip writes with an error (signed/encrypted).
+      access = meta.writable and T"Read/write" or T"Read-only"
     end
     -- ripdrv decrypts encrypted entries in /proc/rip, so every readable
     -- entry is shown; only ids the driver hides (master keys) need the
@@ -215,11 +220,12 @@ else
       value = hex_value(decrypted[id])
     elseif filenames[id] then
       value = read_value(filenames[id])
-    elseif encrypted then
+    elseif meta and meta.encrypted then
       value = T"Hidden"
     end
     ngx.print('<tr><td>', "0x" .. id:upper(), '</td><td>', name,
-      '</td><td>', storage, '</td><td style="word-break:break-all">', escape(value), '</td></tr>')
+      '</td><td>', storage, '</td><td>', access,
+      '</td><td style="word-break:break-all">', escape(value), '</td></tr>')
   end
   ngx.print('</tbody></table>')
 end
