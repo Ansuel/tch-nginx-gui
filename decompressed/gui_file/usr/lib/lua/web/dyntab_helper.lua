@@ -24,6 +24,7 @@ local function processOperations(operations)
 end
 
 local function processChecks(config)
+    if config.getActiveMode then return config.getActiveMode() or "" end
     local content_cache = {}
 
     for _,v in ipairs(config) do

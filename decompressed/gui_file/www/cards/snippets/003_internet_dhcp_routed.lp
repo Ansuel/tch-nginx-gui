@@ -27,32 +27,16 @@ local cs = {
 
 local internethelper = require("internethelper")
 
-for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
-	cs[v6Key] = v6Value
-end
-
 internethelper.getOptionalContent(cs)
-
-local IPv6State = "none"
-
-if content.wan_ipv6 ~= "1" then
-	IPv6State = "disabled"
-elseif (cs.ip6prefix or "") ~= "" then
-	IPv6State = "prefix"
-elseif (cs.ip6prefix or "") == "" then
-	IPv6State = "noprefix"
-end
 
 local untaint_mt = require("web.taint").untaint_mt
 local ipv6_state_map = {
-     none = T"IPv6 Disabled",
      noprefix = T"IPv6 Connecting",
      prefix = T"IPv6 Connected",
 }
 setmetatable(ipv6_state_map, untaint_mt)
 
 local ipv6_light_map = {
-     none = "0",--"off",
      noprefix = "2",--"orange",
      prefix = "1",--"green",
 }
@@ -106,9 +90,15 @@ ngx.print( ui_helper.createSimpleLight(dhcp_light_map[dhcp_state], dhcp_state_ma
         end
         ngx.print('<div data-bind="html: WAN_IP_text">'..WAN_IP_text..'</div>')
 
+        local _, ipv6 = internethelper.getIpv6Content(false)
+        local IPv6State = "disabled"
+        if content.wan_ipv6 == "1" then
+            IPv6State = (ipv6.ip6prefix or "") ~= "" and "prefix" or "noprefix"
+        end
+
         local WAN_IPv6_text = ''
-        if cs["ip6addr"] and cs["ip6addr"]:len() > 0 then
-            WAN_IPv6_text = format(T 'WAN IPv6 is <strong>%s</strong>' .. '<br/>', cs["ip6addr"])
+        if ipv6.ip6addr and ipv6.ip6addr:len() > 0 then
+            WAN_IPv6_text = format(T 'WAN IPv6 is <strong>%s</strong>' .. '<br/>', ipv6.ip6addr)
         end
         ngx.print('<div data-bind="html: WAN_IPv6_text">'..WAN_IPv6_text..'</div>')
 

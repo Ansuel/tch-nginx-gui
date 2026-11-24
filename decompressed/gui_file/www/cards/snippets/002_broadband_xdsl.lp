@@ -8,42 +8,17 @@ local floor = math.floor
 local tonumber = tonumber
 local ui_helper = require("web.ui_helper")
 
-local dyntab_helper = require("web.dyntab_helper")
-local bmh = require("broadbandmode_helper")
-local tabdata = dyntab_helper.process(bmh)
-
 local attributes = { light = {}, span = {} }
+local get_optional_content = require("internethelper").getOptionalContent
 
-local post_helper = require("web.post_helper")
-local content_helper = require("web.content_helper")
-
--- xdsl data
-local xdsl_data = {
-  dsl_status = "sys.class.xdsl.@line0.Status",
-  dsl_linerate_up = "sys.class.xdsl.@line0.UpstreamCurrRate",
-  dsl_linerate_down = "sys.class.xdsl.@line0.DownstreamCurrRate",
+local status = {
+  line0 = "sys.class.xdsl.@line0.Status",
+  line1 = "sys.class.xdsl.@line1.Status",
 }
-content_helper.getExactContent(xdsl_data)
-
-local other_line_xdsl_data = {
-  dsl_status = "sys.class.xdsl.@line1.Status",
-  dsl_linerate_up = "sys.class.xdsl.@line1.UpstreamCurrRate",
-  dsl_linerate_down = "sys.class.xdsl.@line1.DownstreamCurrRate",
-}
-content_helper.getExactContent(other_line_xdsl_data)
-
--- DSL enable switch
-local dsl_switch_params = {
-  dsl_enable = "sys.class.xdsl.@line0.Enable",
-}
-local dsl_switch_valid = {
-  dsl_enable = post_helper.validateBoolean,
-}
-local dsl_switch_data, dsl_switch_helpmsg = post_helper.handleQuery(dsl_switch_params, dsl_switch_valid)
+get_optional_content(status)
 
 local session = ngx.ctx.session
 
-local switchName
 local modalPath
 
 if session:hasAccess("/modals/broadband-modal.lp") then
@@ -53,9 +28,9 @@ end
 
 local xdslstate = nil
 
-if xdsl_data.dsl_status == "Up" or other_line_xdsl_data.dsl_status == "Up" then
+if status.line0 == "Up" or status.line1 == "Up" then
   xdslstate = "Up"
-elseif xdsl_data.dsl_status == "NoSignal" or other_line_xdsl_data.dsl_status == "NoSignal" then
+elseif status.line0 == "NoSignal" or status.line1 == "NoSignal" then
   xdslstate = "NoSignal"
 end
 
@@ -78,21 +53,21 @@ ngx.print( ui_helper.createCardHeader(T"Broadband", modalPath) ); ngx.print('\
 ');
 local iconUp = '<i class="icon-upload icon-small gray"></i> '
 local iconDown = '<i class="icon-download icon-small gray"></i> '
-if tabdata.current.name == "bridge" then
-  ngx.print(format("<strong>%s</strong><br/>",T"Bridge Mode Active"))
-end
-if tabdata.current.name == "voice" then
-  ngx.print(format("<strong>%s</strong><br/>",T"Voice Mode Active"))
-end
 ngx.print( ui_helper.createSimpleLight(intf_light_map[xdslstate] or "3" --[[ orange ]] ,
   ("xDSL ") .. (intf_text_map[xdslstate] or (T"Connecting" .. "...")), attributes,"fa-signal"))
-if (xdslstate == "Up") then
-  -- After disabling broadband the page immediately refreshes. At this time the state is still up but the line
-  -- rate is already cleared.
-  local rate_up = tonumber(xdsl_data["dsl_linerate_up"])
-  local rate_down = tonumber(xdsl_data["dsl_linerate_down"])
-  local other_line_rate_up = tonumber(other_line_xdsl_data["dsl_linerate_up"])
-  local other_line_rate_down = tonumber(other_line_xdsl_data["dsl_linerate_down"])
+if xdslstate == "Up" then
+  local rates = {
+    line0_up = "sys.class.xdsl.@line0.UpstreamCurrRate",
+    line0_down = "sys.class.xdsl.@line0.DownstreamCurrRate",
+    line1_up = "sys.class.xdsl.@line1.UpstreamCurrRate",
+    line1_down = "sys.class.xdsl.@line1.DownstreamCurrRate",
+  }
+  get_optional_content(rates)
+  -- The link can still report Up while the driver clears the line rates.
+  local rate_up = tonumber(rates.line0_up)
+  local rate_down = tonumber(rates.line0_down)
+  local other_line_rate_up = tonumber(rates.line1_up)
+  local other_line_rate_down = tonumber(rates.line1_down)
 
   if (rate_up and rate_down) or (other_line_rate_up and other_line_rate_down) then
     if rate_up and rate_down then

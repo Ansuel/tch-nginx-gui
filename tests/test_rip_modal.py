@@ -19,7 +19,7 @@ local role, available = "guest", true
 local output, opened, calls = {}, {}, {}
 local names = {
   "ffff", "0105", "0108", "011B", "0102", "0032", "003c", "0100", "0101", "0116",
-  "0104", "0112", "011a", "012b", "0083", "0088", "not-an-id"
+  "0104", "0112", "0119", "011a", "012b", "0083", "0088", "not-an-id"
 }
 local values = {
   ["0102"] = "<test>&\0",
@@ -30,6 +30,7 @@ local values = {
   ["0104"] = "lb-public-certificate",
   ["011a"] = "public-client-certificate",
   ["0112"] = "radio-calibration",
+  ["0119"] = "feature-mask",
   ["0032"] = "\0\1\2\3\4\5",
   ["0105"] = "private-key-value",
   ["0108"] = "\0\0",
@@ -109,8 +110,8 @@ assert(html:find("&lt;test&gt;&amp;", 1, true))
 assert(html:find("0x000102030405", 1, true))
 assert(html:find("0x011B", 1, true))
 assert(html:find(string.rep("Z", 4096) .. " …", 1, true))
-assert(html:find("RIP_ID_FACTORY_ID</td><td>Unknown</td><td style=\"word-break:break-all\">Unavailable", 1, true))
-assert(html:find("RIP_ID_PRIVATE_KEY</td><td>Unknown</td><td style=\"word-break:break-all\">private-key-value<", 1, true))
+assert(html:find("RIP_ID_FACTORY_ID</td><td>Unknown</td><td>Unknown</td><td style=\"word-break:break-all\">Unavailable", 1, true))
+assert(html:find("RIP_ID_PRIVATE_KEY</td><td>Unknown</td><td>Unknown</td><td style=\"word-break:break-all\">private-key-value<", 1, true))
 assert(html:find("0xFFFF</td><td>Unknown</td>", 1, true))
 assert(html:find("public-system-key", 1, true))
 assert(html:find("public-rescue-key", 1, true))
@@ -127,21 +128,23 @@ assert(not html:find("rip-driver", 1, true))
 assert(html:find("The modem could not report the encryption status.", 1, true))
 assert(not html:find("not-an-id", 1, true))
 assert(table.concat(opened, ",") ==
-  "0032,003c,0083,0088,0100,0101,0102,0104,0105,0108,0112,0116,011a,011B,012b,ffff")
+  "0032,003c,0083,0088,0100,0101,0102,0104,0105,0108,0112,0116,0119,011a,011B,012b,ffff")
 
 output, opened = {}, {}
 rpc["rpc.system.modgui.utility.rip_index"] =
-  "0032=0,0083=0,0088=0,0100=0,0101=1,0102=1,0105=1,0116=0,011a=1,012b=0,4001=1"
+  "0032=00,0083=00,0088=00,0100=00,0101=10,0102=10,0105=10,0116=00,0119=01,011a=10,012b=00,4001=10"
 dofile(snippet)
 html = table.concat(output)
-assert(html:find("RIP_ID_LAN_ADDR</td><td>Unencrypted</td>", 1, true))
-assert(html:find("RIP_ID_MODELNAME</td><td>Encrypted</td><td style=\"word-break:break-all\">&lt;test&gt;&amp;", 1, true))
-assert(html:find("RIP_ID_PRIVATE_KEY</td><td>Encrypted</td><td style=\"word-break:break-all\">private-key-value<", 1, true))
-assert(html:find("RIP_ID_ID_DECT_CFG</td><td>Encrypted</td><td style=\"word-break:break-all\">Hidden", 1, true))
+assert(html:find("RIP_ID_LAN_ADDR</td><td>Unencrypted</td><td>Read-only</td>", 1, true))
+assert(html:find("RIP_ID_FEATURE_MASK</td><td>Unencrypted</td><td>Read/write</td><td style=\"word-break:break-all\">feature-mask<", 1, true))
+assert(html:find("<th>Access</th>", 1, true))
+assert(html:find("RIP_ID_MODELNAME</td><td>Encrypted</td><td>Read-only</td><td style=\"word-break:break-all\">&lt;test&gt;&amp;", 1, true))
+assert(html:find("RIP_ID_PRIVATE_KEY</td><td>Encrypted</td><td>Read-only</td><td style=\"word-break:break-all\">private-key-value<", 1, true))
+assert(html:find("RIP_ID_ID_DECT_CFG</td><td>Encrypted</td><td>Read-only</td><td style=\"word-break:break-all\">Hidden", 1, true))
 assert(html:find("public-rescue-key", 1, true))
 assert(html:find("public-client-certificate", 1, true))
 assert(table.concat(opened, ",") ==
-  "0032,003c,0083,0088,0100,0101,0102,0104,0105,0108,0112,0116,011a,011B,012b,ffff")
+  "0032,003c,0083,0088,0100,0101,0102,0104,0105,0108,0112,0116,0119,011a,011B,012b,ffff")
 
 -- Extracted keys take precedence and skip reading the proc entries.
 output, opened = {}, {}
@@ -152,12 +155,12 @@ dofile(snippet)
 html = table.concat(output)
 assert(html:find('id="rip-keys-clear"', 1, true))
 assert(not html:find('id="rip-keys-extract"', 1, true))
-assert(html:find("RIP_ID_PRIVATE_KEY</td><td>Encrypted</td><td style=\"word-break:break-all\">priv_key<", 1, true))
+assert(html:find("RIP_ID_PRIVATE_KEY</td><td>Encrypted</td><td>Read-only</td><td style=\"word-break:break-all\">priv_key<", 1, true))
 assert(html:find(">0x0000<", 1, true))
 assert(html:find(">0x010203<", 1, true))
-assert(html:find("RIP_ID_ID_DECT_CFG</td><td>Encrypted</td><td style=\"word-break:break-all\">Hidden", 1, true))
+assert(html:find("RIP_ID_ID_DECT_CFG</td><td>Encrypted</td><td>Read-only</td><td style=\"word-break:break-all\">Hidden", 1, true))
 assert(table.concat(opened, ",") ==
-  "0032,003c,0083,0088,0100,0101,0102,0104,0112,0116,011a,011B,012b")
+  "0032,003c,0083,0088,0100,0101,0102,0104,0112,0116,0119,011a,011B,012b")
 
 output, opened = {}, {}
 rpc["rpc.system.modgui.utility.rip_status"] = "arch=mips;release=2.6.32.1;eck=0;module="
@@ -197,7 +200,7 @@ assert(html:find("The key extraction failed. request timed out", 1, true))
 
 output, available, opened = {}, false, {}
 dofile(snippet)
-assert(table.concat(output):find("RIP_ID_LAN_ADDR</td><td>Unencrypted</td><td style=\"word-break:break-all\">Unavailable", 1, true))
+assert(table.concat(output):find("RIP_ID_LAN_ADDR</td><td>Unencrypted</td><td>Read-only</td><td style=\"word-break:break-all\">Unavailable", 1, true))
 assert(#opened == 0)
 
 rpc["rpc.system.modgui.utility.rip_index"] = nil
@@ -272,7 +275,9 @@ io.open = function(path, mode)
   }
 end
 
-put(0x0102, 0xff)
+put(0x0102, 0xbf)
+put(0x8001, 0x7f)
+put(0x0119, 0x5f)
 put(0x0105, 0xe7)
 put(0x0105, 0xff)
 put(0x0118, 0xef)
@@ -282,8 +287,11 @@ entries[#entries + 1] = string.rep(string.char(255), 18)
 for _, device in ipairs({4, 5, 12}) do
   partition, opens, offsets = device, {}, {}
   local result = assert(read())
-  assert(result["0102"] == false and result["0118"] == false)
-  assert(result["0105"] == true and result["abcd"] == true)
+  assert(result["0102"].encrypted == false and result["0118"].encrypted == false)
+  assert(result["8001"].encrypted == false and result["8001"].writable == true)
+  assert(result["0119"].writable == true) -- plain record rewritten in place keeps bit 30
+  assert(result["0102"].writable == false and result["0105"].writable == false)
+  assert(result["0105"].encrypted == true and result["abcd"].encrypted == true)
   assert(table.concat(opens, ",") == "/proc/mtd,/dev/mtd" .. device .. "ro")
   assert(#offsets == #entries)
   for i, offset in ipairs(offsets) do
@@ -573,7 +581,7 @@ local function unhex(hex)
 end
 local key = "718c099c053e95e908769311ba56ccd8"
 
-put(0x0102, 0xff, 0x10, "ModelName")
+put(0x0102, 0xbf, 0x10, "ModelName")
 put(0x0105, 0xf7, 0x100, unhex(iv .. ct)) -- ECK encrypted
 put(0x011f, 0xf7, 0x200, unhex(iv .. ct)) -- ECK itself: RAM copy wins
 put(0x0083, 0xfd, 0x300, "beksecret") -- BEK encrypted: stays hidden
@@ -617,7 +625,9 @@ io.open = function(path, mode)
 end
 
 local flags = rip.read()
-assert(flags["0102"] == false and flags["0105"] == true and flags["0083"] == true)
+assert(flags["0102"].encrypted == false and flags["0105"].encrypted == true and
+  flags["0083"].encrypted == true)
+assert(flags["0102"].writable == false and flags["0105"].writable == false)
 local values = rip.values()
 assert(values["011f"] == key)
 assert(values["0121"] == "aabb")

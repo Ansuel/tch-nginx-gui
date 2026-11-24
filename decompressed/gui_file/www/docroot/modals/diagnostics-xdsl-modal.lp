@@ -167,7 +167,16 @@ local content1 = {
       html[#html + 1] = ui_helper.createLabel( T"INP", format("%s %s %s %s", iconUp, T(content["xdsl_counter_upstream_inp"]), iconDown, T(content["xdsl_counter_downstream_inp"])) )
       html[#html + 1] = ui_helper.createLabel( T"Delay", format("%s %s %s %s", iconUp, T(content["xdsl_counter_upstream_delay"]), iconDown, T(content["xdsl_counter_downstream_delay"])) )
       html[#html + 1] = ui_helper.createLabel( T"Trellis", format("%s %s %s %s", iconUp, T(trellisus), iconDown, T(trellisds)) )
-      html[#html + 1] = '</form></fieldset><fieldset id="diagnostics-xdsl-ginp" class="advanced hide">'
+    html[#html + 1] = '</form><dl class="dl-horizontal">'
+    html[#html + 1] = format('<dt>%s</dt><dd>%s</dd>', T"R", T"Error-correction bytes per Reed-Solomon codeword")
+    html[#html + 1] = format('<dt>%s</dt><dd>%s</dd>', T"S", T"Data symbols per Reed-Solomon codeword")
+    html[#html + 1] = format('<dt>%s</dt><dd>%s</dd>', T"D", T"Interleaver depth")
+    html[#html + 1] = format('<dt>%s</dt><dd>%s</dd>', T"L", T"Bits transmitted per data symbol")
+    html[#html + 1] = format('<dt>%s</dt><dd>%s</dd>', T"N", T"Reed-Solomon codeword size in bytes")
+    html[#html + 1] = format('<dt>%s</dt><dd>%s</dd>', T"OR", T"Overhead data rate")
+    html[#html + 1] = format('<dt>%s</dt><dd>%s</dd>', T"INP", T"Impulse noise protection")
+    html[#html + 1] = format('<dt>%s</dt><dd>%s</dd>', T"Delay", T"Interleaving delay")
+    html[#html + 1] = '</dl></fieldset><fieldset id="diagnostics-xdsl-ginp" class="advanced hide">'
       html[#html + 1] = '<legend>' .. T"G.INP stats" .. '</legend><form class="form-horizontal">'
       local iconUp = "<i class=\"icon-upload icon-large gray\"></i> "
       local iconDown = "<i class=\"icon-download icon-large gray\"></i>"

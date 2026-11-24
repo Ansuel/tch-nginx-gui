@@ -1,5 +1,4 @@
 var KoRequest = {};
-var connectionissue = 0;
 
 function get_bitrate(b){b*=8;return 1E9<b?(b=(b/1E9).toFixed(1),b+" Gbit/s"):1E6<b?(b/=1E6,b=b.toFixed(1),b+" Mbit/s"):1E3<b?(b/=1E3,b=b.toFixed(1),b+" Kbit/s"):b+" bit/s"}
 
@@ -62,7 +61,7 @@ var modgui = modgui || {};
 		return false;
 	}
 
-	function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime, CustomRefreshFunction) {
+	function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime, CustomRefreshFunction, deferFirstRefresh) {
         var element = document.getElementById(CardIdRefresh);
         if (!element) return;
         var previous = KoRequest[IntervalVar];
@@ -77,30 +76,42 @@ var modgui = modgui || {};
         });
 
         var registration = {};
+        var custom = typeof CustomRefreshFunction === "function";
         var pending = false;
         var request = null;
+        var failures = 0;
+        var retryAt = 0;
         function isCurrent() {
             return document.getElementById(CardIdRefresh) === element && KoRequest[IntervalVar] === registration;
         }
         function abort() {
             if (request) request.abort();
         }
-        var AjaxRefresh = typeof CustomRefreshFunction === "function" ? function (binding) {
-            if (pending) return;
-            var handle = CustomRefreshFunction(binding);
-            // Custom cards can return their jqXHR to share request ownership,
-            // overlap prevention and teardown with the default card requests.
-            if (handle && typeof handle.always === "function") {
-                pending = true;
-                request = handle;
-                handle.always(function () { pending = false; request = null; });
-            }
-        } : function () {
-            if (pending) return;
+        function applyBindings() {
+            if (!ko.dataFor(element)) ko.applyBindings(ElementBinding, element);
+        }
+        function track(handle) {
+            if (!handle || typeof handle.always !== "function") return;
             pending = true;
+            request = handle;
+            handle.done(function () {
+                failures = 0;
+                retryAt = 0;
+            }).fail(function (xhr, status) {
+                if (!isCurrent() || status === "abort" || (xhr && xhr.statusText === "abort")) return;
+                failures = Math.min(failures + 1, 4);
+                retryAt = Date.now() + Math.max(RefreshTime, Math.min(30000, RefreshTime * Math.pow(2, failures)));
+            }).always(function () {
+                pending = false;
+                request = null;
+            });
+        }
+        var AjaxRefresh = custom ? function (binding) {
+            track(CustomRefreshFunction(binding));
+        } : function () {
             var separator = ajaxLink.indexOf("?") === -1 ? "?" : "&";
             var send = typeof window.modguiDashboardRequest === "function" ? window.modguiDashboardRequest : $.ajax;
-            request = send({
+            track(send({
                 url: ajaxLink + separator + "auto_update=true",
                 type: "POST",
                 data: [tch.elementCSRFtoken()],
@@ -112,33 +123,15 @@ var modgui = modgui || {};
                         var key = ElementBindingList[i];
                         if (data[key] !== undefined) ElementBinding[key](data[key]);
                     }
-                }
-            }).done(function () {
-                if (!isCurrent()) return;
-                if (connectionissue == 1) {
-                    if ($("#popUp").is(":visible")) tch.removeProgress();
-                    connectionissue = 0;
+                    // Keep server-rendered values visible until the first valid poll.
+                    applyBindings();
                 }
             }).fail(function (data) {
-                if (!isCurrent() || data.statusText === "abort") return;
-                connectionissue = 1;
-                switch (data.status) {
-                    case 200:
-                        if (typeof data.responseText === "string" && data.responseText.indexOf("sign-me-in") !== -1) {
-                            if (!$("#popUp").is(":visible")) tch.showProgress(loginMsg);
-                            window.location.href = "/";
-                        }
-                        break;
-                    case 500:
-                        window.location.href = "/error.lp?status=" + data.status + "&err=" + data.getResponseHeader("error-msg");
-                        break;
-                    default:
-                        if (!$("#popUp").is(":visible")) tch.showProgress(connectionLost + " " + data.statusText);
+                if (isCurrent() && data.status === 200 && typeof data.responseText === "string" &&
+                    /\bid=["']sign-me-in["']/.test(data.responseText)) {
+                    window.location.href = "/";
                 }
-            }).always(function () {
-                pending = false;
-                request = null;
-            });
+            }));
         };
         function refresh(binding) {
             if (!isCurrent()) {
@@ -147,7 +140,7 @@ var modgui = modgui || {};
                 if (KoRequest[IntervalVar] === registration) delete KoRequest[IntervalVar];
                 return;
             }
-            if (!document.hidden) AjaxRefresh(binding);
+            if (!document.hidden && !pending && Date.now() >= retryAt) AjaxRefresh(binding);
         }
         registration.element = element;
         registration.function = refresh;
@@ -159,8 +152,8 @@ var modgui = modgui || {};
             clearInterval(previous.interval);
             if (typeof previous.abort === "function") previous.abort();
         }
-        refresh(ElementBinding);
-        if (!ko.dataFor(element)) ko.applyBindings(ElementBinding, element);
+        if (!deferFirstRefresh) refresh(ElementBinding);
+        if (custom) applyBindings();
         registration.interval = setInterval(refresh, RefreshTime, ElementBinding);
     }
 
@@ -197,16 +190,17 @@ var modgui = modgui || {};
 					if (data.state === "Error") { finish(data.log || "Update check failed. Please retry."); return; }
 					if (data.state !== "Complete") return;
 					if (!data.new_version_text) { finish("Unable to read update result. Please retry."); return; }
-					var outdated = data.new_version_text !== "Unknown";
+					var version = data.new_version_text;
+					var outdated = version !== "Unknown";
 					$(".gui_version_status").removeClass("yellow green").addClass(outdated ? "yellow" : "green");
-					$(".gui_version_status_text").text(outdated ? gui_var.gui_outdated : gui_var.gui_updated);
-					if (outdated) $(".gui_update_action").each(function () {
-						$(this).empty().append($("<a>").attr("href", "#").addClass("upgrade_gui").text(gui_var.gui_outdated));
+					$(".gui_version_status_text").text(function () {
+						if (!outdated) return gui_var.gui_updated;
+						var label = this.getAttribute("data-available-version");
+						return label ? label.replace("%s", function () { return version; }) : gui_var.gui_outdated;
 					});
-					$("#upgradebtn,#upgrade-alert").toggleClass("hide", !outdated);
-					$("#new-version-text").text(data.new_version_text);
+					$(".upgrade_gui,#upgradebtn,#upgrade-alert").toggleClass("hide", !outdated);
+					$("#new-version-text").text(version);
 					finish();
-					linkCheckUpdate();
 				}).fail(function (request) {
 					finish(request.responseJSON && request.responseJSON.error || "Unable to check updates. Please retry.");
 				}).always(function () { pending = false; });
@@ -244,8 +238,9 @@ var modgui = modgui || {};
 
 	function clearKoInterval() {
 		Object.keys(KoRequest).forEach(function(interval) {
-			if(KoRequest[interval])
-				clearInterval(KoRequest[interval].interval);
+			var registration = KoRequest[interval];
+			clearInterval(registration.interval);
+			if (registration.abort) registration.abort();
 		});
 	}
 
@@ -284,6 +279,7 @@ var modgui = modgui || {};
     var lifetime = 600;
     var liveWindow = 20;
     var liveDelay = 2;
+    var historyInterval = 9000; // The router collects a historical sample every nine seconds.
     var serverTime, clockAt;
 
     function initResourceCharts(cardId, compact) {
@@ -442,7 +438,7 @@ var modgui = modgui || {};
             series(element("traffic-upload-label").textContent, "#df7951", "tx-key")], get_bitrate, undefined, compactBitrate);
         var trafficFields = compact ? ["lan_rx", "lan_tx"] : ["rx", "tx"];
         var interfaceField = compact ? "lan" : "interface";
-        var renderedDevice, renderedHistory;
+        var renderedDevice, renderedHistory, scrollTimer;
 
         function render() {
             if (resourceSamples === renderedHistory) return;
@@ -492,39 +488,52 @@ var modgui = modgui || {};
             $(range).on("change", function () {
                 renderedHistory = undefined;
                 render();
+                updateScrolling();
             });
         }
-        var scrollTimer = setInterval(function () {
+        function stopScrolling() {
+            clearInterval(scrollTimer);
+            scrollTimer = undefined;
+        }
+        function scroll() {
             if (document.getElementById(cardId) !== card) {
-                clearInterval(scrollTimer);
+                stopScrolling();
                 return;
             }
-            if (document.hidden || !isLive() || serverTime === undefined) return;
+            if (document.hidden) return;
             moveAxis(usage);
             usage.update();
             if (renderedDevice) {
                 moveAxis(traffic);
                 traffic.update();
             }
-        }, 40);
+        }
+        function updateScrolling() {
+            if (!isLive()) stopScrolling();
+            else if (scrollTimer === undefined && serverTime !== undefined) scrollTimer = setInterval(scroll, 40);
+        }
 
         if (window.MutationObserver) {
             var observer = new MutationObserver(function () {
                 if (document.getElementById(cardId) === card) return;
                 observer.disconnect();
-                clearInterval(scrollTimer);
+                stopScrolling();
                 usage.destroy();
                 traffic.destroy();
             });
             observer.observe(document.body, {childList: true, subtree: true});
         }
 
+        var nextHistoryRead = 0;
         function refresh() {
+            var live = isLive();
+            if (!live && clock() < nextHistoryRead) return;
             var latest = resourceSamples[resourceSamples.length - 1];
             var after = latest && latest.time;
-            return $.ajax({
+            var send = window.modguiDashboardRead || $.ajax;
+            return send({
                 url: "/ajax/traffic_graph.lua?source=wan&resources=history&auto_update=true" +
-                    (isLive() ? "&live=3" : "") +
+                    (live ? "&live=3" : "") +
                     (after === undefined ? "" : "&after=" + after),
                 type: "POST",
                 data: [tch.elementCSRFtoken()],
@@ -533,6 +542,7 @@ var modgui = modgui || {};
                 success: function (data) {
                     if (document.getElementById(cardId) !== card || !data || !Array.isArray(data.samples)) return;
                     var received = clock();
+                    nextHistoryRead = live ? 0 : received + historyInterval;
                     // Keep the scrolling clock independent of individual responses.
                     // Correct it only after a large clock change or a long interruption.
                     if (typeof data.now === "number" &&
@@ -555,12 +565,14 @@ var modgui = modgui || {};
                         });
                     }
                     render();
+                    updateScrolling();
                 }
             });
         }
 
         if (Date.now() - lastFetch >= lifetime * 1000) resourceSamples = [];
         render();
+        updateScrolling();
         module.createAjaxUpdateCard(cardId, null, cardId + "ChartsInterval", 1000, refresh);
     }
 
@@ -612,7 +624,6 @@ $(function () {
 	}
 
 	var pathname = document.location.pathname;
-	var page = gui_var.pageselector_page;
 	var text = gui_var.pageselector_text;
 
 	if (pathname == "/stats.lp") {
@@ -625,10 +636,15 @@ $(function () {
 		document.title = "Gateway - "+gui_var.pageselector_othertext;
 	}
 
+	var switchingView = false;
 	$("#switchViewButton").on("click", function () {
+		if (switchingView) return;
+		switchingView = true;
 		var pathname = document.location.pathname;
 		var text = gui_var.pageselector_othertext;
 		var view = gui_var.pageselector_text;
+		var page = gui_var.pageselector_page;
+		var previousText = $("#cards-text").text();
 
 		if (pathname == "/stats.lp") {
 			page = "cards.lp";
@@ -644,16 +660,24 @@ $(function () {
 		$("#refresh-cards").show();
 		$("#refresh-cards").css("margin-right", "5px");
 		$("#refresh-cards").addClass("fa fa-sync fa-spin");
-		modgui.clearKoInterval();
-		KoRequest = {};
-
-		$.get(page + "?contentonly=true").done(function (data) {
+		$.ajax({url: page + "?contentonly=true", timeout: 15000}).done(function (data) {
+			if (/\bid=["']sign-me-in["']/.test(data)) {
+				window.location.href = "/";
+				return;
+			}
+			if (window.modguiAbortDashboardCards) window.modguiAbortDashboardCards();
+			modgui.clearKoInterval();
+			KoRequest = {};
 			$(".dynamic-content").replaceWith(data);
 			$("#cards-text").text(text);
-			$("#refresh-cards").hide();
 			window.history.pushState("gateway", "Gateway - "+view, page);
 			document.title = "Gateway - "+view;
 			$("#switchViewButton").trigger("switchcard");
+		}).fail(function () {
+			$("#cards-text").text(previousText);
+		}).always(function () {
+			switchingView = false;
+			$("#refresh-cards").hide();
 		});
 	});
 	$("#upgradebtn").on("hover",

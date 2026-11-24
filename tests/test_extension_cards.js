@@ -9,7 +9,7 @@ for (const [name, file, modal] of [
 ]) {
   const source = fs.readFileSync('decompressed/gui_file/www/cards/' + file, 'utf8');
   const client = source.split('<script>')[1].split('</script>')[0];
-  let element = {}, replacements = [], timers = new Map(), next = 0, requests = [];
+  let element = {}, replacements = [], timers = new Map(), next = 0, requests = [], clock = 0;
   const document = {hidden: false, getElementById: id => id === name + '-card' ? element : null};
   function $(target) {
     if (typeof target === 'function') return target();
@@ -30,19 +30,24 @@ for (const [name, file, modal] of [
     assert.strictEqual(options.timeout, 8000);
     assert.strictEqual(options.dataType, 'html');
     assert.strictEqual(options.cache, false);
-    let done, always;
-    const req = {aborted: false, done(fn) {done = fn; return this;}, always(fn) {always = fn; return this;},
-      resolve(html) {done(html); always();}, reject() {always();}, abort() {this.aborted = true; always();}};
+    const done = [], fail = [];
+    let always;
+    const req = {aborted: false, done(fn) {done.push(fn); return this;}, fail(fn) {fail.push(fn); return this;},
+      always(fn) {always = fn; return this;}, resolve(html) {done.forEach(fn => fn(html)); always();},
+      reject() {fail.forEach(fn => fn({status: 500}, 'error')); always();},
+      abort() {this.aborted = true; fail.forEach(fn => fn({}, 'abort')); always();}};
     requests.push(req); return req;
   };
-  const context = {document, $, KoRequest: {}, modgui: {}, ko: {dataFor: () => true},
+  const context = {document, $, Date: {now: () => clock}, window: {}, KoRequest: {}, modgui: {}, ko: {dataFor: () => true},
     setInterval: (fn, delay, arg) => {assert.strictEqual(delay, 30000); timers.set(++next, () => fn(arg)); return next;},
     clearInterval: id => timers.delete(id)};
   vm.createContext(context);
   vm.runInContext(factory + '\nmodgui.createAjaxUpdateCard = createAjaxUpdateCard;', context);
   const init = () => vm.runInContext(client, context);
-  const tick = () => [...timers.values()].forEach(fn => fn());
-  init(); init(); tick();
+  const tick = () => {clock += 30000; [...timers.values()].forEach(fn => fn());};
+  init(); init();
+  assert.strictEqual(requests.length, 0, 'use the snapshot already in the rendered HTML');
+  tick(); tick();
   assert.strictEqual(requests.length, 1, 'duplicate initialization and pending reads must not overlap');
   requests[0].resolve('valid'); assert.deepStrictEqual(replacements, ['valid']);
   document.hidden = true; tick(); assert.strictEqual(requests.length, 1);
@@ -51,6 +56,7 @@ for (const [name, file, modal] of [
   tick(); requests[2].reject(); tick(); assert.strictEqual(requests.length, 4, 'retry after failure');
   const old = requests[3]; element = {}; init(); assert(old.aborted);
   old.resolve('valid'); assert.deepStrictEqual(replacements, ['valid'], 'ignore stale results');
+  tick();
   const current = requests[4]; element = null; tick(); assert(current.aborted);
   assert.strictEqual(timers.size, 0);
 }

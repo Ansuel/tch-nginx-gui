@@ -143,6 +143,48 @@ assert(helper.getIpv6Content().ip6addr == 'rpc.network.interface.@6rd.ip6addr')
 assert(#writes == 0)
 ''')
 
+    def test_ipv6_card_snapshot_omits_the_dns_lookup_and_keeps_delegation(self):
+        self.run_lua('''
+local wan = 'rpc.network.interface.@wan.'
+local wan6 = 'rpc.network.interface.@wan6.'
+names = {{path = wan6}, {path = wan}}
+values[wan6 .. 'ip6addr'] = '2001:db8::1'
+values[wan6 .. 'ip6prefix'] = ''
+values[wan6 .. 'dnsservers'] = '2001:db8::53'
+values[wan .. 'ip6prefix'] = '2001:db8:1::/56'
+local paths, snapshot = helper.getIpv6Content(false)
+assert(reads == 3 and paths.dnsv6 == nil)
+assert(paths.ip6addr == wan6 .. 'ip6addr' and snapshot.ip6addr == '2001:db8::1')
+assert(paths.ip6prefix == wan .. 'ip6prefix' and snapshot.ip6prefix == '2001:db8:1::/56')
+assert(helper.getIpv6Content().dnsv6 == wan6 .. 'dnsservers')
+''')
+
+    def test_broadband_card_reads_dsl_rates_only_when_a_line_is_up(self):
+        self.run_lua('''
+local html = {}
+local dsl = 'sys.class.xdsl.@line'
+gettext = {textdomain = function() end}
+ngx = {ctx = {session = {hasAccess = function() return true end}}, print = function(...)
+  for _, part in ipairs({...}) do html[#html+1] = part end
+end}
+package.preload['web.ui_helper'] = function() return {
+  createCardHeader = function() return '' end,
+  createSimpleLight = function(_, label) return label end,
+} end
+values[dsl .. '0.Status'] = 'NoSignal'
+values[dsl .. '1.Status'] = 'Idle'
+dofile(CARD)
+assert(reads == 1 and table.concat(html):find('xDSL Disconnected', 1, true))
+values[dsl .. '1.Status'] = 'Up'
+values[dsl .. '1.UpstreamCurrRate'] = '6000'
+values[dsl .. '1.DownstreamCurrRate'] = '42000'
+html = {}
+dofile(CARD)
+assert(table.concat(html):find('42.00 Mbps', 1, true))
+assert(table.concat(html):find('6.00 Mbps', 1, true))
+assert(#writes == 0)
+'''.replace('CARD', repr(str(ROOT / 'www/cards/snippets/002_broadband_xdsl.lp'))))
+
     def test_ppp_ipv6_roundtrip_preserves_username_without_isp_realm(self):
         for protocol in ('pppoe', 'pppoa', 'dhcp'):
             source = (ROOT / f'www/snippets/internet-{protocol}-routed.lp').read_text()
@@ -592,8 +634,9 @@ package.preload['web.post_helper'] = function() return {secondsToTime = function
 package.preload['web.taint'] = function() return {untaint_mt = {}} end
 package.preload.bridgehelper = function() return dofile(BRIDGE) end
 package.preload.broadbandmode_helper = function() return {
-  {description = 'VDSL2', default = true, check = function(uplink) return uplink == 'ptm0' end},
-  {description = 'Ethernet', check = function(uplink) return uplink == 'eth4' end},
+  getActiveMode = function(uplink) return ({ptm0 = 'vdsl', eth4 = 'ethernet'})[uplink] end,
+  {name = 'vdsl', description = 'VDSL2', default = true},
+  {name = 'ethernet', description = 'Ethernet'},
 } end
 package.preload.internetmode_helper = function() return {
   {name = 'bridge', description = 'Bridge'}, {name = 'dhcp', description = 'DHCP'},

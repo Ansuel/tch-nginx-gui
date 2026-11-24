@@ -154,7 +154,7 @@ end
         '<option value="rndis"' .. (d.HOST_RNDIS ~= "1" and ' disabled' or '') .. '>RNDIS</option>' ..
         '<option value="ncm"' .. (d.HOST_NCM ~= "1" and ' disabled' or '') .. '>CDC NCM</option></select> ' ..
         '<button type="button" class="btn" id="phone-usb-apply" onclick="applyPhoneUsbMode()" disabled>Applica modalità USB</button>' ..
-        '<p>Il cambio richiede il debug USB autorizzato e interrompe temporaneamente il tethering.</p>' ..
+        '<p>Con il debug USB autorizzato, il router prova CDC NCM quando il tethering è attivo e il driver è disponibile. Seleziona RNDIS per mantenerlo anche ai collegamenti successivi. Il cambio interrompe temporaneamente il tethering.</p>' ..
         '<p id="phone-usb-ncm-note"' .. (d.HOST_NCM_BLOCKED == "1" and '' or ' style="display:none"') ..
         '>Cambio a CDC NCM disabilitato su questo kernel per evitare blocchi della rete.</p>' ..
         '<p id="phone-usb-result" role="status"></p>')

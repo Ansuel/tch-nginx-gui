@@ -106,7 +106,8 @@ $(function () {
             binding.phoneSignal(""); binding.phoneBattery("");
             binding.phoneTether("");
         }
-        return $.ajax({url: "/modals/smartphone-modal.lp", type: "POST", dataType: "json", timeout: 25000,
+        var send = window.modguiDashboardRead || $.ajax;
+        return send({url: "/modals/smartphone-modal.lp", type: "POST", dataType: "json", timeout: 25000,
             data: [tch.elementCSRFtoken(), {name: "action", value: "get_stats"}]
         }).done(function (data) { if (current()) render(binding, data); })
             .fail(function (_, status) {

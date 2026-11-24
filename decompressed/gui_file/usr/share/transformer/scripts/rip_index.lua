@@ -19,7 +19,7 @@ local function uint32(data, offset)
 end
 
 -- eRIPv2 attribute bits (active-low in the first crypto flag byte).
-local ECK_ENCRYPTED, BEK_ENCRYPTED, EIK_SIGNED = 8, 2, 16
+local ECK_ENCRYPTED, BEK_ENCRYPTED, MCV_SIGNED, EIK_SIGNED = 8, 2, 4, 16
 
 local function read_index(file, size)
   local entry_size, trailer_size = 18, 4
@@ -49,6 +49,16 @@ local function read_index(file, size)
         encrypted = flags % 16 < ECK_ENCRYPTED or flags % 4 < BEK_ENCRYPTED,
         eck = flags % 16 < ECK_ENCRYPTED,
         signed = flags % 32 < EIK_SIGNED,
+        mcv = flags % 8 < MCV_SIGNED,
+        -- ripdrv's rip2_drv_write rejects /proc/rip writes (EIO) unless the
+        -- record attribute flags (attr_hi, active-low) carry bit 30 (the
+        -- plain/rewritable marker) with every crypto flag in its inactive
+        -- state. Verified on BCMBCA: 0x7f (plain) and 0x5f (0x0119 after an
+        -- in-place rewrite, only bit 29 set) accept writes; 0x3f/0x3b/0x2f
+        -- signed and 0x27/0x39/0xe7 encrypted records answer EIO.
+        writable = flags % 128 >= 64 and flags % 16 >= ECK_ENCRYPTED and
+          flags % 32 >= EIK_SIGNED and flags % 8 >= MCV_SIGNED and
+          flags % 4 >= BEK_ENCRYPTED,
         address = address,
         length = uint32(entry, 15)
       }
@@ -72,7 +82,9 @@ function M.read()
   file:close()
   if not entries then return end
   local flags = {}
-  for id, entry in pairs(entries) do flags[id] = entry.encrypted end
+  for id, entry in pairs(entries) do
+    flags[id] = { encrypted = entry.encrypted, writable = entry.writable }
+  end
   return flags
 end
 
@@ -448,27 +460,41 @@ end
 
 -- Plaintext values for every record that the extracted ECK can open.
 -- In-RAM secrets are authoritative; ECK-encrypted flash records are
--- decrypted here. BEK records stay hidden (the key is device-unique
--- and not exposed by r2secr, same limitation as secr's eripv2.py).
+-- decrypted here. Master keys (EIK/OSIK/OLYMPUS_IK) are not encrypted,
+-- only signed, so they are read straight from flash even without the
+-- extracted keys: the stock ripdrv hides them or guards them with root
+-- permissions, and r2secr only ever exposes the 0x011f struct item.
+-- BEK records stay hidden (the key is device-unique and not exposed by
+-- r2secr, same limitation as secr's eripv2.py).
 function M.values()
   local secrets = M.secrets()
-  if not secrets then return end
 
   local values = {}
-  for id, hex in pairs(secrets) do values[id] = hex end
-
-  local key = secrets["011f"] and hex_to_bytes(secrets["011f"])
-  if not key then return values end
+  for id, hex in pairs(secrets or {}) do values[id] = hex end
 
   local file, size = open_partition()
-  if not file then return values end
+  if not file then
+    if next(values) then return values end
+    return
+  end
   local entries = read_index(file, size)
   if entries then
+    local key = secrets and secrets["011f"] and hex_to_bytes(secrets["011f"])
     for id, entry in pairs(entries) do
-      if entry.eck and not values[id] and entry.length >= 32 and entry.length <= max_record_bytes then
-        local data = read_record(file, size, entry)
-        local plain = data and M.aes128_cbc(key, data)
-        plain = plain and M.strip_record(plain, entry.signed)
+      if not values[id] and entry.length >= 32 and entry.length <= max_record_bytes then
+        local plain
+        if not entry.encrypted then
+          plain = read_record(file, size, entry)
+          -- signed but not encrypted: the trailing 256-byte RSA signature
+          -- (EIK- or MCV-signed) has no AES padding in front of it.
+          if plain and (entry.signed or entry.mcv) and #plain > 256 then
+            plain = plain:sub(1, #plain - 256)
+          end
+        elseif entry.eck and key then
+          local data = read_record(file, size, entry)
+          plain = data and M.aes128_cbc(key, data)
+          plain = plain and M.strip_record(plain, entry.signed)
+        end
         if plain then
           local hex = {}
           for byte = 1, #plain do
@@ -480,7 +506,7 @@ function M.values()
     end
   end
   file:close()
-  return values
+  if next(values) then return values end
 end
 
 return M

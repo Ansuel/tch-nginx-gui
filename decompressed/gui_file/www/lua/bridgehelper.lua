@@ -134,12 +134,14 @@ function M.vlanContext(uplink)
         if uplink == "br-lan" then uplink = M.getUplink(true) end
     end
     local ifname = M.resolveUplink(uplink) or ""
-    local device
+    local device, vlanType
     for _, entry in ipairs(proxy.getPN("uci.network.device.", true) or {}) do
-        local kind = get(entry.path .. "type")
-        if get(entry.path .. "name") == ifname and (kind == "8021q" or kind == "8021ad") then
-            device = entry.path
-            break
+        if get(entry.path .. "name") == ifname then
+            local kind = get(entry.path .. "type")
+            if kind == "8021q" or kind == "8021ad" then
+                device, vlanType = entry.path, kind
+                break
+            end
         end
     end
     local parent = device and get(device .. "ifname")
@@ -153,7 +155,7 @@ function M.vlanContext(uplink)
         vid = device and get(device .. "vid") or vid or get(path .. "vid") or "",
         difname = device and parent or base or "",
         notation = not device and base and "dotnot" or "devnot",
-        vlanType = device and get(device .. "type") or "8021q",
+        vlanType = vlanType or "8021q",
     }
 end
 
@@ -184,9 +186,9 @@ function M.isDslInterface(ifname, kind)
     return ifname:match("^" .. kind) ~= nil
 end
 
-function M.ethernetPort(fallback)
+function M.ethernetPort(fallback, current)
     if M.hasIntegratedGpon() then return "eth3" end
-    local current = M.vlanContext().connection
+    current = current or M.vlanContext().connection
     if current ~= "" and get("uci.ethernet.port.@" .. current .. ".wan") == "1" then return current end
     local chosen
     for _, entry in ipairs(proxy.getPN("uci.ethernet.port.", true) or {}) do
@@ -200,9 +202,10 @@ function M.ethernetPort(fallback)
 end
 
 function M.ethernetLink()
-    local port = M.ethernetPort()
+    local current = M.vlanContext().connection
+    local port = M.ethernetPort(nil, current)
     local stats = {operstate = "down", carrier = "0", speed = "0"}
-    if port and M.vlanContext().connection == port then
+    if port and current == port then
         for key in pairs(stats) do
             stats[key] = get("sys.class.net.@" .. port .. "." .. key) or stats[key]
         end

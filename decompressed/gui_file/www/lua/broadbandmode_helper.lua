@@ -24,33 +24,34 @@ if not integratedGpon then
     ethname = eth4 and eth4[1] and eth4[1].value and "eth4" or "eth3"
 end
 
-local function selected(kind, uplink)
+local sensingModes = {SFP = "gpon", FIBER = "gpon", GPON = "gpon",
+    ETH = "ethernet", GBE = "ethernet", ADSL = "adsl", VDSL = "vdsl"}
+
+local function activeMode(uplink)
     local parent
     if integratedGpon then
         parent = bridge.vlanContext(uplink).connection
         -- The configured WAN device distinguishes Ethernet from the integrated ONT.
-        if bridge.isGponInterface(parent) then return kind == "gpon" end
-        if parent == "eth3" then return kind == "ethernet" end
+        if bridge.isGponInterface(parent) then return "gpon" end
+        if parent == "eth3" then return "ethernet" end
     end
     if not uplink and bridge.get("uci.wansensing.global.enable") == "1" then
         local l2 = bridge.get("uci.wansensing.global.l2type") or ""
-        if kind == "gpon" then return l2 == "SFP" or l2 == "FIBER" or l2 == "GPON" end
-        if kind == "ethernet" then return l2 == "ETH" or l2 == "GBE" end
-        return l2 == (kind == "adsl" and "ADSL" or "VDSL")
+        if string.untaint then l2 = string.untaint(l2) end
+        return sensingModes[l2]
     end
-    if integratedGpon then return false end
+    if integratedGpon then return end
     parent = bridge.vlanContext(uplink).connection
-    if kind == "adsl" then return bridge.isDslInterface(parent, "atm") end
-    if kind == "vdsl" then return bridge.isDslInterface(parent, "ptm") end
-    if parent ~= bridge.ethernetPort(ethname) then return false end
-    if sfp ~= 1 then return kind == "ethernet" end
-    local optical = bridge.get("uci.ethernet.globals.eth4lanwanmode") == "1"
-    return (kind == "gpon") == optical
+    if hasXdsl and bridge.isDslInterface(parent, "atm") then return "adsl" end
+    if hasXdsl and bridge.isDslInterface(parent, "ptm") then return "vdsl" end
+    if parent ~= bridge.ethernetPort(ethname, not uplink and parent or nil) then return end
+    if sfp == 1 and bridge.get("uci.ethernet.globals.eth4lanwanmode") == "1" then return "gpon" end
+    return "ethernet"
 end
 
 local function selectInterface(kind)
     if integratedGpon then
-        if selected(kind) then return true end
+        if activeMode() == kind then return true end
         return false, T"Enable WanSensing to switch between Ethernet and integrated GPON."
     end
     local ethname = bridge.ethernetPort(ethname)
@@ -88,7 +89,12 @@ end
 if integratedGpon or sfp == 1 then
     definitions[#definitions + 1] = {"gpon", "GPON", "broadband-gpon-advanced.lp", "002_broadband_gpon.lp"}
 end
-local modes = {}
+local modes = {getActiveMode = function(uplink)
+    local active = activeMode(uplink)
+    for _, definition in ipairs(definitions) do
+        if definition[1] == active then return active end
+    end
+end}
 for _, definition in ipairs(definitions) do
     local kind = definition[1]
     modes[#modes + 1] = {
@@ -97,7 +103,7 @@ for _, definition in ipairs(definitions) do
         description = definition[2],
         view = definition[3],
         card = definition[4],
-        check = function(uplink) return selected(kind, uplink) end,
+        check = function(uplink) return activeMode(uplink) == kind end,
         operations = function()
             return bridge.changeUplink(function() return selectInterface(kind) end)
         end,

@@ -106,7 +106,9 @@ var LteCardRefresh = function(ElementBinding) {\
 			});\
 		};\
 \
-	$.post("/ajax/mobiletab.lua?auto_update=true", [tch.elementCSRFtoken()], function(data) {\
+	var send = window.modguiDashboardRead || $.ajax;\
+	return send({url: "/ajax/mobiletab.lua?auto_update=true", type: "POST", dataType: "json",\
+		data: [tch.elementCSRFtoken()], timeout: 8000}).done(function(data) {\
 			if(data.bars != undefined) {\
 				updateBars(data.bars);\
 			}\
@@ -135,7 +137,7 @@ var LteCardRefresh = function(ElementBinding) {\
 					});\
 				}\
 			}\
-		}, "json");\
+		});\
 	};\
 $(document).ready(function () {\
 	new modgui.createAjaxUpdateCard("mobiletab",null,"LteCardInterval",50000,LteCardRefresh);\

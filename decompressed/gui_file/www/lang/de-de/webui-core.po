@@ -2408,6 +2408,19 @@ msgstr "Aktualisieren"
 msgid "Update Found"
 msgstr "Aktualisierung gefunden"
 
+#, lua-format
+msgid "Available GUI version: %s"
+msgstr "Verfügbare GUI-Version: %s"
+
+msgid "Install update"
+msgstr "Update installieren"
+
+msgid "Unable to download the changelog."
+msgstr "Das Änderungsprotokoll konnte nicht heruntergeladen werden."
+
+msgid "View changelog on GitHub"
+msgstr "Änderungsprotokoll auf GitHub ansehen"
+
 msgid "Update GUI"
 msgstr "Aktualisiere GUI"
 

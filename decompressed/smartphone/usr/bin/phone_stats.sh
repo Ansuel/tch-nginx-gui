@@ -2,10 +2,78 @@
 # Run by Transformer as root; the web worker never needs USB or shell access.
 CMD=${1:-get_stats}
 USB_SWITCH_LOCK=/var/run/modgui-smartphone-usb-switch
-AUTO_NCM_LAST=/var/run/modgui-smartphone-ncm-last
+AUTO_NCM_FAILED=/var/run/modgui-smartphone-ncm-failed
+usb_steering() (
+    device=/sys/class/net/usb0
+    rps=$device/queues/rx-0/rps_cpus
+    backlog=/proc/sys/net/core/netdev_max_backlog
+    state=/var/run/modgui-smartphone-usb-steering
+    tuned_backlog=4096
+    command -v flock >/dev/null 2>&1 || exit 0
+    umask 077
+    exec 9>"$state.lock" || exit 1
+    flock 9 || exit 1
+
+    # Apply only to the tested topology: USB 3 tethering, two cores, and a
+    # single xHCI controller servicing its interrupt on CPU1.
+    eligible=0
+    ifindex=$(cat "$device/ifindex" 2>/dev/null)
+    if [ "${1:-}" != restore ] && [ -n "$ifindex" ] &&
+       [ "$(cat /sys/devices/system/cpu/online 2>/dev/null)" = 0-1 ]; then
+        driver=$(readlink "$device/device/driver")
+        usb_interface=$(readlink -f "$device/device")
+        irq=$(awk '/xhci[-_]hcd:usb/ { sub(/:$/, "", $1); irq=$1; count++ }
+                   END { if (count == 1) print irq }' /proc/interrupts)
+        case "${driver##*/}" in rndis_host|cdc_ncm) tether_driver=1 ;; *) tether_driver=0 ;; esac
+        if [ "$tether_driver" = 1 ] && [ -n "$usb_interface" ] &&
+           [ "$(cat "$usb_interface/../speed" 2>/dev/null)" = 5000 ] &&
+           [ -n "$irq" ] && [ "$(cat "/proc/irq/$irq/smp_affinity" 2>/dev/null)" = 2 ]; then
+            eligible=1
+        fi
+    fi
+
+    restore() {
+        if [ "$old_index" = "$ifindex" ] && [ "$(cat "$rps" 2>/dev/null)" = 1 ]; then
+            printf '%s\n' "$old_rps" > "$rps" || return 1
+        fi
+        if [ "$old_backlog" -lt "$tuned_backlog" ] &&
+           [ "$(cat "$backlog")" = "$tuned_backlog" ]; then
+            printf '%s\n' "$old_backlog" > "$backlog" || return 1
+        fi
+        rm -f "$state"
+    }
+
+    if [ -r "$state" ]; then
+        read -r old_index old_rps old_backlog < "$state" || exit 1
+        [ "$eligible" = 1 ] && [ "$old_index" = "$ifindex" ] && exit 0
+        restore || exit 1
+    fi
+    [ "$eligible" = 1 ] && [ -w "$rps" ] && [ -w "$backlog" ] || exit 0
+    old_index=$ifindex
+    old_rps=$(cat "$rps") || exit 1
+    old_backlog=$(cat "$backlog") || exit 1
+    printf '%s %s %s\n' "$old_index" "$old_rps" "$old_backlog" > "$state" || exit 1
+    if { [ "$old_backlog" -lt "$tuned_backlog" ] && ! printf '%s\n' "$tuned_backlog" > "$backlog"; } ||
+       ! printf '1\n' > "$rps"; then
+        restore
+        exit 1
+    fi
+)
+
+if [ "$CMD" = check_adb ]; then
+    usb_steering
+fi
 if [ "$CMD" = watch_adb ]; then
     watch_child=""
-    trap '[ -z "$watch_child" ] || { kill "$watch_child" 2>/dev/null; wait "$watch_child" 2>/dev/null; }; exit 0' HUP INT TERM
+    stop_watch() {
+        if [ -n "$watch_child" ]; then
+            kill "$watch_child" 2>/dev/null
+            wait "$watch_child" 2>/dev/null
+        fi
+        usb_steering restore
+        exit 0
+    }
+    trap stop_watch HUP INT TERM
     while :; do
         "$0" check_adb >/dev/null 2>&1 &
         watch_child=$!
@@ -69,8 +137,7 @@ usb_diagnostics() {
             printf 'HOST_IF|%s\n' "$iface"
             driver=$(readlink "$net/device/driver" 2>/dev/null)
             case "${driver##*/}" in ''|*[!a-zA-Z0-9_-]*) ;; *) printf 'HOST_DRIVER|%s\n' "${driver##*/}" ;; esac
-            # Mode changes only need the USB identity and bound driver.
-            [ -z "${1:-}" ] || continue
+            [ -z "${1:-}" ] || [ "${2:-}" = link ] || continue
             flags=$(cat "$net/flags" 2>/dev/null)
             case "$flags" in
                 0x[0-9a-fA-F]*) if [ "$((flags & 1))" -eq 1 ]; then echo 'HOST_ADMIN|up'; else echo 'HOST_ADMIN|down'; fi ;;
@@ -230,8 +297,16 @@ usb_functions() {
     adb -s "$1" shell svc usb getFunctions 2>&1 | tr -d '\r'
 }
 
+save_usb_mode() {
+    [ -f /etc/config/smartphone ] || touch /etc/config/smartphone || return 1
+    uci set smartphone.usb=usb &&
+        uci set "smartphone.usb.mode=$1" &&
+        uci commit smartphone
+}
+
 switch_usb_transport() (
     mode=$1
+    automatic=${2:-}
     case "$mode" in ncm) driver=cdc_ncm ;; rndis) driver=rndis_host ;; esac
     [ -d "/sys/bus/usb/drivers/$driver" ] ||
         error "Il driver $driver non è disponibile sul router."
@@ -246,6 +321,20 @@ switch_usb_transport() (
     trap 'rmdir "$USB_SWITCH_LOCK"' EXIT
     trap 'exit 1' HUP INT TERM
 
+    before=$(usb_diagnostics "$serial" link)
+    failed_marker=""
+    case "$serial" in *[!a-zA-Z0-9._-]*) ;; *) failed_marker="$AUTO_NCM_FAILED.$serial" ;; esac
+    if [ "$automatic" = auto ]; then
+        case "$(uci -q get smartphone.usb.mode)" in ''|ncm) ;; *) exit 0 ;; esac
+        printf '%s\n' "$before" | grep -qx 'HOST_DRIVER|rndis_host' || exit 0
+        [ -n "$failed_marker" ] && [ ! -e "$failed_marker" ] || exit 0
+    fi
+    confirm_mode() {
+        if [ "$automatic" != auto ]; then
+            save_usb_mode "$mode" || error "Modalità USB attiva, ma impossibile salvare la preferenza."
+        fi
+        if [ "$mode" = ncm ] && [ -n "$failed_marker" ]; then rm -f "$failed_marker"; fi
+    }
     previous=$(usb_functions "$serial")
     case "$previous" in
         rndis|rndis,adb|adb,rndis) previous=rndis ;;
@@ -253,39 +342,52 @@ switch_usb_transport() (
         mtp|ptp|midi|none|adb|mtp,adb|ptp,adb|midi,adb) previous="" ;;
         *) error "Android non espone il controllo delle funzioni USB tramite ADB." ;;
     esac
-    if [ "$previous" = "$mode" ] && usb_diagnostics "$serial" | grep -qx "HOST_DRIVER|$driver"; then exit 0; fi
+    if [ "$previous" = "$mode" ] && printf '%s\n' "$before" | grep -qx "HOST_DRIVER|$driver"; then
+        confirm_mode
+        exit 0
+    fi
     if [ "$previous" = ncm ] && ! ncm_switch_supported; then
         error "Scollega il telefono e seleziona RNDIS sul telefono prima di ricollegarlo."
     fi
-    if [ "${2:-}" = auto ]; then
-        # A failed switch can re-enumerate the old mode. Give tethering time
-        # to recover before trying again.
-        now=$(date +%s) || exit 1
-        last=$(cat "$AUTO_NCM_LAST" 2>/dev/null)
-        case "$last" in
-            ''|*[!0-9]*) ;;
-            *) [ "$now" -lt "$last" ] || [ "$((now - last))" -ge 300 ] || exit 0 ;;
-        esac
-        (umask 077; printf '%s\n' "$now" > "$AUTO_NCM_LAST") || exit 1
+    carrier_required=0
+    ipv4_required=0
+    attempts=7
+    if [ "$automatic" = auto ]; then
+        # Preserve debugging-only connections and always have a known fallback.
+        [ "$previous" = rndis ] || exit 0
+        if printf '%s\n' "$before" | grep -qx 'HOST_CARRIER|1'; then carrier_required=1; fi
+        if printf '%s\n' "$before" | grep -q '^HOST_IPV4|'; then ipv4_required=1; fi
+        # Remember attempted phones until reboot so an unsupported gadget
+        # cannot repeatedly interrupt an active WAN. Manual retries bypass this.
+        (umask 077; touch "$failed_marker") || exit 1
+        attempts=15
     fi
 
     # USB can disconnect before Android returns a shell status. Check the
     # Linux driver and Android mode again once the same device reappears.
     adb -s "$serial" shell svc usb setFunctions "$mode" >/dev/null 2>&1
-    for attempt in 1 2 3 4 5 6 7; do
+    while [ "$attempts" -gt 0 ]; do
+        attempts=$((attempts - 1))
         sleep 1
-        if usb_diagnostics "$serial" | grep -qx "HOST_DRIVER|$driver" &&
-           { [ "${2:-}" = auto ] || usb_functions "$serial" | grep -Eq "(^|,)$mode(,|$)"; }; then
-            if [ "${2:-}" = auto ]; then
-                rm -f "$AUTO_NCM_LAST"
+        after=$(usb_diagnostics "$serial" link)
+        if printf '%s\n' "$after" | grep -qx "HOST_DRIVER|$driver" &&
+           { [ "$carrier_required" = 0 ] || printf '%s\n' "$after" | grep -qx 'HOST_CARRIER|1'; } &&
+           { [ "$ipv4_required" = 0 ] || printf '%s\n' "$after" | grep -q '^HOST_IPV4|'; } &&
+           { [ "$automatic" = auto ] || usb_functions "$serial" | grep -Eq "(^|,)$mode(,|$)"; }; then
+            confirm_mode
+            if [ "$automatic" = auto ]; then
                 logger -t modgui-smartphone 'CDC NCM enabled on the USB phone.'
             fi
+            usb_steering
             exit 0
         fi
     done
     if [ -n "$previous" ] && [ "$previous" != "$mode" ] &&
        [ "$(adb -s "$serial" get-state 2>/dev/null | tr -d '\r')" = device ]; then
         adb -s "$serial" shell svc usb setFunctions "$previous" >/dev/null 2>&1
+    fi
+    if [ "$automatic" = auto ]; then
+        logger -t modgui-smartphone 'CDC NCM not confirmed; retaining the RNDIS fallback.'
     fi
     error "Il telefono non ha confermato la modalità $mode con il driver $driver. Controlla il tethering USB sul telefono."
 )
@@ -315,7 +417,8 @@ capture_screen() {
 
 case "$CMD" in
     check_adb)
-        [ "$(uci -q get smartphone.usb.mode)" = ncm ] && ncm_switch_supported || exit 0
+        case "$(uci -q get smartphone.usb.mode)" in ''|ncm) ;; *) exit 0 ;; esac
+        ncm_switch_supported || exit 0
         switch_usb_transport ncm auto
         exit $? ;;
     usb_ncm|usb_rndis) switch_usb_transport "${CMD#usb_}"; exit $? ;;

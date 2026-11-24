@@ -28,7 +28,7 @@ const context = {
         scroll = callback;
         return 1;
     },
-    clearInterval() {},
+    clearInterval(id) { if (id === 1) scroll = undefined; },
     window: {MutationObserver: true, getComputedStyle: () => ({color: '#fff'})},
     MutationObserver: class {
         constructor(callback) { observed = callback; }
@@ -72,6 +72,7 @@ context.modgui.initResourceCharts(activeId, false);
 const points = (name, index = 0) => Array.from(charts[name].data.datasets[index].data, point => [point.x, point.y]);
 const usage = 'resource-chart', wan = 'wan-chart';
 const poll = () => {
+    if (activeId === 'graphtab' && element('chart-range').value === 'history') clock += 9000;
     assert.strictEqual(refresh(), request);
     return new URL(request.url, 'http://router').searchParams;
 };
@@ -107,6 +108,11 @@ assert.deepStrictEqual(Array.from(axis.afterBuildTicks({options: axis, maxWidth:
 assert.deepStrictEqual(Array.from(axis.afterBuildTicks({options: axis, maxWidth: 380})), [10, 13, 17, 20]);
 assert.strictEqual(element('rx-key').style.backgroundColor, '#379962');
 assert.strictEqual(charts[wan].options.legend.display, false);
+assert.strictEqual(scroll, undefined, 'history does not run the live redraw timer');
+const firstHistoryRequest = request;
+clock += 1000;
+assert.strictEqual(refresh(), undefined, 'history skips requests between router samples');
+assert.strictEqual(request, firstHistoryRequest);
 assert.strictEqual(poll().get('after'), '20');
 request.success({replace: false, samples: []});
 assert.deepStrictEqual(points(wan), [[10, null], [20, 100]]);
@@ -219,6 +225,7 @@ assert.strictEqual(liveAxis.max, 1748.75, 'a new response must not jump the scro
 assert.deepStrictEqual(points(wan), [[1750, 25], [1751, 28]]);
 range.value = 'history';
 range.change();
+assert.strictEqual(scroll, undefined, 'returning to history stops live redraws');
 assert.strictEqual(poll().get('live'), null);
 assert.strictEqual(liveAxis.min, 1000);
 console.log('Resource charts share history, render gaps, retain a bounded window and reset WAN on interface changes');

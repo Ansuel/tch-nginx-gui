@@ -200,21 +200,26 @@ and the driver matching the function exposed by the phone: commonly
 kernel and ABI from its configured feeds. Loading a driver does not enable
 tethering on the phone or configure a DHCP/WAN connection on the router.
 
-To prefer CDC NCM from the router, set `smartphone.usb.mode` to `ncm`:
+The ADB watcher also tunes receive processing on `usb0` when it finds a
+5 Gbit/s RNDIS or CDC NCM link on a dual-core router with a single xHCI interrupt
+assigned to CPU1. It directs receive processing to CPU0 and raises the kernel's
+input backlog to at least 4096. The watcher checks the connection every 30
+seconds and restores its changes when the connection no longer qualifies or
+the service stops. This tuning does not require Android debugging authorization
+and does not change the WAN MTU.
 
-```sh
-[ -f /etc/config/smartphone ] || touch /etc/config/smartphone
-uci set smartphone.usb=usb
-uci set smartphone.usb.mode=ncm
-uci commit smartphone
-```
+The watcher prefers CDC NCM by default when a single authorized ADB phone is
+already tethering over RNDIS and the router supports switching. It checks that
+the NCM driver binds and that carrier and IPv4 return if they were present
+before the switch. If that fails, it asks Android to restore RNDIS if ADB is
+still reachable. It skips further automatic attempts for that phone until the
+router reboots. You can retry manually from Smartphone details.
 
-The existing ADB watcher applies the preference when one authorized USB phone
-is available. Some Android devices expose ADB only after the first unlock
-following a reboot. The switch uses Android's current USB functions and does
-not change the phone's default USB configuration. If the switch fails, the
-watcher backs off for five minutes. Delete `smartphone.usb.mode` and commit to
-return to manual mode selection.
+The USB mode selector saves successful choices in `smartphone.usb.mode`.
+Select RNDIS to keep it on subsequent connections or CDC NCM to restore the
+default preference. Switching is disabled on legacy kernels where USB
+teardown can block the router. Some phones expose ADB only after first unlock
+following a reboot. Switching changes the phone's current USB functions.
 
 Read-only checks on 2026-10-27 found:
 
