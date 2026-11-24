@@ -200,6 +200,14 @@ and the driver matching the function exposed by the phone: commonly
 kernel and ABI from its configured feeds. Loading a driver does not enable
 tethering on the phone or configure a DHCP/WAN connection on the router.
 
+The ADB watcher also tunes receive processing on `usb0` when it finds a
+5 Gbit/s RNDIS connection on a dual-core router with a single xHCI interrupt
+assigned to CPU1. It directs receive processing to CPU0 and raises the kernel's
+input backlog to at least 4096. The watcher checks the connection every 30
+seconds and restores its changes when the connection no longer qualifies or
+the service stops. This tuning does not require Android debugging authorization
+and does not change the WAN MTU.
+
 To prefer CDC NCM from the router, set `smartphone.usb.mode` to `ncm`:
 
 ```sh

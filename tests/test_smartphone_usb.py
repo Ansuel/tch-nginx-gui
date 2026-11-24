@@ -36,6 +36,7 @@ class SmartphoneUsbTest(unittest.TestCase):
         binary = self.root / 'bin'
         binary.mkdir()
         self.mock(binary, 'sleep', 'exit 0')
+        self.mock(binary, 'flock', 'exit 0')
         self.mock(binary, 'uname', 'echo "${MOCK_KERNEL:-6.6.0}"')
         self.mock(binary, 'uci', '''
 [ "$*" = '-q get smartphone.usb.mode' ] && printf '%s\n' "${USB_MODE:-}"
@@ -68,7 +69,8 @@ exit 91
                         FIXTURE=str(self.root), FIX_DRIVER=str(self.driver))
         self.helper = self.root / 'phone_stats.sh'
         source = (APP / 'usr/bin/phone_stats.sh').read_text()
-        for prefix in ('/sys/', '/var/run/', '/etc/modgui-', '/usr/share/modgui-smartphone/'):
+        for prefix in ('/sys/class/', '/sys/devices/', '/sys/bus/', '/sys/module/',
+                       '/proc/', '/var/run/', '/etc/modgui-', '/usr/share/modgui-smartphone/'):
             source = source.replace(prefix, str(self.root) + prefix)
         self.helper.write_text(source)
 
@@ -80,6 +82,54 @@ exit 91
     def run_helper(self, action, **env):
         return subprocess.run(['sh', str(self.helper), action], capture_output=True,
                               text=True, env={**self.env, **env}, timeout=5)
+
+    def steering_fixture(self, speed='5000'):
+        iface = self.root / 'sys/class/net/usb0'
+        iface.mkdir(parents=True)
+        interface = self.driver.parents[3]
+        (iface / 'device').symlink_to(interface)
+        (interface / 'driver').symlink_to('rndis_host')
+        values = {
+            'sys/bus/usb/devices/speed': speed,
+            'sys/class/net/usb0/ifindex': '31',
+            'sys/class/net/usb0/queues/rx-0/rps_cpus': '0',
+            'sys/devices/system/cpu/online': '0-1',
+            'proc/interrupts': '106: 3 11656078 GIC 106 Edge xhci-hcd:usb1',
+            'proc/irq/106/smp_affinity': '2',
+            'proc/sys/net/core/netdev_max_backlog': '1000',
+        }
+        for path, value in values.items():
+            file = self.root / path
+            file.parent.mkdir(parents=True, exist_ok=True)
+            file.write_text(value + '\n')
+        return iface, self.root / 'proc/sys/net/core/netdev_max_backlog'
+
+    def test_steering_applies_once_and_restores_on_ncm(self):
+        iface, backlog = self.steering_fixture()
+        rps = iface / 'queues/rx-0/rps_cpus'
+        for _ in range(2):
+            self.assertEqual(self.run_helper('check_adb').returncode, 0)
+            self.assertEqual((rps.read_text(), backlog.read_text()), ('1\n', '4096\n'))
+
+        driver = iface / 'device/driver'
+        driver.unlink()
+        driver.symlink_to('cdc_ncm')
+        self.assertEqual(self.run_helper('check_adb').returncode, 0)
+        self.assertEqual((rps.read_text(), backlog.read_text()), ('0\n', '1000\n'))
+
+    def test_steering_restores_backlog_on_disconnect(self):
+        iface, backlog = self.steering_fixture()
+        self.assertEqual(self.run_helper('check_adb').returncode, 0)
+        self.assertEqual(backlog.read_text(), '4096\n')
+        shutil.rmtree(iface)
+        self.assertEqual(self.run_helper('check_adb').returncode, 0)
+        self.assertEqual(backlog.read_text(), '1000\n')
+
+    def test_steering_skips_usb2(self):
+        iface, backlog = self.steering_fixture(speed='480')
+        self.assertEqual(self.run_helper('check_adb').returncode, 0)
+        self.assertEqual((iface / 'queues/rx-0/rps_cpus').read_text(), '0\n')
+        self.assertEqual(backlog.read_text(), '1000\n')
 
     def test_unbound_rndis_control_interface_reports_expected_driver(self):
         interface = self.driver.parents[3]

@@ -3,9 +3,76 @@
 CMD=${1:-get_stats}
 USB_SWITCH_LOCK=/var/run/modgui-smartphone-usb-switch
 AUTO_NCM_LAST=/var/run/modgui-smartphone-ncm-last
+usb_steering() (
+    device=/sys/class/net/usb0
+    rps=$device/queues/rx-0/rps_cpus
+    backlog=/proc/sys/net/core/netdev_max_backlog
+    state=/var/run/modgui-smartphone-usb-steering
+    tuned_backlog=4096
+    command -v flock >/dev/null 2>&1 || exit 0
+    umask 077
+    exec 9>"$state.lock" || exit 1
+    flock 9 || exit 1
+
+    # Apply only to the tested topology: USB 3 RNDIS, two cores, and a
+    # single xHCI controller servicing its interrupt on CPU1.
+    eligible=0
+    ifindex=$(cat "$device/ifindex" 2>/dev/null)
+    if [ "${1:-}" != restore ] && [ -n "$ifindex" ] &&
+       [ "$(cat /sys/devices/system/cpu/online 2>/dev/null)" = 0-1 ]; then
+        driver=$(readlink "$device/device/driver")
+        usb_interface=$(readlink -f "$device/device")
+        irq=$(awk '/xhci[-_]hcd:usb/ { sub(/:$/, "", $1); irq=$1; count++ }
+                   END { if (count == 1) print irq }' /proc/interrupts)
+        if [ "${driver##*/}" = rndis_host ] && [ -n "$usb_interface" ] &&
+           [ "$(cat "$usb_interface/../speed" 2>/dev/null)" = 5000 ] &&
+           [ -n "$irq" ] && [ "$(cat "/proc/irq/$irq/smp_affinity" 2>/dev/null)" = 2 ]; then
+            eligible=1
+        fi
+    fi
+
+    restore() {
+        if [ "$old_index" = "$ifindex" ] && [ "$(cat "$rps" 2>/dev/null)" = 1 ]; then
+            printf '%s\n' "$old_rps" > "$rps" || return 1
+        fi
+        if [ "$old_backlog" -lt "$tuned_backlog" ] &&
+           [ "$(cat "$backlog")" = "$tuned_backlog" ]; then
+            printf '%s\n' "$old_backlog" > "$backlog" || return 1
+        fi
+        rm -f "$state"
+    }
+
+    if [ -r "$state" ]; then
+        read -r old_index old_rps old_backlog < "$state" || exit 1
+        [ "$eligible" = 1 ] && [ "$old_index" = "$ifindex" ] && exit 0
+        restore || exit 1
+    fi
+    [ "$eligible" = 1 ] && [ -w "$rps" ] && [ -w "$backlog" ] || exit 0
+    old_index=$ifindex
+    old_rps=$(cat "$rps") || exit 1
+    old_backlog=$(cat "$backlog") || exit 1
+    printf '%s %s %s\n' "$old_index" "$old_rps" "$old_backlog" > "$state" || exit 1
+    if { [ "$old_backlog" -lt "$tuned_backlog" ] && ! printf '%s\n' "$tuned_backlog" > "$backlog"; } ||
+       ! printf '1\n' > "$rps"; then
+        restore
+        exit 1
+    fi
+)
+
+if [ "$CMD" = check_adb ]; then
+    usb_steering
+fi
 if [ "$CMD" = watch_adb ]; then
     watch_child=""
-    trap '[ -z "$watch_child" ] || { kill "$watch_child" 2>/dev/null; wait "$watch_child" 2>/dev/null; }; exit 0' HUP INT TERM
+    stop_watch() {
+        if [ -n "$watch_child" ]; then
+            kill "$watch_child" 2>/dev/null
+            wait "$watch_child" 2>/dev/null
+        fi
+        usb_steering restore
+        exit 0
+    }
+    trap stop_watch HUP INT TERM
     while :; do
         "$0" check_adb >/dev/null 2>&1 &
         watch_child=$!
