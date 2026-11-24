@@ -31,6 +31,7 @@ class SmartphoneUsbTest(unittest.TestCase):
         for driver in ('cdc_ncm', 'rndis_host'):
             (self.root / 'sys/bus/usb/drivers' / driver).mkdir(parents=True)
         (self.root / 'var/run').mkdir(parents=True)
+        (self.root / 'etc/config').mkdir(parents=True)
         (self.root / 'mode').write_text('rndis\n')
 
         binary = self.root / 'bin'
@@ -39,7 +40,17 @@ class SmartphoneUsbTest(unittest.TestCase):
         self.mock(binary, 'flock', 'exit 0')
         self.mock(binary, 'uname', 'echo "${MOCK_KERNEL:-6.6.0}"')
         self.mock(binary, 'uci', '''
-[ "$*" = '-q get smartphone.usb.mode' ] && printf '%s\n' "${USB_MODE:-}"
+case "$*" in
+    '-q get smartphone.usb.mode')
+        if [ -n "${USB_MODE:-}" ]; then echo "$USB_MODE"; else cat "$FIXTURE/usb-preference" 2>/dev/null; fi ;;
+    'set smartphone.usb=usb'|'commit smartphone') exit 0 ;;
+    'set smartphone.usb.mode='*) echo "${2#*=}" > "$FIXTURE/usb-preference" ;;
+esac
+''')
+        self.mock(binary, 'ip', '''
+if [ "$1" = -o ] && [ "${NCM_NO_ADDRESS:-0}" = 1 ] && [ "$(cat "$FIXTURE/mode")" = rndis ]; then
+    echo '3: usb0 inet 192.168.42.2/24 scope global usb0'
+fi
 ''')
         self.mock(binary, 'timeout', '[ "$1" != --help ] || exit 0\nshift\nexec "$@"')
         self.mock(binary, 'adb', '''
@@ -70,7 +81,8 @@ exit 91
         self.helper = self.root / 'phone_stats.sh'
         source = (APP / 'usr/bin/phone_stats.sh').read_text()
         for prefix in ('/sys/class/', '/sys/devices/', '/sys/bus/', '/sys/module/',
-                       '/proc/', '/var/run/', '/etc/modgui-', '/usr/share/modgui-smartphone/'):
+                       '/proc/', '/var/run/', '/etc/config/', '/etc/modgui-',
+                       '/usr/share/modgui-smartphone/'):
             source = source.replace(prefix, str(self.root) + prefix)
         self.helper.write_text(source)
 
@@ -104,16 +116,20 @@ exit 91
             file.write_text(value + '\n')
         return iface, self.root / 'proc/sys/net/core/netdev_max_backlog'
 
-    def test_steering_applies_once_and_restores_on_ncm(self):
+    def test_steering_applies_to_both_transports_and_restores_on_other_driver(self):
         iface, backlog = self.steering_fixture()
         rps = iface / 'queues/rx-0/rps_cpus'
         for _ in range(2):
-            self.assertEqual(self.run_helper('check_adb').returncode, 0)
+            self.assertEqual(self.run_helper('check_adb', USB_MODE='rndis').returncode, 0)
             self.assertEqual((rps.read_text(), backlog.read_text()), ('1\n', '4096\n'))
 
         driver = iface / 'device/driver'
         driver.unlink()
         driver.symlink_to('cdc_ncm')
+        self.assertEqual(self.run_helper('check_adb').returncode, 0)
+        self.assertEqual((rps.read_text(), backlog.read_text()), ('1\n', '4096\n'))
+        driver.unlink()
+        driver.symlink_to('cdc_ether')
         self.assertEqual(self.run_helper('check_adb').returncode, 0)
         self.assertEqual((rps.read_text(), backlog.read_text()), ('0\n', '1000\n'))
 
@@ -172,19 +188,36 @@ exit 91
         self.assertEqual((self.root / 'mode').read_text().strip(), 'rndis')
         self.assertFalse((self.root / 'var/run/modgui-smartphone-usb-switch').exists())
 
-    def test_adb_watch_applies_ncm_only_when_configured(self):
-        self.assertEqual(self.run_helper('check_adb').returncode, 0)
-        self.assertFalse((self.root / 'calls').exists())
+    def test_adb_watch_prefers_ncm_by_default(self):
         for delayed_adb in ('1', '0'):
-            result = self.run_helper('check_adb', USB_MODE='ncm', ADB_RECONNECT_DELAY=delayed_adb)
+            result = self.run_helper('check_adb', ADB_RECONNECT_DELAY=delayed_adb)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(self.driver.readlink(), Path('cdc_ncm'))
         self.assertEqual(len((self.root / 'calls').read_text().splitlines()), 1)
-        self.assertFalse((self.root / 'var/run/modgui-smartphone-ncm-last').exists())
+        self.assertFalse(list((self.root / 'var/run').glob('modgui-smartphone-ncm-failed.*')))
 
-    def test_failed_automatic_switch_restores_rndis_and_backs_off(self):
+    def test_manual_rndis_choice_persists_and_skips_automatic_switch(self):
+        result = self.run_helper('usb_rndis')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual((self.root / 'usb-preference').read_text().strip(), 'rndis')
+        self.assertEqual(self.run_helper('check_adb').returncode, 0)
+        self.assertFalse((self.root / 'calls').exists())
+
+    def test_adb_watch_leaves_debugging_only_phone_alone(self):
+        self.driver.unlink()
+        (self.root / 'mode').write_text('mtp,adb\n')
+        self.assertEqual(self.run_helper('check_adb').returncode, 0)
+        self.assertFalse((self.root / 'calls').exists())
+
+    def test_failed_automatic_switch_restores_rndis_and_skips_retries(self):
         self.assertNotEqual(self.run_helper('check_adb', USB_MODE='ncm', NO_BIND='1').returncode, 0)
         self.assertEqual(self.run_helper('check_adb', USB_MODE='ncm').returncode, 0)
+        self.assertEqual(self.driver.readlink(), Path('rndis_host'))
+        self.assertEqual(len((self.root / 'calls').read_text().splitlines()), 2)
+
+    def test_automatic_switch_rolls_back_if_address_does_not_return(self):
+        result = self.run_helper('check_adb', NCM_NO_ADDRESS='1')
+        self.assertNotEqual(result.returncode, 0)
         self.assertEqual(self.driver.readlink(), Path('rndis_host'))
         self.assertEqual(len((self.root / 'calls').read_text().splitlines()), 2)
 
