@@ -93,46 +93,6 @@ assert(mapping.objectType.name=='rpc.system.easymesh.')
 assert(not mapping.set.initialize(nil,nil,'0') and not initialized)
 assert(not mapping.set.initialize(nil,nil,'arbitrary shell command') and not initialized)
 assert(mapping.set.initialize(nil,nil,'1') and initialized)
-
-local mode, authorized = '1', true
-local sta = 'd6:35:1d:88:78:6e'
-local repeater = 'd6:35:1d:88:78:66'
-local localAgent = 'a2:b5:3c:8c:46:6a'
-local controller = 'a2:b5:3c:8c:e6:69'
-local agents = {[localAgent]={}, [controller]={}}
-local peers = {[sta]={type='apsta',ifname='wl1_2'}}
-local uci = require('uci')
-uci.cursor = function() return {
- get=function(_, pkg, section, opt)
-  if pkg=='wireless' then return ({backhaul='1',mode='ap',state='1'})[opt] end
-  if opt=='macaddress' then return section=='agent' and localAgent or controller:upper() end
-  if opt=='enabled' then return mode end
-  if opt=='backhaul_list' then return 'wl1_2' end
- end,
- foreach=function(_, _, _, cb) cb({['.name']='ap4',iface='wl1_2',state='1'}) end,
-} end
-mapper=function() return {connect=function() return {call=function(_, name, _, args)
- if name=='multiap.controller.agent_info' then return agents end
- if name=='wireless.backbone' then return peers end
- assert(name=='wireless.accesspoint.station' and args.name=='ap4' and args.macaddr==sta)
- return {ap4={[sta]={state=authorized and 'Authenticated Associated Authorized' or 'Associated'}}}
-end} end} end
-local count=mapping.get.connected_extenders
-assert(count()=='1')
-agents[repeater]={local_interfaces={sta:upper()}}
-assert(count()=='1')
-agents['02:11:22:33:44:55']={}
-assert(count()=='2')
-agents[repeater]=nil
-authorized=false
-assert(count()=='1')
-authorized=true
-peers[sta].ifname='wl0'
-assert(count()=='1')
-mode='0'
-assert(count()=='')
-mode='1'; agents=nil
-assert(count()=='')
 '''.replace('MODULE', repr(str(MODULE))).replace(
                     'MAPPING', repr(str(ROOT / 'decompressed/gui_file/usr/share/transformer/mappings/rpc/system.easymesh.map')))
                 result = subprocess.run([runtime, '-'], input=script, text=True, capture_output=True)

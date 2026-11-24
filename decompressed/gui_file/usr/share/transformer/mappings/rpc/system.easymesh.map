@@ -1,84 +1,16 @@
--- Native EasyMesh initialization and controller status.
+-- Narrow opt-in bootstrap: fixed native files, no shell or user-provided paths.
 local setup = require("transformer.shared.easymesh_setup")
-local conn
-
-local function normalize_mac(value)
-  if type(value) == "string" and value:match("^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$") then
-    return value:lower()
-  end
-end
-
-local function connected_extenders()
-  local cursor = require("uci").cursor()
-  if cursor:get("multiap", "controller", "enabled") ~= "1" then return "" end
-  conn = conn or mapper("ubus").connect()
-  local agents = conn:call("multiap.controller.agent_info", "get", {})
-  if type(agents) ~= "table" then return "" end
-
-  -- Match the stock MultiAP inventory, then add wireless backbone peers that
-  -- have lost their IEEE 1905 entry. The station MAC can differ from the AL MAC.
-  local local_agent = normalize_mac(cursor:get("multiap", "agent", "macaddress"))
-  local controller = normalize_mac(cursor:get("multiap", "controller", "macaddress"))
-  local seen, count = {}, 0
-  for address, agent in pairs(agents) do
-    local mac = normalize_mac(address)
-    if mac and mac ~= local_agent and mac ~= controller and type(agent) == "table" then
-      count = count + 1
-      seen[mac] = true
-      for _, alias in ipairs(agent.local_interfaces or {}) do
-        local interface_mac = normalize_mac(alias)
-        if interface_mac then seen[interface_mac] = true end
-      end
-    end
-  end
-
-  local backhaul = {}
-  for name in (cursor:get("multiap", "agent", "backhaul_list") or ""):gmatch("[^,%s]+") do
-    if cursor:get("wireless", name, "backhaul") == "1" and
-      cursor:get("wireless", name, "mode") == "ap" and cursor:get("wireless", name, "state") == "1" then
-      backhaul[name] = true
-    end
-  end
-  if not next(backhaul) then return tostring(count) end
-
-  local aps = {}
-  cursor:foreach("wireless", "wifi-ap", function(ap)
-    if ap.state == "1" and backhaul[ap.iface] then aps[ap.iface] = ap[".name"] end
-  end)
-  local backbone = conn:call("wireless.backbone", "get", {}) or {}
-  for address, peer in pairs(backbone) do
-    local mac = normalize_mac(address)
-    local ap = type(peer) == "table" and peer.type == "apsta" and aps[peer.ifname]
-    if mac and mac ~= local_agent and mac ~= controller and not seen[mac] and ap then
-      local result = conn:call("wireless.accesspoint.station", "get", {name=ap, macaddr=mac})
-      local station = result and result[ap] and result[ap][mac]
-      local state = station and station.state
-      if type(state) == "string" and state:match("%f[%a]Associated%f[%A]") and
-        state:match("%f[%a]Authorized%f[%A]") then
-        seen[mac] = true
-        count = count + 1
-      end
-    end
-  end
-  return tostring(count)
-end
-
 local mapping = {
   objectType = {
     name = "rpc.system.easymesh.", access = "readOnly", minEntries = 1, maxEntries = 1,
     parameters = {
       initializable = { access = "readOnly", type = "boolean" },
       initialize = { access = "readWrite", type = "boolean" },
-      connected_extenders = { access = "readOnly", type = "string" },
     },
   },
   get = {
     initializable = function() return setup.can_initialize() and "1" or "0" end,
     initialize = "0",
-    connected_extenders = function()
-      local ok, count = pcall(connected_extenders)
-      return ok and count or ""
-    end,
   },
   set = {
     initialize = function(_, _, value)

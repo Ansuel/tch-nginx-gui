@@ -20,29 +20,23 @@ class EasyMeshCard(unittest.TestCase):
     def test_card_header_targets_configuration_and_respects_access(self):
         self.run_lua(r'''
 local agent,controller,newLayout,configAccess,viewAccess,defaultUser,bridged
-local nativeCount, connectedCount
 local header, output
 T=function(s) return s end
 N=function(one,many,n) local s=n==1 and one or many;return (s:gsub('%%[12]%$','%%')) end
 gettext={textdomain=function() end}
 package.preload.uci=function() return {} end
-package.preload.datamodel=function() return {get=function(path)
- assert(path=='rpc.system.easymesh.connected_extenders')
- return connectedCount and {{value=connectedCount}} or nil
-end} end
+package.preload.datamodel=function() return {} end
 package.preload.variant_helper=function() return {} end
 package.preload['web.post_helper']=function() return {getVariant=function() return {} end} end
 package.preload.easymesh_helper=function() return {is_supported=function() return true end,
  use_new_layout=function() return newLayout end, requires_role_selection=function() return bridged end} end
 package.preload['web.content_helper']=function() return {getExactContent=function(c)
- c.agentState,c.controllerState,c.count=agent,controller,nativeCount or '0';return true
+ c.agentState,c.controllerState,c.count=agent,controller,'0';return true
 end} end
 package.preload['web.ui_helper']=function() return {
  createCardHeader=function(_,path,name,value) header={path=path,name=name,value=value};return '' end,
  createSimpleLight=function() return '' end} end
-ngx={print=function(...)
- for i=1,select('#',...) do output=output..tostring(select(i,...)) end
-end,ctx={session={
+ngx={print=function(s) output=output..tostring(s) end,ctx={session={
  hasAccess=function(_,path) if path:find('topology',1,true) then return viewAccess end;return configAccess end,
  isdefaultuser=function() return defaultUser end}}}
 ''' + f'local card={str(GUI / "www/cards/020_wifiExtender.lp")!r}\n' + r'''
@@ -66,12 +60,6 @@ header=nil;output='';assert(loadfile(card))()
 assert(header.path=='/modals/easymesh-topology-modal-newEM.lp' and header.name==nil)
 viewAccess=false;header=nil;output='';assert(loadfile(card))();assert(header==nil)
 defaultUser=true;header=nil;output='';assert(loadfile(card))();assert(header.path==nil and header.name==nil)
-configAccess=true;viewAccess=true;controller='1';connectedCount='1'
-output='';assert(loadfile(card))();assert(output:find('>1 Extender</strong> connected',1,true))
-connectedCount='';nativeCount='2'
-output='';assert(loadfile(card))();assert(output:find('>2 Extenders</strong> connected',1,true))
-controller='0';connectedCount='1'
-output='';assert(loadfile(card))();assert(output:find('>2 Extenders</strong> connected',1,true))
 ''')
 
     def test_card_save_changes_only_service_flags(self):

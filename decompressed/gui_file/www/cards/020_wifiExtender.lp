@@ -46,11 +46,6 @@ local getState = content.agentState == "1" or content.controllerState == "1"
 local easyMeshState = getState and T"Enabled" or T"Disabled"
 local statusLed = getState and "light green" or "light off"
 local nExt = tonumber(content["count"]) or 0
-if content.controllerState == "1" and proxy.get then
-  local success, rows = pcall(proxy.get, "rpc.system.easymesh.connected_extenders")
-  local connected = success and rows and rows[1] and tonumber(rows[1].value)
-  if connected then nExt = connected end
-end
 local modalPath = nil
 local switchName = nil
 local modal_link = ""
