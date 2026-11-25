@@ -44,6 +44,7 @@ var modgui = modgui || {};
 			}
 			// Start polling only after the server has accepted the new command
 			// and cleared the shared result of the previous command.
+            if (window.tch && typeof tch.markChanged === "function") tch.markChanged(true);
 			clearKoInterval();
 			$(window).one('shown.bs.modal', function() {
 				$(".modal-backdrop").unbind();
