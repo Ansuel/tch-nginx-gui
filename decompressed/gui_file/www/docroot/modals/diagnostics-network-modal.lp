@@ -93,7 +93,7 @@ local portAttr = {
 }
   ngx.print('\
 ');  ngx.print(ui_helper.createHeader(T"Diagnostics", false, false, 2) ); ngx.print('\
-<div class="modal-body update">\
+<div class="modal-body">\
 ');  
   local lp = require("web.lp")
   lp.setpath("/www/snippets/")
@@ -239,97 +239,134 @@ end
   </fieldset>\
   </fieldset>\
 </div>\
+<style>\
+.modal-body > .alert-error, .modal-body > .alert-danger { display: none !important; }\
+</style>\
 <script>\
 (function() {\
-  var st = window._diagNetScroll || {\
-    body: 0,\
-    modal: 0,\
-    parent: 0,\
-    win: 0,\
-    refreshing: false,\
-    timers: []\
-  };\
-  window._diagNetScroll = st;\
-\
-  var $tab = $("#diagnostics-network-tab");\
-  var $modalBody = $tab.closest(".modal-body");\
-  var $modalBox = $tab.closest(".modal");\
-  var $scrollParent = $tab.parents().filter(function() {\
-    var ov = $(this).css("overflow-y");\
-    return (ov === "auto" || ov === "scroll") && this !== $modalBody[0] && this !== $modalBox[0];\
-  }).first();\
-\
-  function saveScroll() {\
-    if (st.refreshing) return;\
-    if ($modalBody.length) st.body = $modalBody.scrollTop();\
-    if ($modalBox.length) st.modal = $modalBox.scrollTop();\
-    if ($scrollParent.length) st.parent = $scrollParent.scrollTop();\
-    st.win = $(window).scrollTop() || document.documentElement.scrollTop || document.body.scrollTop || 0;\
+  if (window.jQuery && !window._diagNetPrefilter) {\
+    window._diagNetPrefilter = true;\
+    jQuery.ajaxPrefilter(function(options) {\
+      if (options.url && options.url.indexOf("diagnostics-network-modal.lp") !== -1) {\
+        var d = options.data;\
+        var isReset = false;\
+        if (typeof d === "string") {\
+          isReset = d.indexOf("stats_reset") !== -1 || d.indexOf("action=") !== -1;\
+        } else if (d && typeof d === "object") {\
+          isReset = !!(d.stats_reset || d.action);\
+        }\
+        if (!isReset && document.getElementById("diagnostics-network-tab")) {\
+          options._skipDiagRefresh = true;\
+          options.global = false;\
+        }\
+      }\
+    });\
+    jQuery.ajaxTransport("* text html json", function(options) {\
+      if (options._skipDiagRefresh) {\
+        return {\
+          send: function() {},\
+          abort: function() {}\
+        };\
+      }\
+    });\
   }\
 \
-  function restoreScroll() {\
-    if ($modalBody.length && $modalBody.scrollTop() !== st.body) {\
-      $modalBody.scrollTop(st.body);\
-    }\
-    if ($modalBox.length && $modalBox.scrollTop() !== st.modal) {\
-      $modalBox.scrollTop(st.modal);\
-    }\
-    if ($scrollParent.length && $scrollParent.scrollTop() !== st.parent) {\
-      $scrollParent.scrollTop(st.parent);\
-    }\
-    var curWin = $(window).scrollTop() || document.documentElement.scrollTop || document.body.scrollTop || 0;\
-    if (curWin !== st.win) {\
-      $(window).scrollTop(st.win);\
-      document.documentElement.scrollTop = st.win;\
-      document.body.scrollTop = st.win;\
+  var tab = document.getElementById("diagnostics-network-tab");\
+  if (!tab) return;\
+\
+  var modalBody = tab.closest(".modal-body");\
+  if (modalBody) modalBody.classList.remove("update");\
+\
+  if (window._diagNetPoll) {\
+    clearInterval(window._diagNetPoll);\
+    window._diagNetPoll = null;\
+  }\
+\
+  var inFlight = false;\
+  var lastScrollInput = 0;\
+  var pendingDoc = null;\
+\
+  function onUserScroll() {\
+    lastScrollInput = Date.now();\
+  }\
+  window.addEventListener("wheel", onUserScroll, { passive: true });\
+  window.addEventListener("touchmove", onUserScroll, { passive: true });\
+\
+  function setTextFast(el, val) {\
+    if (!el || el.textContent === val) return;\
+    if (el.firstChild && el.firstChild.nodeType === 3 && el.childNodes.length === 1) {\
+      el.firstChild.nodeValue = val;\
+    } else {\
+      el.textContent = val;\
     }\
   }\
 \
-  function scheduleRestore() {\
-    for (var i = 0; i < st.timers.length; i++) {\
-      clearTimeout(st.timers[i]);\
-    }\
-    st.timers = [];\
+  function applyUpdate(doc) {\
+    var curTab = document.getElementById("diagnostics-network-tab");\
+    var newTab = doc.getElementById("diagnostics-network-tab");\
+    if (!curTab || !newTab) return;\
 \
-    restoreScroll();\
-    if (window.requestAnimationFrame) {\
-      requestAnimationFrame(restoreScroll);\
+    var curLegends = curTab.querySelectorAll(".socket-legend");\
+    var newLegends = newTab.querySelectorAll(".socket-legend");\
+    var lLen = Math.min(curLegends.length, newLegends.length);\
+    for (var i = 0; i < lLen; i++) {\
+      setTextFast(curLegends[i], newLegends[i].textContent);\
     }\
-    st.timers.push(setTimeout(restoreScroll, 0));\
-    st.timers.push(setTimeout(restoreScroll, 50));\
-    st.timers.push(setTimeout(function() {\
-      restoreScroll();\
-      st.refreshing = false;\
-    }, 150));\
+\
+    var curTable = document.getElementById("networkstats");\
+    var newTable = doc.getElementById("networkstats");\
+    if (curTable && newTable) {\
+      var curRows = curTable.rows;\
+      var newRows = newTable.rows;\
+      var rLen = Math.min(curRows.length, newRows.length);\
+      for (var r = 1; r < rLen; r++) {\
+        var curCells = curRows[r].cells;\
+        var newCells = newRows[r].cells;\
+        for (var c = 1; c < curCells.length - 1; c++) {\
+          if (newCells[c]) {\
+            setTextFast(curCells[c], newCells[c].textContent);\
+          }\
+        }\
+      }\
+    }\
   }\
 \
-  if (st.refreshing) {\
-    scheduleRestore();\
+  function flushPending() {\
+    if (!pendingDoc) return;\
+    if (Date.now() - lastScrollInput < 350) {\
+      setTimeout(flushPending, 150);\
+      return;\
+    }\
+    var doc = pendingDoc;\
+    pendingDoc = null;\
+    applyUpdate(doc);\
   }\
 \
-  $modalBody.off("scroll.diagKeep").on("scroll.diagKeep", saveScroll);\
-  $modalBox.off("scroll.diagKeep").on("scroll.diagKeep", saveScroll);\
-  if ($scrollParent.length) {\
-    $scrollParent.off("scroll.diagKeep").on("scroll.diagKeep", saveScroll);\
-  }\
-  $(window).off("scroll.diagKeep").on("scroll.diagKeep", saveScroll);\
-\
-  $modalBox.off("hide.diagKeep hidden.diagKeep").on("hide.diagKeep hidden.diagKeep", function() {\
-    window._diagNetScroll = null;\
-  });\
-\
-  $(document).off("ajaxSend.diagKeep").on("ajaxSend.diagKeep", function(e, xhr, settings) {\
-    if (settings && settings.url && settings.url.indexOf("diagnostics-network-modal") !== -1) {\
-      saveScroll();\
-      st.refreshing = true;\
+  window._diagNetPoll = setInterval(function() {\
+    var curTab = document.getElementById("diagnostics-network-tab");\
+    if (!curTab || !document.body.contains(curTab)) {\
+      clearInterval(window._diagNetPoll);\
+      window._diagNetPoll = null;\
+      window.removeEventListener("wheel", onUserScroll);\
+      window.removeEventListener("touchmove", onUserScroll);\
+      return;\
     }\
-  });\
+    if (inFlight || document.hidden) return;\
 \
-  $(document).off("ajaxComplete.diagKeep").on("ajaxComplete.diagKeep", function(e, xhr, settings) {\
-    if (settings && settings.url && settings.url.indexOf("diagnostics-network-modal") !== -1) {\
-      scheduleRestore();\
-    }\
-  });\
+    inFlight = true;\
+    var xhr = new XMLHttpRequest();\
+    xhr.open("GET", "modals/diagnostics-network-modal.lp", true);\
+    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");\
+    xhr.onreadystatechange = function() {\
+      if (xhr.readyState !== 4) return;\
+      inFlight = false;\
+      if (xhr.status === 200 && xhr.responseText) {\
+        pendingDoc = new DOMParser().parseFromString(xhr.responseText, "text/html");\
+        flushPending();\
+      }\
+    };\
+    xhr.send();\
+  }, 3000);\
 })();\
 </script>\
 ');  ngx.print(ui_helper.createFooter() ); ngx.print('\
