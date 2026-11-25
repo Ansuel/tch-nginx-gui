@@ -22,21 +22,52 @@ for (const action of ['TABLE-ADD', 'TABLE-DELETE', 'TABLE-MODIFY', 'TABLE-EDIT',
  }
 }
 // An asynchronous refresh must retain its original target, even if another card opens.
-let handler, complete, replaced = [], requests = 0, modalToCard;
+let handler, complete, failure, replaced = [], requests = 0, reloads = 0, inDom = true, forceReload = false;
 const originalParent = {replaceWith: data => replaced.push(['original', data])};
-let lastCardClicked = {find: () => ({data: () => '/modals/wanservices-modal.lp'}), parent: () => originalParent};
+const cardElement = {};
+let lastCardClicked = {0: cardElement, find: () => ({data: () => '/modals/wanservices-modal.lp'}), parent: () => originalParent};
 $ = selector => selector === document ? {on: (event, target, callback) => {handler = callback;}} : {hasClass: () => true};
-$.get = (url, callback) => {requests++; complete = callback;};
-const document = {}, window = {location: {reload: () => {throw Error('unexpected reload');}}};
+$.get = (url, callback) => {requests++; complete = callback; return {fail: callback => {failure = callback;}};};
+$.contains = (root, element) => inDom && element === cardElement;
+const document = {body: {}}, window = {location: {reload: () => {reloads++;}}};
 const start = source.indexOf('\t$(document).on("hidden", ".modal"');
 eval(source.slice(start, source.indexOf('\n\tvar modalOpening', start)));
 count = 1;
 handler({target: {}});
 assert.strictEqual(count, 0);
+assert.strictEqual(requests, 1);
+assert.strictEqual(reloads, 0);
 lastCardClicked = {parent: () => ({replaceWith: () => {throw Error('wrong card');}})};
 complete('updated');
 assert.deepStrictEqual(replaced, [['original', 'updated']]);
+// Without a pending change nothing happens.
 lastCardClicked = null;
 handler({target: {}});
 assert.strictEqual(requests, 1);
-console.log('Card refresh: 20 table cases and asynchronous target/reset checks passed');
+assert.strictEqual(reloads, 0);
+// A failed card request falls back to a full reload.
+lastCardClicked = {0: cardElement, find: () => ({data: () => '/modals/wanservices-modal.lp'}), parent: () => originalParent};
+count = 1;
+handler({target: {}});
+assert.strictEqual(requests, 2);
+failure();
+assert.strictEqual(reloads, 1);
+// A card that is no longer in the page cannot be refreshed, so reload instead.
+inDom = false;
+count = 1;
+handler({target: {}});
+assert.strictEqual(requests, 2);
+assert.strictEqual(reloads, 2);
+// A forced reload skips the single-card refresh and does not leak into the next close.
+inDom = true;
+count = 1;
+forceReload = true;
+handler({target: {}});
+assert.strictEqual(requests, 2);
+assert.strictEqual(reloads, 3);
+assert.strictEqual(forceReload, false);
+count = 1;
+handler({target: {}});
+assert.strictEqual(requests, 3);
+assert.strictEqual(reloads, 3);
+console.log('Card refresh: 20 table cases and asynchronous target/reset/fallback checks passed');
