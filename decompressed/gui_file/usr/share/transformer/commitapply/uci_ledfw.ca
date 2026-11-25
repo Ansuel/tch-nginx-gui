@@ -1,2 +1,1 @@
-^ledfw /usr/share/transformer/scripts/check_ecoled.sh
-^ledfw /usr/share/transformer/scripts/restart_leds.sh
+^ledfw /bin/sh /usr/share/transformer/scripts/apply_ledfw.sh

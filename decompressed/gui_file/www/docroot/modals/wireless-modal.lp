@@ -159,6 +159,19 @@ for i,v in ipairs(apNames) do
   ap_paths[i] = v.path.."ssid"
 end
 
+-- The EasyMesh backhaul AP (for example BH-xxxx) is managed by the controller
+-- and is never edited here, so keep it out of the AP list.
+local function isBackhaulOnlyIface(iface)
+    if type(iface) ~= "string" or not match(iface, "^[%w_%-]+$") then return false end
+    local base = "uci.wireless.wifi-iface.@" .. iface .. "."
+    local backhaul = proxy.get(base .. "backhaul")
+    if not backhaul or not backhaul[1] or backhaul[1].value ~= "1" then return false end
+    local fronthaul = proxy.get(base .. "fronthaul")
+    return not (fronthaul and fronthaul[1] and fronthaul[1].value == "1")
+end
+
+if isBackhaulOnlyIface(getiface) then getiface = nil end
+
 local wl_list = proxy.get(unpack(ap_paths))
 if not wl_list then
   ngx.log(ngx.ERR, "Wireless SSID data unavailable")
@@ -169,7 +182,7 @@ local cur_ssid
 for i,v in ipairs(wl_list) do
   local path = "rpc.wireless.ssid.@" .. v.value
   local values = proxy.get(path .. ".radio" , path .. ".ssid",path .. ".stb", path .. ".ap_display_name")
-  if values and values[1] and values[2] and values[3] and values[4] then
+  if values and values[1] and values[2] and values[3] and values[4] and not isBackhaulOnlyIface(v.value) then
     wls[#wls+1] = {
             radio = values[1].value,
             ssid = values[2].value,
@@ -657,6 +670,89 @@ if multiap_credential == false then
     return ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
 end
 
+-- EasyMesh keeps 2.4 and 5 GHz on one credential while "Band Steering" is on.
+-- Turning it off gives the 5 GHz radio its own credential, the same change the
+-- firmware band steering helper makes, so each band can have its own SSID.
+local function getMultiapValue(path)
+    local result = proxy.get(path)
+    return result and result[1] and untaint(result[1].value) or ""
+end
+
+local function getMultiapMainPair()
+    local path = "uci.web.network.@main."
+    local rawInterfaces, rawCredentials = proxy.get(path .. "intf."), proxy.get(path .. "cred.")
+    if not rawInterfaces or not rawCredentials then return end
+    local interfaces = content_helper.convertResultToObject(path .. "intf.@.", rawInterfaces)
+    local credentials = content_helper.convertResultToObject(path .. "cred.@.", rawCredentials)
+    local pair = {}
+    for _, credential in ipairs(credentials) do
+        for _, iface in ipairs(interfaces) do
+            if iface.paramindex == credential.paramindex then
+                pair[untaint(iface.value)] = untaint(credential.value)
+            end
+        end
+    end
+    if pair.wl0 and pair.wl1 and pair.wl0 ~= pair.wl1 then return pair.wl0, pair.wl1 end
+end
+
+-- true: one shared credential, false: separate credentials, nil: not available
+local function isMultiapShared()
+    local primary, secondary = getMultiapMainPair()
+    if not primary then return nil end
+    local base = "uci.multiap.controller_credentials.@"
+    if getMultiapValue(base .. primary .. ".backhaul") == "1" or
+       getMultiapValue(base .. secondary .. ".backhaul") == "1" then return nil end
+    local bands = getMultiapValue(base .. primary .. ".frequency_bands")
+    if match(bands, "radio_2G") and match(bands, "radio_5G") then return true end
+    if match(bands, "radio_2G") then return false end
+    return nil
+end
+
+local function setMultiapBandSplit(split, ssid)
+    local primary, secondary = getMultiapMainPair()
+    if not primary then return nil, T"The 2.4 GHz and 5 GHz EasyMesh credentials were not found." end
+    local base = "uci.multiap.controller_credentials.@"
+    local p, s = base .. primary .. ".", base .. secondary .. "."
+    if getMultiapValue(p .. "backhaul") == "1" or getMultiapValue(s .. "backhaul") == "1" then
+        return nil, T"The backhaul credential cannot be modified."
+    end
+    local values = {}
+    local function add(path, value) values[#values + 1] = { path, value } end
+    if split then
+        local suffix = getMultiapValue("uci.env.var.commonssid_suffix")
+        if suffix == "" then suffix = "-5G" end
+        local bands = getMultiapValue(s .. "frequency_bands")
+        if not match(bands, "radio_5G") then bands = "radio_5Gu,radio_5Gl" end
+        local name = untaint(ssid or "")
+        if name == "" then name = getMultiapValue(p .. "ssid") end
+        add(p .. "frequency_bands", "radio_2G")
+        add(s .. "frequency_bands", bands)
+        add(s .. "ssid", name .. suffix)
+        add(s .. "security_mode", getMultiapValue(p .. "security_mode"))
+        add(s .. "wpa_psk_key", getMultiapValue(p .. "wpa_psk_key"))
+        add(s .. "fronthaul", "1")
+        add(s .. "backhaul", "0")
+        add(s .. "state", "1")
+        add(s .. "operational_state", "1")
+        add(s .. "public_state", "1")
+        -- the legacy (non EasyMesh) band steering must not stay active either
+        add("uci.wireless.wifi-ap.@ap0.bandsteer_id", "off")
+        add("uci.wireless.wifi-ap.@ap1.bandsteer_id", "off")
+    else
+        add(p .. "frequency_bands", "radio_2G,radio_5Gu,radio_5Gl")
+        add(s .. "state", "0")
+    end
+    for _, item in ipairs(values) do
+        if item[2] ~= "" or match(item[1], "%.state$") then
+            local ok, err = proxy.set(item[1], item[2])
+            if not ok then return nil, err or T"Unable to update the EasyMesh credentials." end
+        end
+    end
+    proxy.apply()
+    return true
+end
+-- End multiap band split helpers
+
 local function getValidateBandSteerPeerFields(value, object, key)
     local state = object.ap_enabled
     local bandsteer_enabled
@@ -744,6 +840,10 @@ local allowed_channels = { {"auto", T"Auto"} }
 for i in string.gmatch(param["allowed_channels"], "%S+") do
     allowed_channels[#allowed_channels + 1] = {i, i}
 end
+
+-- Bypassing the regulatory power rule puts the DGA4331 in a boot loop
+local friendlyName = proxy.get("uci.env.var.prod_friendly_name")
+local regBypassSupported = not (friendlyName and friendlyName[1] and match(friendlyName[1].value or "", "4331"))
 
 local supported_countries = {}
 for i in string.gmatch(param["supported_countries"], "%S+") do
@@ -836,7 +936,7 @@ local function getParamsAndValidation()
       mapParams.sgi = pathradio .. "sgi"
       mapParams.cdd = pathradio .. "cdd"
       mapParams.stbc = pathradio .. "stbc"
-	  mapParams.tx_power_overrule_reg = pathradio .. "tx_power_overrule_reg"
+	  if regBypassSupported then mapParams.tx_power_overrule_reg = pathradio .. "tx_power_overrule_reg" end
     end
   end
 
@@ -975,6 +1075,18 @@ if ngx.req.get_method() == "POST" then
     bandsteerhelpmsg[1] = tmpbandsteerhelpmsg
   end
 
+  if content["action"] == "SAVE" and multiap_credential and curiface == "wl0" then
+    local requested = ngx.req.get_post_args().band_steer_enabled
+    local shared = isMultiapShared()
+    if (requested == "0" or requested == "1") and shared ~= nil and (requested == "1") ~= shared then
+        local ok, err = setMultiapBandSplit(requested == "0", content["ssid"])
+        if not ok then
+            bandsteerhelpmsg = bandsteerhelpmsg or {}
+            bandsteerhelpmsg[#bandsteerhelpmsg + 1] = { content = err, level = "error" }
+        end
+    end
+  end
+
   if content["action"] == "SAVE" and not multiap_credential then
     local retval = false
     local postargs = ngx.req.get_post_args()
@@ -1099,6 +1211,14 @@ if "" ~= bandsteerpathap then
        }
     end
     content_helper.getExactContent(content_rssi)
+end
+
+if multiap_credential and (curiface == "wl0" or curiface == "wl1") then
+    local shared = isMultiapShared()
+    if shared ~= nil then
+        band_steer_supported = 1
+        band_steer_enabled = shared and "1" or "0"
+    end
 end
 
 ngx.print(ui_helper.createHeader(T"Wireless", true, false))   ngx.print('\
@@ -1331,7 +1451,9 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
             end
             html[#html + 1] = '</div>'
 			if isExtRemman ~= "1" and isIntRemman ~= "1" then
-				html[#html + 1] = ui_helper.createSwitch(T"Bypass Reg Domain Power Rule", "tx_power_overrule_reg", content["tx_power_overrule_reg"], advanced)
+				if regBypassSupported then
+					html[#html + 1] = ui_helper.createSwitch(T"Bypass Reg Domain Power Rule", "tx_power_overrule_reg", content["tx_power_overrule_reg"], advanced)
+				end
                 if canAdjustTxPower then
                     html[#html + 1] = ui_helper.createSliderSelect(T"Output Power", "tx_power_adjust", wifipower, content["tx_power_adjust"], advanced)
                 end
@@ -1553,14 +1675,20 @@ end
             html[#html + 1] = ui_helper.createAlertBlock(T"Detecting a Wi-Fi client's capabilities and monitoring its interfaces, Band Steering actively guides the client to the more suitable Wi-Fi band.", bssecclass)
             html[#html + 1] = ui_helper.createSwitch(T"Band Steering Enabled", "band_steer_enabled", tostring(band_steer_enabled), bssecclass)
             html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5 GHz settings", bssecclass)
-            html[#html + 1] = ui_helper.createSliderSelect(T"2.4 GHz Band Steering Threshold", "rssi_threshold", bandsteer_rssi_threshold, content_rssi["rssi_threshold"], bssecclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"If a wireless device reports this gateway's 2.4 GHz signal strength is above this threshold, the gateway will ask the device to test the 5 GHz band . Please see 5 GHz section for additional parameter.", bssecclass)
+            if multiap_credential then
+                html[#html + 1] = ui_helper.createAlertBlock(T"EasyMesh is active. Turn Band Steering off and save to give the 5 GHz network its own name and password, then edit it in the 5 GHz tab.", bssecclass)
+            else
+                html[#html + 1] = ui_helper.createSliderSelect(T"2.4 GHz Band Steering Threshold", "rssi_threshold", bandsteer_rssi_threshold, content_rssi["rssi_threshold"], bssecclass)
+                html[#html + 1] = ui_helper.createAlertBlock(T"If a wireless device reports this gateway's 2.4 GHz signal strength is above this threshold, the gateway will ask the device to test the 5 GHz band . Please see 5 GHz section for additional parameter.", bssecclass)
+            end
         else
             html[#html + 1] = ui_helper.createAlertBlock(T"Detecting a Wi-Fi client's capabilities and monitoring its interfaces, Band Steering actively guides the client to the more suitable Wi-Fi band.", ssidclass)
             html[#html + 1] = ui_helper.createLabel(T"Band Steering Enabled", tostring(band_steer_enabled) == "1" and "On" or "Off", ssidclass)
             html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5 GHz settings", bssecclass)
-            html[#html + 1] = ui_helper.createSliderSelect(T"5 GHz Band Steering Threshold", "rssi_5g_threshold", bandsteer_rssi_threshold, content_rssi["rssi_5g_threshold"], ssidclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"Please see 2.4 GHz section for initial parameter. If a wireless device tests the 5 GHz band and reports the 5 GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5 GHz band.", bssecclass)
+            if not multiap_credential then
+                html[#html + 1] = ui_helper.createSliderSelect(T"5 GHz Band Steering Threshold", "rssi_5g_threshold", bandsteer_rssi_threshold, content_rssi["rssi_5g_threshold"], ssidclass)
+                html[#html + 1] = ui_helper.createAlertBlock(T"Please see 2.4 GHz section for initial parameter. If a wireless device tests the 5 GHz band and reports the 5 GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5 GHz band.", bssecclass)
+            end
         end
     end
 end

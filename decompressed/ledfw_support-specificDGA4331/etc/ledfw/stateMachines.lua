@@ -33,15 +33,80 @@ local function internet_nextState()
    return ((xdsl_status() ~= 5) and "internet_disconnected" or nil)
 end
 
-local function is_stealth()
+-- Power LED color (UCI ledfw.status_led.power_color), mixed from the red, green
+-- and blue sub-LEDs of the power LED. Green is the default and behaves exactly
+-- as before. The blue sub-LED is only touched when ledfw.status_led.power_blue_node
+-- is "1": the boot script sets it after finding /sys/class/leds/power:blue, so a
+-- sub-LED that does not exist is never referenced.
+local power_color_parts = {
+   green   = { g = true },
+   red     = { r = true },
+   blue    = { b = true },
+   orange  = { r = true, g = true },
+   cyan    = { g = true, b = true },
+   magenta = { r = true, b = true },
+   white   = { r = true, g = true, b = true },
+}
+
+local function power_has_blue_node()
    local c = uci.cursor()
-   local s = c:get("ledfw", "status_led", "stealth")
+   local v = c:get("ledfw", "status_led", "power_blue_node")
    c:close()
-   return s == "1"
+   return v == "1"
 end
 
-local function PowerStatusActiveLed()
-   return is_stealth() and 0 or 255
+local power_blue_node = power_has_blue_node()
+
+local function get_power_parts()
+   local c = uci.cursor()
+   local color = c:get("ledfw", "status_led", "power_color")
+   c:close()
+   local parts = power_color_parts[color or "green"] or power_color_parts.green
+   if parts.b and not power_blue_node then parts = power_color_parts.green end
+   return parts
+end
+
+-- Brightness function for one sub-LED: on only if the chosen color uses it
+local function power_part(part)
+   return function()
+      return get_power_parts()[part] and 255 or 0
+   end
+end
+
+local function power_leds()
+   local leds = {
+      staticLed("power:red", power_part("r")),
+      staticLed("power:green", power_part("g")),
+   }
+   if power_blue_node then
+      leds[#leds + 1] = staticLed("power:blue", power_part("b"))
+   end
+   return leds
+end
+
+-- Eco mode (same as the DGA4132): when everything is fine the power LED goes
+-- off as well, so every LED of the gateway is off.
+local function power_all_off()
+   local leds = {
+      staticLed("power:red", false),
+      staticLed("power:green", false),
+   }
+   if power_blue_node then
+      leds[#leds + 1] = staticLed("power:blue", false)
+   end
+   return leds
+end
+
+-- The state machine runs in a restricted environment: no ipairs/pairs/table.*
+local function join_actions(first, rest)
+   for i = 1, #rest do first[#first + 1] = rest[i] end
+   return first
+end
+
+-- Fixed red/green alarm patterns must not mix with a blue power color
+local function power_blue_off()
+   if power_blue_node then return { staticLed("power:blue", false) } end
+   return {}
 end
 
 local WiFi_2p4G_sta_con = false
@@ -193,9 +258,7 @@ patterns = {
             },
         },
         actions = {
-            status_active = {
-                staticLed("power:green", PowerStatusActiveLed),
-                staticLed("power:red", false),
+            status_active = join_actions(power_all_off(), {
                 staticLed("broadband:red", false),
                 staticLed("broadband:green", false),
                 staticLed("internet:green", false),
@@ -205,7 +268,7 @@ patterns = {
                 staticLed("wps:green", false),
                 staticLed("wps:red", false),
                 staticLed("voip:green", false)
-            },
+            }),
         }
     },
     remote_mgmt = {
@@ -219,10 +282,10 @@ patterns = {
             }
         },
         actions = {
-            remote_mgmt_session_begins = {
+            remote_mgmt_session_begins = join_actions({
                 staticLed("power:green", true),
                 timerLed("power:red", 35, 35)
-            }
+            }, power_blue_off())
         }
     },
     fw_upgrade = {
@@ -236,10 +299,10 @@ patterns = {
             }
         },
         actions = {
-            fwupgrade_state_upgrading = {
+            fwupgrade_state_upgrading = join_actions({
                 staticLed("power:green", true),
                 timerLed("power:red", 35, 35)
-            }
+            }, power_blue_off())
         }
     }
 }
@@ -269,22 +332,13 @@ stateMachines = {
             }
         },
         actions = {
-            power_started = {
-                staticLed("power:red", false),
-                staticLed("power:green", true)
-            },
-            service_ok_eco = {
-                staticLed("power:red", false),
-                staticLed("power:green", true)
-            },
-            service_ok_fullpower = {
-                staticLed("power:red", false),
-                staticLed("power:green", true)
-            },
-            service_notok = {
+            power_started = power_leds(),
+            service_ok_eco = power_leds(),
+            service_ok_fullpower = power_leds(),
+            service_notok = join_actions({
                 staticLed("power:red", true),
                 staticLed("power:green", false)
-            }
+            }, power_blue_off())
         },
         patterns_depend_on = {
             power_started = { "fw_upgrade", "remote_mgmt", "status" },
