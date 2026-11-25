@@ -241,44 +241,94 @@ end
 </div>\
 <script>\
 (function() {\
-  var st = window._diagNetScroll || { body: 0, modal: 0, win: 0, refreshing: false };\
+  var st = window._diagNetScroll || {\
+    body: 0,\
+    modal: 0,\
+    parent: 0,\
+    win: 0,\
+    refreshing: false,\
+    timers: []\
+  };\
   window._diagNetScroll = st;\
-  var modalBody = $("#diagnostics-network-tab").closest(".modal-body");\
-  var modalBox = $("#diagnostics-network-tab").closest(".modal");\
 \
-  function restoreScroll() {\
-    if (modalBody.length) modalBody.scrollTop(st.body);\
-    if (modalBox.length) modalBox.scrollTop(st.modal);\
-    $(window).scrollTop(st.win);\
+  var $tab = $("#diagnostics-network-tab");\
+  var $modalBody = $tab.closest(".modal-body");\
+  var $modalBox = $tab.closest(".modal");\
+  var $scrollParent = $tab.parents().filter(function() {\
+    var ov = $(this).css("overflow-y");\
+    return (ov === "auto" || ov === "scroll") && this !== $modalBody[0] && this !== $modalBox[0];\
+  }).first();\
+\
+  function saveScroll() {\
+    if (st.refreshing) return;\
+    if ($modalBody.length) st.body = $modalBody.scrollTop();\
+    if ($modalBox.length) st.modal = $modalBox.scrollTop();\
+    if ($scrollParent.length) st.parent = $scrollParent.scrollTop();\
+    st.win = $(window).scrollTop() || document.documentElement.scrollTop || document.body.scrollTop || 0;\
   }\
 \
-  restoreScroll();\
-  setTimeout(restoreScroll, 0);\
-  setTimeout(function() {\
-    restoreScroll();\
-    st.refreshing = false;\
-  }, 30);\
+  function restoreScroll() {\
+    if ($modalBody.length && $modalBody.scrollTop() !== st.body) {\
+      $modalBody.scrollTop(st.body);\
+    }\
+    if ($modalBox.length && $modalBox.scrollTop() !== st.modal) {\
+      $modalBox.scrollTop(st.modal);\
+    }\
+    if ($scrollParent.length && $scrollParent.scrollTop() !== st.parent) {\
+      $scrollParent.scrollTop(st.parent);\
+    }\
+    var curWin = $(window).scrollTop() || document.documentElement.scrollTop || document.body.scrollTop || 0;\
+    if (curWin !== st.win) {\
+      $(window).scrollTop(st.win);\
+      document.documentElement.scrollTop = st.win;\
+      document.body.scrollTop = st.win;\
+    }\
+  }\
 \
-  modalBody.off("scroll.diagKeep").on("scroll.diagKeep", function() {\
-    if (!st.refreshing) st.body = $(this).scrollTop();\
-  });\
-  modalBox.off("scroll.diagKeep").on("scroll.diagKeep", function() {\
-    if (!st.refreshing) st.modal = $(this).scrollTop();\
-  });\
-  $(window).off("scroll.diagKeep").on("scroll.diagKeep", function() {\
-    if (!st.refreshing) st.win = $(this).scrollTop();\
+  function scheduleRestore() {\
+    for (var i = 0; i < st.timers.length; i++) {\
+      clearTimeout(st.timers[i]);\
+    }\
+    st.timers = [];\
+\
+    restoreScroll();\
+    if (window.requestAnimationFrame) {\
+      requestAnimationFrame(restoreScroll);\
+    }\
+    st.timers.push(setTimeout(restoreScroll, 0));\
+    st.timers.push(setTimeout(restoreScroll, 50));\
+    st.timers.push(setTimeout(function() {\
+      restoreScroll();\
+      st.refreshing = false;\
+    }, 150));\
+  }\
+\
+  if (st.refreshing) {\
+    scheduleRestore();\
+  }\
+\
+  $modalBody.off("scroll.diagKeep").on("scroll.diagKeep", saveScroll);\
+  $modalBox.off("scroll.diagKeep").on("scroll.diagKeep", saveScroll);\
+  if ($scrollParent.length) {\
+    $scrollParent.off("scroll.diagKeep").on("scroll.diagKeep", saveScroll);\
+  }\
+  $(window).off("scroll.diagKeep").on("scroll.diagKeep", saveScroll);\
+\
+  $modalBox.off("hide.diagKeep hidden.diagKeep").on("hide.diagKeep hidden.diagKeep", function() {\
+    window._diagNetScroll = null;\
   });\
 \
   $(document).off("ajaxSend.diagKeep").on("ajaxSend.diagKeep", function(e, xhr, settings) {\
-    if (settings && settings.url && settings.url.indexOf("diagnostics-network-modal.lp") !== -1) {\
+    if (settings && settings.url && settings.url.indexOf("diagnostics-network-modal") !== -1) {\
+      saveScroll();\
       st.refreshing = true;\
-      if (modalBody.length) st.body = modalBody.scrollTop();\
-      if (modalBox.length) st.modal = modalBox.scrollTop();\
-      st.win = $(window).scrollTop();\
     }\
   });\
-  $(document).off("ajaxError.diagKeep").on("ajaxError.diagKeep", function() {\
-    st.refreshing = false;\
+\
+  $(document).off("ajaxComplete.diagKeep").on("ajaxComplete.diagKeep", function(e, xhr, settings) {\
+    if (settings && settings.url && settings.url.indexOf("diagnostics-network-modal") !== -1) {\
+      scheduleRestore();\
+    }\
   });\
 })();\
 </script>\
