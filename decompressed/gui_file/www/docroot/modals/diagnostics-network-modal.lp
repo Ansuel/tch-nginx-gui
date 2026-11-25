@@ -36,7 +36,9 @@ local clear_network_stats = {
 
 local isEth4Included = false
 local sfp_enabled = getValue("uci.env.rip.sfp") == "1"
-local integrated_gpon = require("bridgehelper").hasIntegratedGpon()
+local ok_bh, bridgehelper = pcall(require, "bridgehelper")
+local ok_gpon, is_gpon = pcall(ok_bh and bridgehelper and bridgehelper.hasIntegratedGpon or function() return false end)
+local integrated_gpon = ok_gpon and is_gpon or false
 local has_gpon = integrated_gpon or hasPath("rpc.optical.Interface.1.Status") or hasPath("rpc.gpon.ploam.state")
 if not sfp_enabled then
   local eth4 = proxy.getPN("sys.class.net.@eth4.", true)
@@ -146,10 +148,13 @@ local portAttr = {
       local wireless = proxy.get("rpc.wireless.ssid.") or {}
       local wirelessindex = content_helper.convertResultToObject("rpc.wireless.ssid.@.",wireless) or {}
       for _,v in ipairs(wirelessindex) do
-        ports[#ports+1] = v.paramindex
-		local band = v.radio and getValue("rpc.wireless.radio.@" .. v.radio .. ".supported_frequency_bands") or ""
-		local band_label = band ~= "" and ("(" .. band .. ")") or ""
-		first_column_txt[#first_column_txt+1] = (v.ssid or v.paramindex) .. band_label
+        local iface = string.untaint and string.untaint(v.paramindex) or v.paramindex
+        local radio = v.radio and (string.untaint and string.untaint(v.radio) or v.radio) or ""
+        ports[#ports+1] = iface
+        local band = radio ~= "" and getValue("rpc.wireless.radio.@" .. radio .. ".supported_frequency_bands") or ""
+        local band_label = band ~= "" and (" (" .. band .. ")") or ""
+        local ssid_name = (v.ssid and v.ssid ~= "") and v.ssid or iface
+        first_column_txt[#first_column_txt+1] = ssid_name .. band_label
       end
 
 local function statsPath(port)
@@ -177,30 +182,30 @@ local param = {"rx_bytes", "tx_bytes", "rx_packets", "tx_packets", "rx_errors", 
 local gpon_param = {"BytesReceived", "BytesSent", "PacketsReceived", "PacketsSent", "ErrorsReceived", "ErrorsSent"}
 local datarows ={}
 for k,v in ipairs(ports) do
-  if k == 10 then
-    break
-  end
   datarows[k]={}
   local base_path = statsPath(v)
   local counters = v == "gpon" and not integrated_gpon and gpon_param or param
   for column, counter in ipairs(counters) do
     datarows[k][column + 1] = base_path .. counter
   end
-  if v == "gpon" and integrated_gpon then
-    internet.getOptionalContent(datarows[k])
-    for column = 2, 7 do
-      if datarows[k][column] == "" then datarows[k][column] = "—" end
+  internet.getOptionalContent(datarows[k])
+  for column = 2, 7 do
+    if datarows[k][column] == "" then
+      datarows[k][column] = (v == "gpon" and integrated_gpon) and "—" or "0"
     end
+  end
+  if v == "gpon" and integrated_gpon then
     datarows[k][8] = ""
   else
-    content_helper.getExactContent(datarows[k])
     datarows[k][8] = ui_helper.createSimpleButton(T"Reset Stats", nil, {controls = {class = string.format("clear_network_stats_%s",v)}, button = {["data-name"] = "action", ["data-value"] = string.format("%s",v),}})
   end
 end
 
   --re-write the first column
   for k,v in ipairs(first_column_txt) do
-    datarows[k][1] = v
+    if datarows[k] then
+      datarows[k][1] = v
+    end
   end
 
   local full_array={}
@@ -234,5 +239,48 @@ end
   </fieldset>\
   </fieldset>\
 </div>\
+<script>\
+(function() {\
+  var st = window._diagNetScroll || { body: 0, modal: 0, win: 0, refreshing: false };\
+  window._diagNetScroll = st;\
+  var modalBody = $("#diagnostics-network-tab").closest(".modal-body");\
+  var modalBox = $("#diagnostics-network-tab").closest(".modal");\
+\
+  function restoreScroll() {\
+    if (modalBody.length) modalBody.scrollTop(st.body);\
+    if (modalBox.length) modalBox.scrollTop(st.modal);\
+    $(window).scrollTop(st.win);\
+  }\
+\
+  restoreScroll();\
+  setTimeout(restoreScroll, 0);\
+  setTimeout(function() {\
+    restoreScroll();\
+    st.refreshing = false;\
+  }, 30);\
+\
+  modalBody.off("scroll.diagKeep").on("scroll.diagKeep", function() {\
+    if (!st.refreshing) st.body = $(this).scrollTop();\
+  });\
+  modalBox.off("scroll.diagKeep").on("scroll.diagKeep", function() {\
+    if (!st.refreshing) st.modal = $(this).scrollTop();\
+  });\
+  $(window).off("scroll.diagKeep").on("scroll.diagKeep", function() {\
+    if (!st.refreshing) st.win = $(this).scrollTop();\
+  });\
+\
+  $(document).off("ajaxSend.diagKeep").on("ajaxSend.diagKeep", function(e, xhr, settings) {\
+    if (settings && settings.url && settings.url.indexOf("diagnostics-network-modal.lp") !== -1) {\
+      st.refreshing = true;\
+      if (modalBody.length) st.body = modalBody.scrollTop();\
+      if (modalBox.length) st.modal = modalBox.scrollTop();\
+      st.win = $(window).scrollTop();\
+    }\
+  });\
+  $(document).off("ajaxError.diagKeep").on("ajaxError.diagKeep", function() {\
+    st.refreshing = false;\
+  });\
+})();\
+</script>\
 ');  ngx.print(ui_helper.createFooter() ); ngx.print('\
 ');
