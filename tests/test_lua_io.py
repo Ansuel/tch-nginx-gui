@@ -61,6 +61,10 @@ assert(mapping.get.active(nil, nil, 'beta') == '1')
 assert(mapping.get.active(nil, nil, 'unknown') == '0')
 local entries = mapping.entries()
 assert(#entries == 4 and opens == 3 and opens == closes)
+local all = mapping.getall(nil, 'alpha')
+assert(all.name == 'alpha' and all.start_order == '8' and all.stop_order == '90' and all.active == '1')
+assert(all.running == '')
+assert(next(mapping.getall(nil, 'unknown')) == nil)
 '''.replace('MAPPING_PATH', repr(str(ROOT / 'usr/share/transformer/mappings/rpc/system.init.map'))))
 
     def test_conntrack_limit_falls_back_on_missing_or_empty_proc_files(self):
