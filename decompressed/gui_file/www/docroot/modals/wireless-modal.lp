@@ -841,9 +841,18 @@ for i in string.gmatch(param["allowed_channels"], "%S+") do
     allowed_channels[#allowed_channels + 1] = {i, i}
 end
 
--- Bypassing the regulatory power rule puts the DGA4331 in a boot loop
+-- Bypassing the regulatory power rule or adjusting tx power puts the DGA4331 in a boot loop
 local friendlyName = proxy.get("uci.env.var.prod_friendly_name")
 local regBypassSupported = not (friendlyName and friendlyName[1] and match(friendlyName[1].value or "", "4331"))
+
+local maxTxPowerTarget = formatTxPowerTarget(param.max_target_power_adjusted)
+local canAdjustTxPower = regBypassSupported and isguest ~= "1" and not stbLimit
+    and isIntRemman ~= "1" and isExtRemman ~= "1"
+    and validateTxPowerAdjust(param.tx_power_adjust)
+local allowed_channels = { {"auto", T"Auto"} }
+for i in string.gmatch(param["allowed_channels"], "%S+") do
+    allowed_channels[#allowed_channels + 1] = {i, i}
+end
 
 local supported_countries = {}
 for i in string.gmatch(param["supported_countries"], "%S+") do
