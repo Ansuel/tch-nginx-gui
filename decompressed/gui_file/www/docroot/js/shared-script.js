@@ -61,7 +61,7 @@ var modgui = modgui || {};
 		return false;
 	}
 
-	function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime, CustomRefreshFunction, deferFirstRefresh) {
+	function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime, CustomRefreshFunction, deferFirstRefresh, skipBindings) {
         var element = document.getElementById(CardIdRefresh);
         if (!element) return;
         var previous = KoRequest[IntervalVar];
@@ -153,7 +153,7 @@ var modgui = modgui || {};
             if (typeof previous.abort === "function") previous.abort();
         }
         if (!deferFirstRefresh) refresh(ElementBinding);
-        if (custom) applyBindings();
+        if (custom && !skipBindings) applyBindings();
         registration.interval = setInterval(refresh, RefreshTime, ElementBinding);
     }
 
@@ -573,7 +573,7 @@ var modgui = modgui || {};
         if (Date.now() - lastFetch >= lifetime * 1000) resourceSamples = [];
         render();
         updateScrolling();
-        module.createAjaxUpdateCard(cardId, null, cardId + "ChartsInterval", 1000, refresh);
+        module.createAjaxUpdateCard(cardId, null, cardId + "ChartsInterval", 1000, refresh, false, true);
     }
 
     module.initResourceCharts = initResourceCharts;
