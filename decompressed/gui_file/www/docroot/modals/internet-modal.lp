@@ -51,6 +51,22 @@ local mapValid = {
 
 local content = post_helper.handleQuery(mapParams,mapValid)
 
+-- fix isp automatic detect
+if ngx.req.get_method() == "POST" then
+	local auto = proxy.get("uci.modgui.var.isp_autodetect")
+	if auto and auto[1].value == "1" then
+		local user = proxy.get("uci.network.interface.@wan.username")
+		user = user and user[1] and user[1].value or ""
+		local isp = "TIM"
+		if string.find(user, "tiscali.it", 1, true) then
+			isp = "Tiscali"
+		end
+		proxy.set("uci.modgui.var.isp", isp)
+		proxy.apply()
+		content["isp_detected"] = isp
+	end
+end
+
 if not wan_ppp_over_atm then
    for k,v in ipairs(mode_options) do
        if v[1] == "pppoa" then
