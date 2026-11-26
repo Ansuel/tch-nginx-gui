@@ -36,28 +36,6 @@ local power_colors_4331 = {
 local power_colors_available = isDGA4331 and power_colors_4331 or power_color_select
 local show_power_color = (isDGA413x or isDGA4331) and true or false
 
-local function powerLedExists(part)
-	local file = io.open("/sys/class/leds/power:" .. part .. "/brightness", "r")
-	if file then file:close() return true end
-	return false
-end
-
-local function getAvailablePowerColors()
-	if not isDGA4331 then return power_color_select end
-	local list = {}
-	for _, item in ipairs(power_color_select) do
-		local usable = true
-		for _, part in ipairs(power_color_parts[item[1]]) do
-			if not powerLedExists(part) then usable = false end
-		end
-		if usable then list[#list + 1] = item end
-	end
-	return list
-end
-
-local power_colors_available = getAvailablePowerColors()
-local show_power_color = (isDGA413x or (isDGA4331 and #power_colors_available > 1)) and true or false
-
 local mapValid = {
     eee = vB,
 	autogreeen = vB,
