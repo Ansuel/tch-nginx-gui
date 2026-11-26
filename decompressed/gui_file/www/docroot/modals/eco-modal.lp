@@ -26,13 +26,15 @@ local model = prod_friendly_name[1].value
 local isDGA413x = model:match("4130") or model:match("4132")
 local isDGA4331 = model:match("4331")
 
--- The DGA4331 mixes the color from its red, green and blue power sub-LEDs.
--- Offer only the colors this gateway can really show.
-local power_color_parts = {
-	green = {"green"}, red = {"red"}, blue = {"blue"},
-	orange = {"red", "green"}, cyan = {"green", "blue"},
-	magenta = {"red", "blue"}, white = {"red", "green", "blue"},
+-- The DGA4331 power LED only has red and green sub-LEDs: offer the colors they can show.
+local power_colors_4331 = {
+	{"green", T"Green"},
+	{"red", T"Red"},
+	{"orange", T"Orange"}	
 }
+
+local power_colors_available = isDGA4331 and power_colors_4331 or power_color_select
+local show_power_color = (isDGA413x or isDGA4331) and true or false
 
 local function powerLedExists(part)
 	local file = io.open("/sys/class/leds/power:" .. part .. "/brightness", "r")

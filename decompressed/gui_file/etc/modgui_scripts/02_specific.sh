@@ -255,16 +255,6 @@ ledfw_extract() {
   fi
 }
 
-# DGA4331: tell the LED state machine whether the power LED has a blue sub-LED,
-# so it never references a sub-LED that does not exist.
-ledfw_power_blue_flag() {
-  local want="0"
-  [ -e /sys/class/leds/power:blue/brightness ] && want="1"
-  if [ "$(uci get -q ledfw.status_led.power_blue_node)" != "$want" ]; then
-    uci set ledfw.status_led.power_blue_node="$want"
-    uci commit ledfw
-  fi
-}
 
 # DGA4331: bypassing the regulatory domain power rule sends the gateway into a
 # boot loop. Turn it back off if it is stored in the config.
@@ -390,7 +380,6 @@ uci commit modgui
 [ -z "${device_type##*DGA4130*}" ] && ledfw_extract "DGA"
 [ -z "${device_type##*DGA4132*}" ] && ledfw_extract "DGA"
 [ -z "${device_type##*DGA4131*}" ] && ledfw_extract "DGA4131"
-[ -z "${device_type##*DGA4331*}" ] && ledfw_power_blue_flag
 [ -z "${device_type##*DGA4331*}" ] && ledfw_extract "DGA4331"
 [ -z "${device_type##*DGA4331*}" ] && heal_reg_bypass_4331
 [ -z "${device_type##*TG788*}" ] && ledfw_extract "TG788"
