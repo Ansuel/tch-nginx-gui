@@ -483,8 +483,8 @@ local gui_skin_option = {
         { "dark-white_Fritz", T'Dark/White (Fritz!Box Based)'},
         { "dark-midnight_Fritz", T'Dark/Midnight (Fritz!Box Based)'},
         { "dark-red", T'Red Dark'},
-		{ "esposito-blue", T'Esposito Blue'},
-		{ "esposito-dark", T'Esposito Dark'},
+	{ "dark-blue", T'Dark Blue'},
+	{ "dark-night", T'Dark Night'},
 }
 
 local spoof_mode_enum = {
