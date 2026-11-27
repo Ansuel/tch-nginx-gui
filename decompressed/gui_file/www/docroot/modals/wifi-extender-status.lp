@@ -111,7 +111,7 @@ end
 root.children = topology.forest(agents)
 
 ngx.print(ui.createHeader(T"EasyMesh Topology",false,true))
-ngx.print('<form class="form-horizontal" action="/modals/wifi-extender-status.lp"><div class="modal-body update" style="overflow-x:hidden">')
+ngx.print('<div class="modal-body update"><form class="form-horizontal" action="/modals/wifi-extender-status.lp">')
 local lp = require("web.lp")
 lp.setpath("/www/snippets/")
 lp.include("tabs-easyMesh.lp")
@@ -158,4 +158,4 @@ render(root)
 ngx.print('</ul></div>')
 if #agents == 0 then ngx.print('<p class="muted">',text(controller and T"No extenders connected" or T"Extender topology is available on the controller."),'</p>') end
 lp.include("easymesh-history.lp")
-ngx.print('</div></form>',ui.createFooter())
+ngx.print('</form></div>',ui.createFooter())
