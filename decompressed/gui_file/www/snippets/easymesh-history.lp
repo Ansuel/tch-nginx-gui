@@ -18,7 +18,7 @@ end
 
 if #events == 0 then
     local recorded = require("topology_history").read()
-    if not content.events and not recorded then return end
+    -- if not content.events and not recorded then return end
     local labels = {
         joined = T"Connected",
         left = T"Disconnected",

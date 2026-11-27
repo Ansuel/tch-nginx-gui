@@ -708,7 +708,7 @@ local function isMultiapShared()
     return nil
 end
 
-local function setMultiapBandSplit(split, ssid)
+local function setMultiapBandSplit(split, ssid, keepCredential)
     local primary, secondary = getMultiapMainPair()
     if not primary then return nil, T"The 2.4 GHz and 5 GHz EasyMesh credentials were not found." end
     local base = "uci.multiap.controller_credentials.@"
@@ -727,9 +727,11 @@ local function setMultiapBandSplit(split, ssid)
         if name == "" then name = getMultiapValue(p .. "ssid") end
         add(p .. "frequency_bands", "radio_2G")
         add(s .. "frequency_bands", bands)
-        add(s .. "ssid", name .. suffix)
-        add(s .. "security_mode", getMultiapValue(p .. "security_mode"))
-        add(s .. "wpa_psk_key", getMultiapValue(p .. "wpa_psk_key"))
+        if not keepCredential then
+            add(s .. "ssid", name .. suffix)
+            add(s .. "security_mode", getMultiapValue(p .. "security_mode"))
+            add(s .. "wpa_psk_key", getMultiapValue(p .. "wpa_psk_key"))
+        end
         add(s .. "fronthaul", "1")
         add(s .. "backhaul", "0")
         add(s .. "state", "1")
@@ -753,17 +755,54 @@ local function setMultiapBandSplit(split, ssid)
 end
 -- End multiap band split helpers
 
+-- Band Steering must only change when the user moves its switch. The page posts
+-- the state it was showing (band_steer_previous) next to the switch value.
+local function isBandSteerToggled(requested, previous, enabled)
+    if requested ~= "0" and requested ~= "1" then return false end
+    if previous == "0" or previous == "1" then return requested ~= previous end
+    return (requested == "1") ~= enabled
+end
+
+local function isLegacyBandSteerOn(ap)
+    local id = getMultiapValue(pap .. "@" .. ap .. ".bandsteer_id")
+    return id ~= "" and id ~= "off"
+end
+
+local function disableLegacyBandSteer(aps)
+    local changed = false
+    for _, ap in ipairs(aps) do
+        if isLegacyBandSteerOn(ap) then
+            proxy.set(pap .. "@" .. ap .. ".bandsteer_id", "off")
+            changed = true
+        end
+    end
+    if changed then proxy.apply() end
+end
+
+-- state before this request saves anything
+local legacyBandSteerWasOn
+if bspeerap and not multiap_credential then
+    legacyBandSteerWasOn = isLegacyBandSteerOn(curap)
+end
+local multiapSharedBefore
+if multiap_credential and (curiface == "wl0" or curiface == "wl1") then
+    multiapSharedBefore = isMultiapShared()
+end
+
 local function getValidateBandSteerPeerFields(value, object, key)
     local state = object.ap_enabled
     local bandsteer_enabled
     if isguest ~= "1" then
         state  = object.admin_state
     end
-    if session:retrieve("bs_check_action") == "TRUE" then
-        session:store("bs_check_action", "")
-        bandsteer_enabled = proxy.get("uci.wireless.wifi-ap.@ap0.bandsteer_id")[1].value
-    else
-        bandsteer_enabled = object.band_steer_enabled
+    bandsteer_enabled = object.band_steer_enabled
+    if bandsteer_enabled and legacyBandSteerWasOn ~= nil then
+        local previous = ngx.req.get_post_args().band_steer_previous
+        if not isBandSteerToggled(untaint(bandsteer_enabled), previous, legacyBandSteerWasOn) then
+            -- switch untouched: keep the current state, and do not rewrite it when off
+            if not legacyBandSteerWasOn then return true end
+            bandsteer_enabled = "1"
+        end
     end
 
     if "bs0" == bandsteer_enabled or bandsteer_enabled == "1" then
@@ -805,7 +844,7 @@ local function getValidateBandSteerPeerFields(value, object, key)
                 end
             end
         end
-    elseif object.band_steer_enabled then --to disable bandsteer
+    elseif bandsteer_enabled then --to disable bandsteer
         return disableBandSteer(object)
     end
 
@@ -1048,18 +1087,6 @@ if native_channelwidth and content["requested_channel_width"] then
     end
 end
 
-if ngx.req.get_method() == "POST" and ngx.req.get_post_args().action == "bs_check" then
-    local postargs = ngx.req.get_post_args()
-	if not multiap_credential and (content["ssid"] ~= postargs.ssidName or content["security"] ~= postargs.security or content["wpa_psk"] ~= postargs.wpa_psk) then
-	session:store("bs_check_action", "TRUE")
-    proxy.set("uci.wireless.wifi-ap.@ap0.bandsteer_id", "off")
-	proxy.set("uci.wireless.wifi-ap.@ap1.bandsteer_id", "off")
-	proxy.apply()
-	end
-	ngx.print('{ "success":"true" }')
-	ngx.exit(ngx.HTTP_OK)
-end
-
 -- Process POST query
 if ngx.req.get_method() == "POST" then
   local tmpbandsteerhelpmsg = {}
@@ -1076,16 +1103,28 @@ if ngx.req.get_method() == "POST" then
     bandsteerhelpmsg[1] = tmpbandsteerhelpmsg
   end
 
-  if content["action"] == "SAVE" and multiap_credential and curiface == "wl0" then
-    local requested = ngx.req.get_post_args().band_steer_enabled
+  local postedBandSteer = ngx.req.get_post_args()
+  if multiapSharedBefore ~= nil then
+    local requested = postedBandSteer.band_steer_enabled
+    local toggled = content["action"] == "SAVE" and curiface == "wl0"
+        and isBandSteerToggled(requested, postedBandSteer.band_steer_previous, multiapSharedBefore)
+    local wantShared = multiapSharedBefore
+    if toggled then wantShared = requested == "1" end
     local shared = isMultiapShared()
-    if (requested == "0" or requested == "1") and shared ~= nil and (requested == "1") ~= shared then
-        local ok, err = setMultiapBandSplit(requested == "0", content["ssid"])
+    if shared ~= nil and shared ~= wantShared and (toggled or not wantShared) then
+        -- when only restoring "off", keep the 5 GHz name and password
+        local ok, err = setMultiapBandSplit(not wantShared, content["ssid"], not toggled)
         if not ok then
             bandsteerhelpmsg = bandsteerhelpmsg or {}
             bandsteerhelpmsg[#bandsteerhelpmsg + 1] = { content = err, level = "error" }
         end
     end
+    if not wantShared then disableLegacyBandSteer({ "ap0", "ap1" }) end
+  elseif legacyBandSteerWasOn == false then
+    local turnedOn = content["action"] == "SAVE" and postedBandSteer.band_steer_enabled == "1"
+        and isBandSteerToggled("1", postedBandSteer.band_steer_previous, false)
+    -- saving other settings (WPS, radio, ...) must not switch it back on
+    if not turnedOn then disableLegacyBandSteer({ curap, bspeerap }) end
   end
 
   if content["action"] == "SAVE" and not multiap_credential then
@@ -1675,6 +1714,7 @@ end
         if isBaseIface(curiface) then
             html[#html + 1] = ui_helper.createAlertBlock(T"Detecting a Wi-Fi client's capabilities and monitoring its interfaces, Band Steering actively guides the client to the more suitable Wi-Fi band.", bssecclass)
             html[#html + 1] = ui_helper.createSwitch(T"Band Steering Enabled", "band_steer_enabled", tostring(band_steer_enabled), bssecclass)
+            html[#html + 1] = format('<input type="hidden" name="band_steer_previous" value="%s">', band_steer_enabled == "1" and "1" or "0")
             html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5 GHz settings", bssecclass)
             if multiap_credential then
                 html[#html + 1] = ui_helper.createAlertBlock(T"EasyMesh is active. Turn Band Steering off and save to give the 5 GHz network its own name and password, then edit it in the 5 GHz tab.", bssecclass)
@@ -2259,27 +2299,6 @@ $(document).ready(function() {\
         $(\'option[value="wpa2"]\').hide();\
         $(\'option[value="wpa"]\').hide();\
     }\
-});\
-\
-$("#save-config").click(function(){\
-	var params = [];\
-	params.push({\
-	name : "ssidName",\
-	value : $("#ssid").val()\
-	},{\
-	name : "wpa_psk",\
-	value : $("#wpa_psk").val()\
-	},{\
-	name : "security",\
-	value : $("#security").val()\
-	},{\
-	name : "CSRFtoken",\
-	value :$("meta[name=CSRFtoken]").attr("content")\
-	},{\
-	name : "action",\
-	value: "bs_check"\
-	});\
-	$.post("modals/wireless-modal.lp",params);\
 });\
 \
 $(\'input[id="band_steer_enabled"]\').on("click", function(){\

@@ -26,13 +26,19 @@ local ssid_list = wirelessSSID_helper.getSSID()
 ');  
 
 for _,v in ipairs(ssid_list) do
-  local wifi_text = format('<strong>%s</strong>(%s)', v.ssid or "", v.radio or "")
+  -- A long network name is cut with "..." on one line; the full name stays in the tooltip
+  local wifi_text = format('<span class="wifi-ssid-line" title="%s (%s)"><strong>%s</strong><span class="wifi-ssid-radio">(%s)</span></span>', v.ssid or "", v.radio or "", v.ssid or "", v.radio or "")
   attributes.light.id = "WiFi_Enabled_Led"
   attributes.span.id = "WiFi_Enabled"
   ngx.print(ui_helper.createSimpleLight(v.state or "0", wifi_text, attributes,"fa fa-wifi"))
 end
   ngx.print('\
 	  </div>\
+    <style>\
+    .wifi-ssid-line { display:inline-flex; align-items:baseline; min-width:0; max-width:calc(100% - 32px); vertical-align:bottom; }\
+    .wifi-ssid-line > strong { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }\
+    .wifi-ssid-radio { flex:0 0 auto; white-space:nowrap; }\
+    </style>\
     </div>\
   </div>\
 </div>\
