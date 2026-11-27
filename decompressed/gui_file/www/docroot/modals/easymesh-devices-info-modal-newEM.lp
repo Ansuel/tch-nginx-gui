@@ -332,9 +332,10 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
   ngx.print('\
 <div id="modalBody" class="modal-body update">\
   <style>\
-    .modal.fade.in:has(.mesh-devices-content){display:flex !important;flex-direction:column;overflow:hidden !important}\
+    .modal.fade.in:has(.mesh-devices-content){display:flex !important;flex-direction:column;overflow:visible !important}\
+    .modal.fade.in:has(.mesh-devices-content)>.modal-header{overflow:visible !important}\
     .modal.fade.in:has(.mesh-devices-content)>.modal-header,.modal.fade.in:has(.mesh-devices-content)>.modal-footer{position:static !important;flex-shrink:0;width:100%;box-sizing:border-box}\
-    .modal.fade.in:has(.mesh-devices-content)>.modal-body.update{flex:1 1 auto !important;min-height:0 !important;max-height:none !important;height:auto !important;overflow-x:hidden !important;overflow-y:auto !important}\
+    .modal.fade.in:has(.mesh-devices-content)>.modal-body.update{flex:1 1 auto !important;min-width:0 !important;min-height:0 !important;max-height:none !important;height:auto !important;overflow-x:hidden !important;overflow-y:auto !important}\
     .modal.fade.in:has(.mesh-devices-content)>.modal-footer{border-top:1px solid rgba(127,127,127,.3)}\
   </style>\
   <form class="form-horizontal" method="post" action="/modals/easymesh-devices-info-modal-newEM.lp">\
