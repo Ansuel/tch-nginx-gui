@@ -111,22 +111,22 @@ end
 root.children = topology.forest(agents)
 
 ngx.print(ui.createHeader(T"EasyMesh Topology",false,true))
-ngx.print('<form class="form-horizontal" action="/modals/wifi-extender-status.lp"><div class="modal-body update">')
+ngx.print('<form class="form-horizontal" action="/modals/wifi-extender-status.lp"><div class="modal-body update" style="overflow-x:hidden">')
 local lp = require("web.lp")
 lp.setpath("/www/snippets/")
 lp.include("tabs-easyMesh.lp")
 ngx.print([=[<style>
-.mesh-topology {max-width:100%;overflow-x:auto;padding:12px 2px;box-sizing:border-box}
+.mesh-topology {max-width:100%;padding:12px 2px;box-sizing:border-box}
 .mesh-topology .mesh-tree {display:table;min-width:100%;margin:0;padding:0}
-.mesh-topology ul {margin:0 0 0 24px;padding:12px 0 0 16px;border-left:1px solid #b9c8d2}
+.mesh-topology ul {margin:0 0 0 24px;padding:12px 0 0 16px;border-left:1px solid rgba(127,127,127,.55)}
 .mesh-topology li {list-style:none;position:relative;margin:0 0 12px;padding:0}
-.mesh-topology li:before {content:"";position:absolute;left:-16px;top:42px;width:16px;border-top:1px solid #b9c8d2}
+.mesh-topology li:before {content:"";position:absolute;left:-16px;top:42px;width:16px;border-top:1px solid rgba(127,127,127,.55)}
 .mesh-topology .mesh-tree>li:before {display:none}
-.mesh-topology .mesh-node {display:flex;align-items:center;gap:12px;box-sizing:border-box;width:280px;max-width:100%;padding:12px;border:1px solid #d7dfe4;border-radius:6px;background:#fff}
+.mesh-topology .mesh-node {display:flex;align-items:center;gap:12px;box-sizing:border-box;width:280px;max-width:100%;padding:12px;border:1px solid rgba(127,127,127,.4);border-radius:6px;background:rgba(127,127,127,.12);color:inherit}
 .mesh-topology .mesh-picture {width:76px;height:80px;object-fit:contain;flex-shrink:0}
 .mesh-topology .mesh-details {min-width:0;overflow-wrap:anywhere;word-wrap:break-word}
-.mesh-topology .mesh-details strong,.mesh-topology .mesh-details small {display:block}
-.mesh-topology .mesh-details small {font-size:11px;line-height:1.5}
+.mesh-topology .mesh-details strong,.mesh-topology .mesh-details small {display:block;color:inherit}
+.mesh-topology .mesh-details small {font-size:11px;line-height:1.5;opacity:.8}
 .mesh-topology .mesh-meta {margin-top:4px}
 @media(max-width:480px){.mesh-topology .mesh-node{width:248px}.mesh-topology ul{margin-left:12px;padding-left:12px}.mesh-topology li:before{left:-12px;width:12px}}
 </style><div class="mesh-topology"><ul class="mesh-tree">]=])
