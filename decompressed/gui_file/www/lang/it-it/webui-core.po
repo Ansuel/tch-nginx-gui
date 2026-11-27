@@ -4859,8 +4859,8 @@ msgstr "L'interfaccia WAN selezionata rimane fissa finché la modalità bridge �
 msgid "Use one controller per Ethernet network. Controller mode keeps the current connection. For a booster, first select the Ethernet uplink in Broadband, then Bridge mode in Internet. Choose DHCP or Static IP on the bridge to retain management access. The bridge disables the local DHCP and RA servers. Wireless backhaul is not configured by this setup."
 msgstr "Utilizzare un controller per ogni rete Ethernet. La modalità Controller mantiene la connessione corrente. Per un ripetitore, selezionare innanzitutto l’uplink Ethernet nella sezione “Broadband”, quindi la modalità Bridge nella sezione “Internet”. Scegliere DHCP o IP statico sul bridge per mantenere l’accesso di gestione. Il bridge disabilita i server DHCP e RA locali. Il backhaul wireless non viene configurato con questa impostazione."
 
-msgid "Connected Devices"
-msgstr "Dispositivi Connessi"
+msgid "Connected Devices:"
+msgstr "Dispositivi Connessi:"
 
 msgid "Topology"
 msgstr "Topologia"
