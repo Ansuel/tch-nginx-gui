@@ -36,7 +36,9 @@ local clear_network_stats = {
 
 local isEth4Included = false
 local sfp_enabled = getValue("uci.env.rip.sfp") == "1"
-local integrated_gpon = require("bridgehelper").hasIntegratedGpon()
+local ok_bh, bridgehelper = pcall(require, "bridgehelper")
+local ok_gpon, is_gpon = pcall(ok_bh and bridgehelper and bridgehelper.hasIntegratedGpon or function() return false end)
+local integrated_gpon = ok_gpon and is_gpon or false
 local has_gpon = integrated_gpon or hasPath("rpc.optical.Interface.1.Status") or hasPath("rpc.gpon.ploam.state")
 if not sfp_enabled then
   local eth4 = proxy.getPN("sys.class.net.@eth4.", true)
@@ -91,7 +93,7 @@ local portAttr = {
 }
   ngx.print('\
 ');  ngx.print(ui_helper.createHeader(T"Diagnostics", false, false, 2) ); ngx.print('\
-<div class="modal-body update">\
+<div class="modal-body">\
 ');  
   local lp = require("web.lp")
   lp.setpath("/www/snippets/")
@@ -146,10 +148,13 @@ local portAttr = {
       local wireless = proxy.get("rpc.wireless.ssid.") or {}
       local wirelessindex = content_helper.convertResultToObject("rpc.wireless.ssid.@.",wireless) or {}
       for _,v in ipairs(wirelessindex) do
-        ports[#ports+1] = v.paramindex
-		local band = v.radio and getValue("rpc.wireless.radio.@" .. v.radio .. ".supported_frequency_bands") or ""
-		local band_label = band ~= "" and ("(" .. band .. ")") or ""
-		first_column_txt[#first_column_txt+1] = (v.ssid or v.paramindex) .. band_label
+        local iface = string.untaint and string.untaint(v.paramindex) or v.paramindex
+        local radio = v.radio and (string.untaint and string.untaint(v.radio) or v.radio) or ""
+        ports[#ports+1] = iface
+        local band = radio ~= "" and getValue("rpc.wireless.radio.@" .. radio .. ".supported_frequency_bands") or ""
+        local band_label = band ~= "" and (" (" .. band .. ")") or ""
+        local ssid_name = (v.ssid and v.ssid ~= "") and v.ssid or iface
+        first_column_txt[#first_column_txt+1] = ssid_name .. band_label
       end
 
 local function statsPath(port)
@@ -177,30 +182,30 @@ local param = {"rx_bytes", "tx_bytes", "rx_packets", "tx_packets", "rx_errors", 
 local gpon_param = {"BytesReceived", "BytesSent", "PacketsReceived", "PacketsSent", "ErrorsReceived", "ErrorsSent"}
 local datarows ={}
 for k,v in ipairs(ports) do
-  if k == 10 then
-    break
-  end
   datarows[k]={}
   local base_path = statsPath(v)
   local counters = v == "gpon" and not integrated_gpon and gpon_param or param
   for column, counter in ipairs(counters) do
     datarows[k][column + 1] = base_path .. counter
   end
-  if v == "gpon" and integrated_gpon then
-    internet.getOptionalContent(datarows[k])
-    for column = 2, 7 do
-      if datarows[k][column] == "" then datarows[k][column] = "—" end
+  internet.getOptionalContent(datarows[k])
+  for column = 2, 7 do
+    if datarows[k][column] == "" then
+      datarows[k][column] = (v == "gpon" and integrated_gpon) and "—" or "0"
     end
+  end
+  if v == "gpon" and integrated_gpon then
     datarows[k][8] = ""
   else
-    content_helper.getExactContent(datarows[k])
     datarows[k][8] = ui_helper.createSimpleButton(T"Reset Stats", nil, {controls = {class = string.format("clear_network_stats_%s",v)}, button = {["data-name"] = "action", ["data-value"] = string.format("%s",v),}})
   end
 end
 
   --re-write the first column
   for k,v in ipairs(first_column_txt) do
-    datarows[k][1] = v
+    if datarows[k] then
+      datarows[k][1] = v
+    end
   end
 
   local full_array={}
@@ -234,5 +239,135 @@ end
   </fieldset>\
   </fieldset>\
 </div>\
+<style>\
+.modal-body > .alert-error, .modal-body > .alert-danger { display: none !important; }\
+</style>\
+<script>\
+(function() {\
+  if (window.jQuery && !window._diagNetPrefilter) {\
+    window._diagNetPrefilter = true;\
+    jQuery.ajaxPrefilter(function(options) {\
+      if (options.url && options.url.indexOf("diagnostics-network-modal.lp") !== -1) {\
+        var d = options.data;\
+        var isReset = false;\
+        if (typeof d === "string") {\
+          isReset = d.indexOf("stats_reset") !== -1 || d.indexOf("action=") !== -1;\
+        } else if (d && typeof d === "object") {\
+          isReset = !!(d.stats_reset || d.action);\
+        }\
+        if (!isReset && document.getElementById("diagnostics-network-tab")) {\
+          options._skipDiagRefresh = true;\
+          options.global = false;\
+        }\
+      }\
+    });\
+    jQuery.ajaxTransport("* text html json", function(options) {\
+      if (options._skipDiagRefresh) {\
+        return {\
+          send: function() {},\
+          abort: function() {}\
+        };\
+      }\
+    });\
+  }\
+\
+  var tab = document.getElementById("diagnostics-network-tab");\
+  if (!tab) return;\
+\
+  var modalBody = tab.closest(".modal-body");\
+  if (modalBody) modalBody.classList.remove("update");\
+\
+  if (window._diagNetPoll) {\
+    clearInterval(window._diagNetPoll);\
+    window._diagNetPoll = null;\
+  }\
+\
+  var inFlight = false;\
+  var lastScrollInput = 0;\
+  var pendingDoc = null;\
+\
+  function onUserScroll() {\
+    lastScrollInput = Date.now();\
+  }\
+  window.addEventListener("wheel", onUserScroll, { passive: true });\
+  window.addEventListener("touchmove", onUserScroll, { passive: true });\
+\
+  function setTextFast(el, val) {\
+    if (!el || el.textContent === val) return;\
+    if (el.firstChild && el.firstChild.nodeType === 3 && el.childNodes.length === 1) {\
+      el.firstChild.nodeValue = val;\
+    } else {\
+      el.textContent = val;\
+    }\
+  }\
+\
+  function applyUpdate(doc) {\
+    var curTab = document.getElementById("diagnostics-network-tab");\
+    var newTab = doc.getElementById("diagnostics-network-tab");\
+    if (!curTab || !newTab) return;\
+\
+    var curLegends = curTab.querySelectorAll(".socket-legend");\
+    var newLegends = newTab.querySelectorAll(".socket-legend");\
+    var lLen = Math.min(curLegends.length, newLegends.length);\
+    for (var i = 0; i < lLen; i++) {\
+      setTextFast(curLegends[i], newLegends[i].textContent);\
+    }\
+\
+    var curTable = document.getElementById("networkstats");\
+    var newTable = doc.getElementById("networkstats");\
+    if (curTable && newTable) {\
+      var curRows = curTable.rows;\
+      var newRows = newTable.rows;\
+      var rLen = Math.min(curRows.length, newRows.length);\
+      for (var r = 1; r < rLen; r++) {\
+        var curCells = curRows[r].cells;\
+        var newCells = newRows[r].cells;\
+        for (var c = 1; c < curCells.length - 1; c++) {\
+          if (newCells[c]) {\
+            setTextFast(curCells[c], newCells[c].textContent);\
+          }\
+        }\
+      }\
+    }\
+  }\
+\
+  function flushPending() {\
+    if (!pendingDoc) return;\
+    if (Date.now() - lastScrollInput < 350) {\
+      setTimeout(flushPending, 150);\
+      return;\
+    }\
+    var doc = pendingDoc;\
+    pendingDoc = null;\
+    applyUpdate(doc);\
+  }\
+\
+  window._diagNetPoll = setInterval(function() {\
+    var curTab = document.getElementById("diagnostics-network-tab");\
+    if (!curTab || !document.body.contains(curTab)) {\
+      clearInterval(window._diagNetPoll);\
+      window._diagNetPoll = null;\
+      window.removeEventListener("wheel", onUserScroll);\
+      window.removeEventListener("touchmove", onUserScroll);\
+      return;\
+    }\
+    if (inFlight || document.hidden) return;\
+\
+    inFlight = true;\
+    var xhr = new XMLHttpRequest();\
+    xhr.open("GET", "modals/diagnostics-network-modal.lp", true);\
+    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");\
+    xhr.onreadystatechange = function() {\
+      if (xhr.readyState !== 4) return;\
+      inFlight = false;\
+      if (xhr.status === 200 && xhr.responseText) {\
+        pendingDoc = new DOMParser().parseFromString(xhr.responseText, "text/html");\
+        flushPending();\
+      }\
+    };\
+    xhr.send();\
+  }, 3000);\
+})();\
+</script>\
 ');  ngx.print(ui_helper.createFooter() ); ngx.print('\
 ');

@@ -30,24 +30,30 @@ if session:hasAccess("/modals/gateway-modal.lp") then
    switchName = nil
 end
 
+local isAgthf = string.find(webp, "gateway_AGTHF", 1, true) ~= nil
+local contentStyle = isAgthf and ' style="overflow: hidden;"' or ''
+local pStyle = isAgthf and ' style="margin-bottom: 0px;"' or ''
+local divStyle = isAgthf and ' style="text-align: center; margin-top: -19px;"' or ' style="text-align: center;"'
+local imgStyle = isAgthf and ' style="height: 118px !important; width: auto !important; max-width: none !important;"' or ''
+
 ngx.print('\
 \
 <div class="span3" id="gateway-card">\
   <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
     ');  ngx.print( ui_helper.createCardHeader(T"Modem", modalPath, switchName, nil, nil) ); ngx.print('\
-    <div class="content card_bg" data-bg-text="&#xf129;">\
+    <div class="content card_bg" data-bg-text="&#xf129;"', contentStyle, '>\
 	<div class="divtable">\
-	  <p>\
+	  <p', pStyle, '>\
       <i class="fa fa-info" id="Gateway_=LED_Id"></i>\
       <strong id = "Version_Id">');  ngx.print(string.format(T"Version %s (%s)", content.name, content.version)); ngx.print('</strong><br/>');
 	  ngx.print('<span class="subinfos">' ..  T"CPU Load"..":" ); ngx.print('\
 					<strong data-bind="text: cpuload">\
-					</strong></span>\
-      <div data-remote="/modals/gateway-modal.lp" data-id="gateway-modal" style="text-align: center;">\
+					</strong></span></p>\
+      <div data-remote="/modals/gateway-modal.lp" data-id="gateway-modal"', divStyle, '>\
 	    <picture>\
         ')
         if webp then ngx.print('<source srcset="/img/', ngx.escape_uri(webp), '" type="image/webp">') end
-        ngx.print('<img class="someInfos" href="#" rel="tooltip" data-placement="top" data-original-title="',
+        ngx.print('<img class="someInfos"', imgStyle, ' href="#" rel="tooltip" data-placement="top" data-original-title="',
             T"Your Gateway", '" src="', imageUrl, '" alt="', content.model, '">')
         ngx.print('\
 		</picture>\

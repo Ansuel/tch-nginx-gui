@@ -10,7 +10,7 @@ else
     # Reuse a draft/published release from this exact commit and channel on reruns.
     channel="$(tr '[:upper:]' '[:lower:]' < ./type)"
     case "$channel" in
-        dev|preview) gui_asset="GUI_$channel.tar.bz2" ;;
+        dev|preview|personal_edit) gui_asset="GUI_$channel.tar.bz2" ;;
         stable) gui_asset=GUI.tar.bz2 ;;
         *) echo "Invalid release channel: $channel" >&2; exit 1 ;;
     esac

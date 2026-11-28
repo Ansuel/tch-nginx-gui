@@ -81,7 +81,7 @@ $(function () {
             upload.text(get_bitrate(rates[1]));
         });
     }
-    modgui.createAjaxUpdateCard("datausage-card", null, "DataUsageCardInterval", 3000, refresh);
+    modgui.createAjaxUpdateCard("datausage-card", null, "DataUsageCardInterval", 1000, refresh);
 });
 </script>
 ]=])

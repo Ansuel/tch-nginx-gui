@@ -384,7 +384,8 @@ autodetect_isp() { #Detect ISP based on cwmp or wan settings (Italian only)
       echo "$ppp_user" | grep -q "agcombo" ||
       echo "$ppp_user" | grep -q "unica" ||
       echo "$ppp_user" | grep -q "aliceres" ||
-      echo "$ppp_user" | grep -q "@00000."; then
+      echo "$ppp_user" | grep -q "@00000." ||
+	    echo "$cwmp_url" | grep -q "interbusiness.it"; then
       uci set modgui.var.isp="TIM"
     elif echo "$ppp_user" | grep -q "tiscali.it" || #acs tiscali is preconfigured
       echo "$cwmp_url" | grep -q "tiscali.it"; then #on tiscali firmware only

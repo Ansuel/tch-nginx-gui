@@ -2419,6 +2419,7 @@ function confirmationDialogue(t, e) {
 	var v,
 	g;
 	count = 0;
+	var forceReload = false;
 	var w = 0;
 	$(document).on("change", '.header input[type="hidden"]', function () {
 		p(waitMsg);
@@ -2544,17 +2545,23 @@ function confirmationDialogue(t, e) {
 		e();
 	}),
 	$(document).on("hidden", ".modal", function (t) {
-		modalToCard = lastCardClicked ? lastCardClicked.find(".settings").data("remote") : null;
-		if (count > 0 && $(t.target).hasClass("modal")) {
-			if (modalToCard != null) {
+		if (!$(t.target).hasClass("modal")) return;
+		var cardStillThere = lastCardClicked && $.contains(document.body, lastCardClicked[0]);
+		var modalToCard = cardStillThere ? lastCardClicked.find(".settings").data("remote") : null;
+		if (count > 0) {
+			var full = forceReload;
+			count = 0;
+			forceReload = false;
+			if (!full && modalToCard != null) {
 				var cardToRefresh = lastCardClicked.parent();
 				$.get("/ajax/get_card.lua?modal=" + encodeURIComponent(modalToCard), function (data) {
 					cardToRefresh.replaceWith(data);
+				}).fail(function () {
+					window.location.reload(!0);
 				});
 			} else {
 				window.location.reload(!0);
 			}
-			count = 0;
 		}
 	});
 	var modalOpening = false;
@@ -2630,6 +2637,10 @@ function confirmationDialogue(t, e) {
 	t.loadModal = n,
 	t.modalLoaded = i,
 	t.refreshModal = o,
+	t.markChanged = function (full) {
+		count += 1;
+		if (full) forceReload = true;
+	},
 	t.elementCSRFtoken = a,
 	t.switchAdvanced = r,
 	t.monitorHandler = s,

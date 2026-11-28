@@ -159,6 +159,19 @@ for i,v in ipairs(apNames) do
   ap_paths[i] = v.path.."ssid"
 end
 
+-- The EasyMesh backhaul AP (for example BH-xxxx) is managed by the controller
+-- and is never edited here, so keep it out of the AP list.
+local function isBackhaulOnlyIface(iface)
+    if type(iface) ~= "string" or not match(iface, "^[%w_%-]+$") then return false end
+    local base = "uci.wireless.wifi-iface.@" .. iface .. "."
+    local backhaul = proxy.get(base .. "backhaul")
+    if not backhaul or not backhaul[1] or backhaul[1].value ~= "1" then return false end
+    local fronthaul = proxy.get(base .. "fronthaul")
+    return not (fronthaul and fronthaul[1] and fronthaul[1].value == "1")
+end
+
+if isBackhaulOnlyIface(getiface) then getiface = nil end
+
 local wl_list = proxy.get(unpack(ap_paths))
 if not wl_list then
   ngx.log(ngx.ERR, "Wireless SSID data unavailable")
@@ -169,7 +182,7 @@ local cur_ssid
 for i,v in ipairs(wl_list) do
   local path = "rpc.wireless.ssid.@" .. v.value
   local values = proxy.get(path .. ".radio" , path .. ".ssid",path .. ".stb", path .. ".ap_display_name")
-  if values and values[1] and values[2] and values[3] and values[4] then
+  if values and values[1] and values[2] and values[3] and values[4] and not isBackhaulOnlyIface(v.value) then
     wls[#wls+1] = {
             radio = values[1].value,
             ssid = values[2].value,
@@ -657,17 +670,139 @@ if multiap_credential == false then
     return ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
 end
 
+-- EasyMesh keeps 2.4 and 5 GHz on one credential while "Band Steering" is on.
+-- Turning it off gives the 5 GHz radio its own credential, the same change the
+-- firmware band steering helper makes, so each band can have its own SSID.
+local function getMultiapValue(path)
+    local result = proxy.get(path)
+    return result and result[1] and untaint(result[1].value) or ""
+end
+
+local function getMultiapMainPair()
+    local path = "uci.web.network.@main."
+    local rawInterfaces, rawCredentials = proxy.get(path .. "intf."), proxy.get(path .. "cred.")
+    if not rawInterfaces or not rawCredentials then return end
+    local interfaces = content_helper.convertResultToObject(path .. "intf.@.", rawInterfaces)
+    local credentials = content_helper.convertResultToObject(path .. "cred.@.", rawCredentials)
+    local pair = {}
+    for _, credential in ipairs(credentials) do
+        for _, iface in ipairs(interfaces) do
+            if iface.paramindex == credential.paramindex then
+                pair[untaint(iface.value)] = untaint(credential.value)
+            end
+        end
+    end
+    if pair.wl0 and pair.wl1 and pair.wl0 ~= pair.wl1 then return pair.wl0, pair.wl1 end
+end
+
+-- true: one shared credential, false: separate credentials, nil: not available
+local function isMultiapShared()
+    local primary, secondary = getMultiapMainPair()
+    if not primary then return nil end
+    local base = "uci.multiap.controller_credentials.@"
+    if getMultiapValue(base .. primary .. ".backhaul") == "1" or
+       getMultiapValue(base .. secondary .. ".backhaul") == "1" then return nil end
+    local bands = getMultiapValue(base .. primary .. ".frequency_bands")
+    if match(bands, "radio_2G") and match(bands, "radio_5G") then return true end
+    if match(bands, "radio_2G") then return false end
+    return nil
+end
+
+local function setMultiapBandSplit(split, ssid, keepCredential)
+    local primary, secondary = getMultiapMainPair()
+    if not primary then return nil, T"The 2.4 GHz and 5 GHz EasyMesh credentials were not found." end
+    local base = "uci.multiap.controller_credentials.@"
+    local p, s = base .. primary .. ".", base .. secondary .. "."
+    if getMultiapValue(p .. "backhaul") == "1" or getMultiapValue(s .. "backhaul") == "1" then
+        return nil, T"The backhaul credential cannot be modified."
+    end
+    local values = {}
+    local function add(path, value) values[#values + 1] = { path, value } end
+    if split then
+        local suffix = getMultiapValue("uci.env.var.commonssid_suffix")
+        if suffix == "" then suffix = "-5G" end
+        local bands = getMultiapValue(s .. "frequency_bands")
+        if not match(bands, "radio_5G") then bands = "radio_5Gu,radio_5Gl" end
+        local name = untaint(ssid or "")
+        if name == "" then name = getMultiapValue(p .. "ssid") end
+        add(p .. "frequency_bands", "radio_2G")
+        add(s .. "frequency_bands", bands)
+        if not keepCredential then
+            add(s .. "ssid", name .. suffix)
+            add(s .. "security_mode", getMultiapValue(p .. "security_mode"))
+            add(s .. "wpa_psk_key", getMultiapValue(p .. "wpa_psk_key"))
+        end
+        add(s .. "fronthaul", "1")
+        add(s .. "backhaul", "0")
+        add(s .. "state", "1")
+        add(s .. "operational_state", "1")
+        add(s .. "public_state", "1")
+        -- the legacy (non EasyMesh) band steering must not stay active either
+        add("uci.wireless.wifi-ap.@ap0.bandsteer_id", "off")
+        add("uci.wireless.wifi-ap.@ap1.bandsteer_id", "off")
+    else
+        add(p .. "frequency_bands", "radio_2G,radio_5Gu,radio_5Gl")
+        add(s .. "state", "0")
+    end
+    for _, item in ipairs(values) do
+        if item[2] ~= "" or match(item[1], "%.state$") then
+            local ok, err = proxy.set(item[1], item[2])
+            if not ok then return nil, err or T"Unable to update the EasyMesh credentials." end
+        end
+    end
+    proxy.apply()
+    return true
+end
+-- End multiap band split helpers
+
+-- Band Steering must only change when the user moves its switch. The page posts
+-- the state it was showing (band_steer_previous) next to the switch value.
+local function isBandSteerToggled(requested, previous, enabled)
+    if requested ~= "0" and requested ~= "1" then return false end
+    if previous == "0" or previous == "1" then return requested ~= previous end
+    return (requested == "1") ~= enabled
+end
+
+local function isLegacyBandSteerOn(ap)
+    local id = getMultiapValue(pap .. "@" .. ap .. ".bandsteer_id")
+    return id ~= "" and id ~= "off"
+end
+
+local function disableLegacyBandSteer(aps)
+    local changed = false
+    for _, ap in ipairs(aps) do
+        if isLegacyBandSteerOn(ap) then
+            proxy.set(pap .. "@" .. ap .. ".bandsteer_id", "off")
+            changed = true
+        end
+    end
+    if changed then proxy.apply() end
+end
+
+-- state before this request saves anything
+local legacyBandSteerWasOn
+if bspeerap and not multiap_credential then
+    legacyBandSteerWasOn = isLegacyBandSteerOn(curap)
+end
+local multiapSharedBefore
+if multiap_credential and (curiface == "wl0" or curiface == "wl1") then
+    multiapSharedBefore = isMultiapShared()
+end
+
 local function getValidateBandSteerPeerFields(value, object, key)
     local state = object.ap_enabled
     local bandsteer_enabled
     if isguest ~= "1" then
         state  = object.admin_state
     end
-    if session:retrieve("bs_check_action") == "TRUE" then
-        session:store("bs_check_action", "")
-        bandsteer_enabled = proxy.get("uci.wireless.wifi-ap.@ap0.bandsteer_id")[1].value
-    else
-        bandsteer_enabled = object.band_steer_enabled
+    bandsteer_enabled = object.band_steer_enabled
+    if bandsteer_enabled and legacyBandSteerWasOn ~= nil then
+        local previous = ngx.req.get_post_args().band_steer_previous
+        if not isBandSteerToggled(untaint(bandsteer_enabled), previous, legacyBandSteerWasOn) then
+            -- switch untouched: keep the current state, and do not rewrite it when off
+            if not legacyBandSteerWasOn then return true end
+            bandsteer_enabled = "1"
+        end
     end
 
     if "bs0" == bandsteer_enabled or bandsteer_enabled == "1" then
@@ -709,7 +844,7 @@ local function getValidateBandSteerPeerFields(value, object, key)
                 end
             end
         end
-    elseif object.band_steer_enabled then --to disable bandsteer
+    elseif bandsteer_enabled then --to disable bandsteer
         return disableBandSteer(object)
     end
 
@@ -736,8 +871,13 @@ local param = {
 	supported_countries = pathradio .. "supported_countries"
 }
 content_helper.getExactContent(param)
+
+-- Bypassing the regulatory power rule or adjusting tx power puts the DGA4331 in a boot loop
+local friendlyName = proxy.get("uci.env.var.prod_friendly_name")
+local regBypassSupported = not (friendlyName and friendlyName[1] and match(friendlyName[1].value or "", "4331"))
+
 local maxTxPowerTarget = formatTxPowerTarget(param.max_target_power_adjusted)
-local canAdjustTxPower = isguest ~= "1" and not stbLimit
+local canAdjustTxPower = regBypassSupported and isguest ~= "1" and not stbLimit
     and isIntRemman ~= "1" and isExtRemman ~= "1"
     and validateTxPowerAdjust(param.tx_power_adjust)
 local allowed_channels = { {"auto", T"Auto"} }
@@ -836,7 +976,7 @@ local function getParamsAndValidation()
       mapParams.sgi = pathradio .. "sgi"
       mapParams.cdd = pathradio .. "cdd"
       mapParams.stbc = pathradio .. "stbc"
-	  mapParams.tx_power_overrule_reg = pathradio .. "tx_power_overrule_reg"
+	  if regBypassSupported then mapParams.tx_power_overrule_reg = pathradio .. "tx_power_overrule_reg" end
     end
   end
 
@@ -947,18 +1087,6 @@ if native_channelwidth and content["requested_channel_width"] then
     end
 end
 
-if ngx.req.get_method() == "POST" and ngx.req.get_post_args().action == "bs_check" then
-    local postargs = ngx.req.get_post_args()
-	if not multiap_credential and (content["ssid"] ~= postargs.ssidName or content["security"] ~= postargs.security or content["wpa_psk"] ~= postargs.wpa_psk) then
-	session:store("bs_check_action", "TRUE")
-    proxy.set("uci.wireless.wifi-ap.@ap0.bandsteer_id", "off")
-	proxy.set("uci.wireless.wifi-ap.@ap1.bandsteer_id", "off")
-	proxy.apply()
-	end
-	ngx.print('{ "success":"true" }')
-	ngx.exit(ngx.HTTP_OK)
-end
-
 -- Process POST query
 if ngx.req.get_method() == "POST" then
   local tmpbandsteerhelpmsg = {}
@@ -973,6 +1101,30 @@ if ngx.req.get_method() == "POST" then
     bandsteerhelpmsg = nil
   else
     bandsteerhelpmsg[1] = tmpbandsteerhelpmsg
+  end
+
+  local postedBandSteer = ngx.req.get_post_args()
+  if multiapSharedBefore ~= nil then
+    local requested = postedBandSteer.band_steer_enabled
+    local toggled = content["action"] == "SAVE" and curiface == "wl0"
+        and isBandSteerToggled(requested, postedBandSteer.band_steer_previous, multiapSharedBefore)
+    local wantShared = multiapSharedBefore
+    if toggled then wantShared = requested == "1" end
+    local shared = isMultiapShared()
+    if shared ~= nil and shared ~= wantShared and (toggled or not wantShared) then
+        -- when only restoring "off", keep the 5 GHz name and password
+        local ok, err = setMultiapBandSplit(not wantShared, content["ssid"], not toggled)
+        if not ok then
+            bandsteerhelpmsg = bandsteerhelpmsg or {}
+            bandsteerhelpmsg[#bandsteerhelpmsg + 1] = { content = err, level = "error" }
+        end
+    end
+    if not wantShared then disableLegacyBandSteer({ "ap0", "ap1" }) end
+  elseif legacyBandSteerWasOn == false then
+    local turnedOn = content["action"] == "SAVE" and postedBandSteer.band_steer_enabled == "1"
+        and isBandSteerToggled("1", postedBandSteer.band_steer_previous, false)
+    -- saving other settings (WPS, radio, ...) must not switch it back on
+    if not turnedOn then disableLegacyBandSteer({ curap, bspeerap }) end
   end
 
   if content["action"] == "SAVE" and not multiap_credential then
@@ -1099,6 +1251,14 @@ if "" ~= bandsteerpathap then
        }
     end
     content_helper.getExactContent(content_rssi)
+end
+
+if multiap_credential and (curiface == "wl0" or curiface == "wl1") then
+    local shared = isMultiapShared()
+    if shared ~= nil then
+        band_steer_supported = 1
+        band_steer_enabled = shared and "1" or "0"
+    end
 end
 
 ngx.print(ui_helper.createHeader(T"Wireless", true, false))   ngx.print('\
@@ -1331,7 +1491,9 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
             end
             html[#html + 1] = '</div>'
 			if isExtRemman ~= "1" and isIntRemman ~= "1" then
-				html[#html + 1] = ui_helper.createSwitch(T"Bypass Reg Domain Power Rule", "tx_power_overrule_reg", content["tx_power_overrule_reg"], advanced)
+				if regBypassSupported then
+					html[#html + 1] = ui_helper.createSwitch(T"Bypass Reg Domain Power Rule", "tx_power_overrule_reg", content["tx_power_overrule_reg"], advanced)
+				end
                 if canAdjustTxPower then
                     html[#html + 1] = ui_helper.createSliderSelect(T"Output Power", "tx_power_adjust", wifipower, content["tx_power_adjust"], advanced)
                 end
@@ -1552,15 +1714,22 @@ end
         if isBaseIface(curiface) then
             html[#html + 1] = ui_helper.createAlertBlock(T"Detecting a Wi-Fi client's capabilities and monitoring its interfaces, Band Steering actively guides the client to the more suitable Wi-Fi band.", bssecclass)
             html[#html + 1] = ui_helper.createSwitch(T"Band Steering Enabled", "band_steer_enabled", tostring(band_steer_enabled), bssecclass)
+            html[#html + 1] = format('<input type="hidden" name="band_steer_previous" value="%s">', band_steer_enabled == "1" and "1" or "0")
             html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5 GHz settings", bssecclass)
-            html[#html + 1] = ui_helper.createSliderSelect(T"2.4 GHz Band Steering Threshold", "rssi_threshold", bandsteer_rssi_threshold, content_rssi["rssi_threshold"], bssecclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"If a wireless device reports this gateway's 2.4 GHz signal strength is above this threshold, the gateway will ask the device to test the 5 GHz band . Please see 5 GHz section for additional parameter.", bssecclass)
+            if multiap_credential then
+                html[#html + 1] = ui_helper.createAlertBlock(T"EasyMesh is active. Turn Band Steering off and save to give the 5 GHz network its own name and password, then edit it in the 5 GHz tab.", bssecclass)
+            else
+                html[#html + 1] = ui_helper.createSliderSelect(T"2.4 GHz Band Steering Threshold", "rssi_threshold", bandsteer_rssi_threshold, content_rssi["rssi_threshold"], bssecclass)
+                html[#html + 1] = ui_helper.createAlertBlock(T"If a wireless device reports this gateway's 2.4 GHz signal strength is above this threshold, the gateway will ask the device to test the 5 GHz band . Please see 5 GHz section for additional parameter.", bssecclass)
+            end
         else
             html[#html + 1] = ui_helper.createAlertBlock(T"Detecting a Wi-Fi client's capabilities and monitoring its interfaces, Band Steering actively guides the client to the more suitable Wi-Fi band.", ssidclass)
             html[#html + 1] = ui_helper.createLabel(T"Band Steering Enabled", tostring(band_steer_enabled) == "1" and "On" or "Off", ssidclass)
             html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5 GHz settings", bssecclass)
-            html[#html + 1] = ui_helper.createSliderSelect(T"5 GHz Band Steering Threshold", "rssi_5g_threshold", bandsteer_rssi_threshold, content_rssi["rssi_5g_threshold"], ssidclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"Please see 2.4 GHz section for initial parameter. If a wireless device tests the 5 GHz band and reports the 5 GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5 GHz band.", bssecclass)
+            if not multiap_credential then
+                html[#html + 1] = ui_helper.createSliderSelect(T"5 GHz Band Steering Threshold", "rssi_5g_threshold", bandsteer_rssi_threshold, content_rssi["rssi_5g_threshold"], ssidclass)
+                html[#html + 1] = ui_helper.createAlertBlock(T"Please see 2.4 GHz section for initial parameter. If a wireless device tests the 5 GHz band and reports the 5 GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5 GHz band.", bssecclass)
+            end
         end
     end
 end
@@ -1694,12 +1863,24 @@ else
 <script language ="javascript">\
 \
 function get_random_color() {\
-  var letters = \'0123456789ABCDEF\'.split(\'\');\
-  var color = \'#\';\
-  for (var i = 0; i < 6; i++ ) {\
-    color += letters[Math.round(Math.random() * 15)];\
+  // Random hue, always saturated and not too light: readable on white and never confused with the black axes\
+  var used = window.vistiHues || [];\
+  var hue = 0;\
+  for (var t = 0; t < 20; t++) {\
+    hue = Math.floor(Math.random() * 360);\
+    var ok = true;\
+    for (var j = 0; j < used.length; j++) {\
+      var d = Math.abs(hue - used[j]);\
+      if (d > 180) { d = 360 - d; }\
+      if (d < 25) { ok = false; break; }\
+    }\
+    if (ok) { break; }\
   }\
-   return color;\
+  used.push(hue);\
+  window.vistiHues = used;\
+  var sat = 70 + Math.floor(Math.random() * 30);\
+  var light = 35 + Math.floor(Math.random() * 10);\
+  return "hsl(" + hue + "," + sat + "%," + light + "%)";\
 }\
   function get_y_from_sig(max, min, range, sig) {\
     return ((sig-max)/((min-max)/range))+30;\
@@ -1716,9 +1897,15 @@ function get_random_color() {\
     var bittarget80 = 16;\
     var ctx;\
   function initializeAnalyzer() {\
+    window.vistiAnalyzer = {};\
+    window.vistiHues = [];\
     var c=document.getElementById("wrapper");\
     ctx=c.getContext("2d");\
-    ctx.lineStyle="#FF0000";\
+    ctx.clearRect(0,0,c.width,c.height);\
+    ctx.strokeStyle="#000000";\
+    ctx.fillStyle="#000000";\
+    ctx.lineWidth=1;\
+    ctx.beginPath();\
 \
     //Y Axis\
     ctx.moveTo(30,30);\
@@ -1808,13 +1995,14 @@ function get_random_color() {\
          ctx.fillText(chnl.toString(),60+(chn_diff*i)-4,370);\
     }\
 \
-    for (i = 10; i <= 27; i++) {\
-         ctx.moveTo(60+(chn_diff*i),350);\
-         ctx.lineTo(60+(chn_diff*i),355);\
+    var hiChannels = [100,104,108,112,116,120,124,128,132,136,140,144,149,153,157,161,165];\
+    for (var k = 0; k < hiChannels.length; k++) {\
+         var hx = 360+((hiChannels[k]-100)*7.5);\
+         ctx.moveTo(hx,350);\
+         ctx.lineTo(hx,355);\
          ctx.stroke();\
          ctx.font="9px Arial";\
-         chnl = 60+(i*4);\
-         ctx.fillText(chnl.toString(),60+(chn_diff*i)-6,370);\
+         ctx.fillText(hiChannels[k].toString(),hx-6,370);\
     }\
 \
     ');  end  ngx.print('\
@@ -1824,6 +2012,7 @@ function get_random_color() {\
       $("<br/>"),\
       $("<div>").addClass("col_ssid").text("');  ngx.print( T'Network Name (SSID)'); ngx.print('"),\
       $("<div>").addClass("col_channel").text("');  ngx.print( T'Channel' ); ngx.print('"),\
+        $("<div>").addClass("col_str").text("');  ngx.print( T'20MHz'); ngx.print('"),\
       $("<div>").addClass("col_str").text("');  ngx.print( T'40MHz'); ngx.print('"),\
       ');  if radio ~= "radio_2G" then   ngx.print('\
         $("<div>").addClass("col_str").text("');  ngx.print( T'80MHz'); ngx.print('"),\
@@ -1832,96 +2021,108 @@ function get_random_color() {\
       $("<br/>")\
     );\
   }\
-  function generateGraph(ssid,channel,rssi,cap){\
-    color =  get_random_color();\
-    var Mhz = 1;\
-    var Str = "";\
-    var cap = parseInt(cap,16).toString(2);\
+  var blocks80 = [[36,48,42],[52,64,58],[100,112,106],[116,128,122],[132,144,138],[149,161,155]];\
+  var blocks160 = [[36,64,50],[100,128,114]];\
+  var centers40 = [38,46,54,62,102,110,118,126,134,142,151,159];\
+  var is2GAnalyzer = ');  ngx.print( radio == "radio_2G" and "true" or "false" ); ngx.print(';\
+  var hiddenLabel = "');  ngx.print( T'Hidden network' ); ngx.print('";\
 \
-    /*if(cap.indexOf("40MHz")!=-1)\
-    {\
-      Mhz = 2;\
-      Str = "*"\
+  // channel = canale primario, chanDescr = es. "36", "36l", "6u", "36/80", "100/160"\
+  function getChannelInfo(channel, chanDescr, cap) {\
+    var primary = parseInt(channel, 10);\
+    var descr = String(chanDescr || "");\
+    var width = 20;\
+    var slash = descr.lastIndexOf("/");\
+    var lastChar = descr.charAt(descr.length - 1);\
+    if (slash >= 0) {\
+      width = parseInt(descr.substring(slash + 1), 10) || 20;\
+    } else if (lastChar == "l" || lastChar == "u") {\
+      width = 40;\
+    } else if (is2GAnalyzer) {\
+      var bits = parseInt(cap, 16).toString(2);\
+      while (bits.length <= 16) { bits = "0" + bits; }\
+      if (bits.charAt(bits.length - bittarget40) == "1") { width = 40; }\
     }\
-    */\
-    while (cap.length <= 16)\
-      {\
-       cap = "0"+cap;\
+    var center = primary;\
+    if (width == 40) {\
+      if (is2GAnalyzer) {\
+        center = (lastChar == "u") ? primary - 2 : primary + 2;\
+      } else {\
+        for (var i40 = 0; i40 < centers40.length; i40++) {\
+          if (Math.abs(primary - centers40[i40]) == 2) { center = centers40[i40]; }\
+        }\
       }\
-\
-   if (cap.charAt(cap.length-bittarget40) == "1") {\
-       Mhz = 2;\
-       Str = \'*\';\
+    } else if (width == 80 || width == 160) {\
+      var blocks = (width == 80) ? blocks80 : blocks160;\
+      for (var b = 0; b < blocks.length; b++) {\
+        if (primary >= blocks[b][0] && primary <= blocks[b][1]) { center = blocks[b][2]; }\
+      }\
     }\
-    ');  if radio == "radio_2G" then   ngx.print('\
-    //2.4GHz\
-    var xcoord = 80+(channel*40);\
-    var sig = rssi;\
-    if (sig > maximum){sig = maximum }else if (sig < minimum){sig = minimum}\
+    return { primary: primary, width: width, center: center };\
+  }\
+\
+  function get_x_from_channel(ch) {\
+    if (is2GAnalyzer) { return 80+(ch*40); }\
+    if (ch <= 64) { return 60+((ch-36)*7.5); }\
+    return 360+((ch-100)*7.5);\
+  }\
+\
+  if (typeof window.vistiAnalyzer === "undefined") { window.vistiAnalyzer = {}; }\
+  \
+  function generateGraph(ssid,channel,rssi,cap,chanDescr){\
+    var info = getChannelInfo(channel, chanDescr, cap);\
+    var rowColor = get_random_color();\
+    var sig = parseFloat(rssi);\
+    if (isNaN(sig)) { sig = minimum; }\
+    \
+    var chiaveRete = info.center + "_" + info.width + "_" + rssi;\
+    if (window.vistiAnalyzer[chiaveRete]) {\
+        sig = sig - window.vistiAnalyzer[chiaveRete];\
+        window.vistiAnalyzer[chiaveRete] += 1.5;\
+    } else {\
+        window.vistiAnalyzer[chiaveRete] = 1.5;\
+    }\
+    \
+    if (sig > maximum) { sig = maximum; } else if (sig < minimum) { sig = minimum; }\
+    var xcoord = get_x_from_channel(info.center);\
+    var half = (info.width / 20) * (is2GAnalyzer ? 80 : 15);\
+    ctx.save();\
     ctx.beginPath();\
-\
-    color =  get_random_color();\
-    ctx.strokeStyle = color;\
-\
-      ctx.moveTo(xcoord-(80*Mhz), 350);\
-      ctx.quadraticCurveTo(xcoord, get_curve_y_from_sig(maximum, minimum, range, sig), xcoord+(80*(Mhz)), 350);\
-\
+    ctx.strokeStyle = rowColor;\
+    ctx.moveTo(xcoord - half, 350);\
+    ctx.quadraticCurveTo(xcoord, get_curve_y_from_sig(maximum, minimum, range, sig), xcoord + half, 350);\
     ctx.stroke();\
-     ');  else   ngx.print('\
-     //5GH\
-    var chlist40 = [38,46,54,62,102,110,118,126,134,142]\
-    var chlist80 = [42,58,106,122,138]\
-    var str40 = ""\
-    var str80 = ""\
-    for (i = 0; i <= chlist40.length; i++) {\
-        if (chlist40[i] == channel){\
-          str40 = "*";\
-          Mhz = 2;\
-        }\
-    }\
-    for (i = 0; i <= chlist80.length; i++) {\
-        if (chlist80[i] == channel){\
-          str80 = "*";\
-          Mhz = 4;\
-        }\
-    }\
-    var xcoord = 0\
-    if  (channel <= 64) {\
-       xcoord = 60+((channel-36)*7.5);\
-    }else{\
-       xcoord = 360+((channel-100)*7.5);\
-    }\
+    ctx.restore();\
 \
-    var sig = rssi;\
+    var str20 = (info.width == 20) ? "*" : "";\
+    var str40 = (info.width == 40) ? "*" : "";\
+    var str80 = "";\
+    if (info.width == 80) { str80 = "*"; } else if (info.width == 160) { str80 = "160"; }\
+    var name = (String(ssid || "").split(" ").join("") == "") ? "(" + hiddenLabel + ")" : ssid;\
 \
-    if (sig > maximum){sig = maximum }else if (sig < minimum){sig = minimum}\
-        ctx.beginPath();\
-        color =  get_random_color();\
-        ctx.strokeStyle = color;\
-        ctx.moveTo(xcoord-(15*Mhz), 350);\
-        ctx.quadraticCurveTo(xcoord, get_curve_y_from_sig(maximum, minimum, range, sig) , xcoord+(15*Mhz), 350);\
-        ctx.stroke();\
-     ');  end   ngx.print('\
-\
-     // A new row for analyzer table\
-     var row = $("<div>").css("color", color);\
-\
-     // Append the row\
-     $("#key").append(row);\
-\
-     // Add columns to the new row\
-    $(row).append(\
-      $("<div>").addClass("col_ssid").text(ssid),\
-      $("<div>").addClass("col_channel").text(channel),\
-      ');  if radio == "radio_2G" then   ngx.print('\
-        $("<div>").addClass("col_str").text(Str),\
-      ');  else  ngx.print('\
+    // A new row for analyzer table\
+    var row = $("<div>").css("color", rowColor);\
+    $("#key").append(row);\
+    if (is2GAnalyzer) {\
+      $(row).append(\
+        $("<div>").addClass("col_ssid").text(name),\
+        $("<div>").addClass("col_channel").text(channel),\
+        $("<div>").addClass("col_str").text(str20),\
+        $("<div>").addClass("col_str").text(str40),\
+        $("<div>").addClass("col_rssi").text(rssi),\
+        $("<br/>")\
+      );\
+    } else {\
+      $(row).append(\
+        $("<div>").addClass("col_ssid").text(name),\
+        $("<div>").addClass("col_channel").text(channel),\
+        $("<div>").addClass("col_str").text(str20),\
         $("<div>").addClass("col_str").text(str40),\
         $("<div>").addClass("col_str").text(str80),\
-      ');  end  ngx.print('\
-      $("<div>").addClass("col_rssi").text(rssi),\
-      $("<br/>")\
-    );\
+        $("<div>").addClass("col_rssi").text(rssi),\
+        $("<br/>")\
+      );\
+    }\
   }\
 \
   function show_rescanconfirming(freq,show){\
@@ -1973,7 +2174,7 @@ function get_random_color() {\
           initializeAnalyzer();\
           if ( acsData.length > 0 ) {\
             $.each(acsData, function(i, data){\
-              generateGraph(data.ssid,data.channel,data.rssi,data.cap);\
+              generateGraph(data.ssid,data.channel,data.rssi,data.cap,data.chan_descr);\
             });\
           }\
         });\
@@ -1984,7 +2185,7 @@ function get_random_color() {\
          $("#analyzerGraph").removeClass("hide");\
          $("#analyzerloader1").addClass("hide");\
          $.each(acsData, function(i, data) {\
-           generateGraph(data.ssid,data.channel,data.rssi,data.cap);\
+           generateGraph(data.ssid,data.channel,data.rssi,data.cap,data.chan_descr);\
          });\
        });\
     });\
@@ -2003,9 +2204,6 @@ end
   ngx.print('\
 </form>\
 ');
-  local lp = require("web.lp")
-  lp.setpath("/www/snippets/")
-  lp.include("easymesh-history.lp")
   ngx.print('\
 </div>\
 \
@@ -2091,27 +2289,6 @@ $(document).ready(function() {\
         $(\'option[value="wpa2"]\').hide();\
         $(\'option[value="wpa"]\').hide();\
     }\
-});\
-\
-$("#save-config").click(function(){\
-	var params = [];\
-	params.push({\
-	name : "ssidName",\
-	value : $("#ssid").val()\
-	},{\
-	name : "wpa_psk",\
-	value : $("#wpa_psk").val()\
-	},{\
-	name : "security",\
-	value : $("#security").val()\
-	},{\
-	name : "CSRFtoken",\
-	value :$("meta[name=CSRFtoken]").attr("content")\
-	},{\
-	name : "action",\
-	value: "bs_check"\
-	});\
-	$.post("modals/wireless-modal.lp",params);\
 });\
 \
 $(\'input[id="band_steer_enabled"]\').on("click", function(){\

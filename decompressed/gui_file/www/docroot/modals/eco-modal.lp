@@ -12,6 +12,30 @@ local content_helper = require("web.content_helper")
 local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
 local vB = post_helper.validateBoolean
 
+local power_color_select = {
+	{"green", T"Green"},
+	{"blue", T"Blue"},
+	{"orange", T"Orange"},
+	{"red", T"Red"},
+	{"cyan", T"Cyan"},
+	{"magenta", T"Magenta"},
+	{"white", T"White"}
+}
+
+local model = prod_friendly_name[1].value
+local isDGA413x = model:match("4130") or model:match("4132")
+local isDGA4331 = model:match("4331")
+
+-- The DGA4331 power LED only has red and green sub-LEDs: offer the colors they can show.
+local power_colors_4331 = {
+	{"green", T"Green"},
+	{"red", T"Red"},
+	{"orange", T"Orange"}	
+}
+
+local power_colors_available = isDGA4331 and power_colors_4331 or power_color_select
+local show_power_color = (isDGA413x or isDGA4331) and true or false
+
 local mapValid = {
     eee = vB,
 	autogreeen = vB,
@@ -46,6 +70,12 @@ else
 
 	mapParams.eco_led = "uci.ledfw.status_led.enable"
 	mapParams.ledfw_wifinsc = "uci.ledfw.wifi.nsc_on"
+
+	-- colore LED Power (DGA4130/4132): opzione dichiarata in uci/ledfw.map
+	if show_power_color then
+		mapValid.power_led_color = post_helper.getValidateInEnumSelect(power_colors_available)
+		mapParams.power_led_color = "uci.ledfw.status_led.power_color"
+	end
 end
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -102,10 +132,24 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		if prod_friendly_name[1].value:match("DGA4131") then
 			html[#html + 1] = ui_helper.createSwitch(T"Ambient LED", "ledfw_ambient", content["ledfw_ambient"])
 		else
-			html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status.", info_box)
+			html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all LEDs if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status.", info_box)
 			html[#html + 1] = ui_helper.createSwitch(T"Eco Led", "eco_led", content["eco_led"])
 		end
+		
 		html[#html + 1] = ui_helper.createInputText(T"Timeout", "eco_led_timeout", content["eco_led_timeout"], basic , helpmsg["eco_led_timeout"] )
+		
+		if show_power_color then
+			local selected = false
+			for _, item in ipairs(power_colors_available) do
+				if item[1] == content["power_led_color"] then selected = true end
+			end
+			if not selected then
+				content["power_led_color"] = "green"
+			end
+			html[#html + 1] = ui_helper.createAlertBlock(T"Color of the Power LED when the gateway is up and running.", info_box)
+			html[#html + 1] = ui_helper.createInputSelect(T"Power LED color", "power_led_color", power_colors_available, content["power_led_color"])
+		
+		end
 		html[#html + 1] = ui_helper.createAlertBlock(T"Select the services to check on before turning the “Info” LED green and turning the services LEDs off (if ECO LED has been enabled).", info_box)
 		html[#html + 1] = ui_helper.createSwitch(T"VoIP", "ledfw_voip", content["ledfw_voip"])
 		html[#html + 1] = ui_helper.createSwitch(T"IPTV", "ledfw_iptv", content["ledfw_iptv"])

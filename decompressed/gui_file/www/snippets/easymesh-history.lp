@@ -1,8 +1,11 @@
 --pretranslated: do not change this file
 local content = {}
-require("web.content_helper").addListContent(content, {
-    events = "uci.fastweb.topology_events.@topology_events.back_up_events.",
-})
+-- a failing source must not make the whole section disappear
+pcall(function()
+    require("web.content_helper").addListContent(content, {
+        events = "uci.fastweb.topology_events.@topology_events.back_up_events.",
+    })
+end)
 local json = require("dkjson")
 local escape = require("web.web").html_escape
 local events = {}
@@ -17,20 +20,21 @@ for _, value in ipairs(content.events or {}) do
 end
 
 if #events == 0 then
-    local recorded = require("topology_history").read()
-    if not content.events and not recorded then return end
+    local loaded, recorded = pcall(function() return require("topology_history").read() end)
+    if not loaded or type(recorded) ~= "table" then recorded = {} end
     local labels = {
         joined = T"Connected",
         left = T"Disconnected",
         changed = T"Backhaul changed",
     }
     local function link(device)
-        if not device then return "—" end
-        if device.parent == "" then return device.link ~= "" and device.link or "—" end
-        if device.link == "" then return device.parent end
-        return device.link .. " (" .. device.parent .. ")"
+        if type(device) ~= "table" then return "—" end
+        local kind, parent = tostring(device.link or ""), tostring(device.parent or "")
+        if parent == "" then return kind ~= "" and kind or "—" end
+        if kind == "" then return parent end
+        return kind .. " (" .. parent .. ")"
     end
-    for index = #(recorded or {}), 1, -1 do
+    for index = #recorded, 1, -1 do
         local event = recorded[index]
         local label = type(event) == "table" and labels[event.kind]
         if label and type(event.time) == "number" and type(event.address) == "string" then

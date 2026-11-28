@@ -11,6 +11,7 @@ local function readInitOrders(name)
         local key, value = line:match("^%s*(%u+)%s*=%s*[\"']?(%d+)")
         if key == "START" and orders.start == "" then orders.start = value end
         if key == "STOP" and orders.stop == "" then orders.stop = value end
+        if orders.start ~= "" and orders.stop ~= "" then break end
     end
     file:close()
     return orders
@@ -155,6 +156,22 @@ SYSTEM_INIT_i_.entries = function(mapping)
 
     return res
 
+end
+
+-- The Init Management table reads every entry at once. Its "running" value needs
+-- one /etc/init.d/<name> running subprocess per script, which is very slow on the
+-- DGA4331. The table does not show it, so bulk reads skip the subprocess; a read
+-- of a single rpc.system.init.files.@<name>.running still runs the real check.
+SYSTEM_INIT_i_.getall = function(mapping, key)
+    local entry = initTable[key]
+    if not entry then return {} end
+    return {
+        name = key,
+        start_order = entry.start,
+        stop_order = entry.stop,
+        active = getState(key),
+        running = "",
+    }
 end
 
 SYSTEM_INIT_i_.get = {

@@ -17,6 +17,7 @@ local internal, usb = resources.storage()
 local first_usb = usb[1]
 local more_usb = #usb > 1 and (" +" .. (#usb - 1)) or ""
 
+
 local data = {
 	cpuusage = cpu_usage .. "%",
 	ram_used = math.floor(ram / 1024),

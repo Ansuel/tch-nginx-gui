@@ -359,9 +359,6 @@ msgstr "App Blacklist"
 msgid "Block"
 msgstr "Blocca"
 
-msgid "Blue"
-msgstr "Blu"
-
 msgid "Bootloader OID"
 msgstr "OID bootloader"
 
@@ -481,9 +478,6 @@ msgstr "Configurazione VP/VC non disponibile"
 
 msgid "Connected"
 msgstr "Connesso"
-
-msgid "Connected Devices"
-msgstr "Dispositivi connessi"
 
 msgid "Connecting"
 msgstr "Connessione"
@@ -1102,9 +1096,6 @@ msgstr "Informazioni generali"
 
 msgid "Graph"
 msgstr "Grafico"
-
-msgid "Green"
-msgstr "Verde"
 
 msgid "Guest"
 msgstr "Ospite"
@@ -2356,9 +2347,6 @@ msgstr "Mar."
 
 msgid "Turning on Eco features can cause major latency."
 msgstr "L'attivazione delle funzionalità di risparmio energetico ethernet può causare una latenza aggiuntiva."
-
-msgid "Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status."
-msgstr "Se tutti i servizi sono attivi e funzionanti spegne tutti led eccetto 'Info'. Premi il pulsante “Info” / “Wifi” per visualizzare lo stato attuale dei led."
 
 msgid "Tx Errors"
 msgstr "Errori Tx"
@@ -4635,6 +4623,27 @@ msgstr "Voipblock per Asterisk"
 msgid "This will install Voipblock for asterisk"
 msgstr "Installa Voipblock per Asterisk."
 
+msgid "Memory"
+msgstr "Memoria"
+
+msgid "Free"
+msgstr "Libera"
+
+msgid "Available"
+msgstr "Disponibile"
+
+msgid "Cache"
+msgstr "Cache"
+
+msgid "Memory details"
+msgstr "Dettaglio memoria"
+
+msgid "Item"
+msgstr "Voce"
+
+msgid "/proc/meminfo is not readable"
+msgstr "/proc/meminfo non leggibile"
+
 msgid "Data Usage"
 msgstr "Utilizzo dati"
 
@@ -4701,6 +4710,41 @@ msgstr "* L'utilizzo dati è solo indicativo. Per i consumi effettivi fai riferi
 msgid "No WAN interface is available for data usage monitoring."
 msgstr "Nessuna interfaccia WAN disponibile per il monitoraggio dell'utilizzo dati."
 
+msgid "Turn off all LEDs if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status."
+msgstr "Se tutti i servizi sono attivi e funzionanti spegne tutti led. Premi il pulsante “Info” / “Wifi” per visualizzare lo stato attuale dei led."
+
+msgid "Color of the Power LED when the gateway is up and running."
+msgstr "Colore del LED di alimentazione quando il gateway è attivo e funzionante."
+
+msgid "Power LED color"
+msgstr "Colore led info/power"
+
+msgid "Green"
+msgstr "Verde"
+
+msgid "Blue"
+msgstr "Blu"
+
+msgid "Orange"
+msgstr "Arancione"
+
+msgid "Red"
+msgstr "Rosso"
+
+msgid "Cyan"
+msgstr "Ciano"
+
+msgid "White"
+msgstr "Bianco"
+
+msgid "Hidden network"
+msgstr "Rete Nascosta"
+
+msgid "Unable to identify the existing bridge WAN interface; restore its physical uplink first"
+msgstr "Impossibile identificare l'interfaccia WAN del bridge esistente; ripristinare prima il suo uplink fisico"
+
+msgid "Bridge mode uses the selected WAN interface with WanSensing disabled. Enabling WanSensing exits bridge mode and restores the routed connection."
+msgstr "La modalità bridge utilizza l'interfaccia WAN selezionata con WanSensing disattivato. L'attivazione di WanSensing fa uscire dalla modalità bridge e ripristina la connessione instradata."
 msgid "Delegated IPv6 prefix"
 msgstr "Prefisso IPv6 delegato"
 
@@ -4770,6 +4814,21 @@ msgstr "Contatori WAN non disponibili"
 msgid "Used"
 msgstr "Usata"
 
+msgid "RIP device keys"
+msgstr "RIP chiavi dispositivo"
+
+msgid "Load the temporary"
+msgstr "Carica temporaneamente il modulo"
+
+msgid "module from github.com/pedro-n-rocha/secr to read the device keys from kernel RAM and decrypt the encrypted parameters below. The module is never written to flash, it is removed immediately after the dump and everything is lost on reboot. Use at your own risk."
+msgstr "da github.com/pedro-n-rocha/secr per leggere le chiavi del dispositivo dalla RAM del kernel e decriptare i parametri crittografati riportati di seguito. Il modulo non viene mai scritto nella memoria flash, viene rimosso immediatamente dopo il dump e tutto va perso al riavvio. Utilizzarlo a proprio rischio e pericolo."
+
+msgid "Extract keys"
+msgstr "Estrai chiavi"
+
+msgid "RIP Parameters"
+msgstr "RIP Parametri"
+
 msgid "Reboot Cause"
 msgstr "Causa del riavvio"
 
@@ -4790,3 +4849,18 @@ msgstr "Aggiornamento"
 
 msgid "System Self"
 msgstr "Riavvio automatico del sistema"
+
+msgid "The selected WAN interface is kept fixed while bridge mode is active. WanSensing is restored to its previous state when you switch to a routed mode."
+msgstr "L'interfaccia WAN selezionata rimane fissa finché la modalità bridge è attiva. La funzione WanSensing torna allo stato precedente quando si passa alla modalità con routing."
+
+msgid "Use one controller per Ethernet network. Controller mode keeps the current connection. For a booster, first select the Ethernet uplink in Broadband, then Bridge mode in Internet. Choose DHCP or Static IP on the bridge to retain management access. The bridge disables the local DHCP and RA servers. Wireless backhaul is not configured by this setup."
+msgstr "Utilizzare un controller per ogni rete Ethernet. La modalità Controller mantiene la connessione corrente. Per un ripetitore, selezionare innanzitutto l’uplink Ethernet nella sezione “Broadband”, quindi la modalità Bridge nella sezione “Internet”. Scegliere DHCP o IP statico sul bridge per mantenere l’accesso di gestione. Il bridge disabilita i server DHCP e RA locali. Il backhaul wireless non viene configurato con questa impostazione."
+
+msgid "Connected Devices: "
+msgstr "Dispositivi Connessi: "
+
+msgid "Topology"
+msgstr "Topologia"
+
+msgid "Setup and role"
+msgstr "Configurazione e ruolo"

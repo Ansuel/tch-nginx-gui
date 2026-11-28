@@ -330,8 +330,15 @@ end
 lp.setpath("/www/snippets/")
 ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
   ngx.print('\
-<form class="form-horizontal" method="post" action="/modals/easymesh-devices-info-modal-newEM.lp">\
-  <div id="modalBody" class="modal-body update">\
+<div id="modalBody" class="modal-body update">\
+  <style>\
+    .modal.fade.in:has(.mesh-devices-content){display:flex !important;flex-direction:column;overflow:visible !important}\
+    .modal.fade.in:has(.mesh-devices-content)>.modal-header{overflow:visible !important}\
+    .modal.fade.in:has(.mesh-devices-content)>.modal-header,.modal.fade.in:has(.mesh-devices-content)>.modal-footer{position:static !important;flex-shrink:0;width:100%;box-sizing:border-box}\
+    .modal.fade.in:has(.mesh-devices-content)>.modal-body.update{flex:1 1 auto !important;min-width:0 !important;min-height:0 !important;max-height:none !important;height:auto !important;overflow-x:hidden !important;overflow-y:auto !important}\
+    .modal.fade.in:has(.mesh-devices-content)>.modal-footer{border-top:1px solid rgba(127,127,127,.3)}\
+  </style>\
+  <form class="form-horizontal" method="post" action="/modals/easymesh-devices-info-modal-newEM.lp">\
     ');  lp.include("tabs-easyMesh.lp")
     ngx.print(ui_helper.createMessages(message_helper.popMessages()))  ngx.print('\
     ');  if (multiap_enabled and tod_rule) then
@@ -378,9 +385,9 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
                 end
               end
               if post_helper.getVariantValue(variantHelper, "showLabel") then
-                html[#html+1] = format('<legend>%s<br />'.. T'Connected Devices:'..'%s<br /></legend>', T"Gateway", internalstanumber)
+                html[#html+1] = format('<legend>%s<br />'.. T'Connected Devices: '..'%s<br /></legend>', T"Gateway", internalstanumber)
               else
-                html[#html+1] = format('<legend>%s<br />'.. T'Connected Devices:'..'%s<br /></legend>', content.hostname, internalstanumber)
+                html[#html+1] = format('<legend>%s<br />'.. T'Connected Devices: '..'%s<br /></legend>', content.hostname, internalstanumber)
               end
               html[#html+1] = ui_helper.createTable(devices_columns, newdevices_data, devices_options, nil, devices_helpmsg)
               ngx.print(html)
@@ -398,7 +405,7 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
             end
             if post_helper.getVariantValue(variantHelper, "ShowWiFiDevicesWithoutHostManager") and #MultiAP == 0 and #staList == 0 then
               local newdevices_data = {}
-              html[#html+1] = format('<legend>%s<br />'..T'Connected Devices:'..'%s<br /></legend></span>',content.hostname, internal_sta_count)
+              html[#html+1] = format('<legend>%s<br />'..T'Connected Devices: '..'%s<br /></legend></span>',content.hostname, internal_sta_count)
               html[#html+1] = ui_helper.createTable(devices_columns, newdevices_data, devices_options, nil, devices_helpmsg)
             elseif MultiAP then
 		if post_helper.getVariantValue(variantHelper, "ShowWiFiDevicesWithoutHostManager") and internal_sta_count > 0  then
@@ -432,7 +439,7 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
                       end
                     end
                   end
-                  html[#html+1] = format('<span id=%s><legend>%s<br />'..T'Connected Devices:'..'%s<br /></legend></span>', internal_agent_MAC, content.hostname, internal_sta_count)
+                  html[#html+1] = format('<span id=%s><legend>%s<br />'..T'Connected Devices: '..'%s<br /></legend></span>', internal_agent_MAC, content.hostname, internal_sta_count)
                   html[#html+1] = ui_helper.createTable(devices_columns, new_internal_devices_data, devices_options, nil, devices_helpmsg)
               end
               for k, v in ipairs(MultiAP) do
@@ -555,7 +562,7 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
                 end
                 html[#html+1] = format('<span id=%s-header><legend>%s</legend></span>', agent_MAC, agent_name)
                 html[#html+1] = ui_helper.createTable(agent_devices_columns, agent_details, agent_devices_options, nil, agent_devices_helpmsg)
-                html[#html+1] = format('<span id=%s-list><legend style="font-size:large;">'..T"Connected Devices:"..'%s</legend></span>', agent_MAC, sta_count)
+                html[#html+1] = format('<span id=%s-list><legend style="font-size:large;">'..T"Connected Devices: "..'%s</legend></span>', agent_MAC, sta_count)
                 html[#html+1] = ui_helper.createTable(devices_columns, newdevices_data, devices_options, nil, devices_helpmsg)
               end
             end
@@ -565,8 +572,8 @@ ngx.print(ui_helper.createHeader(T"EasyMesh Info", false, true))
         </div>\
       </div>\
     </div>\
-  </div>\
-</form>\
+  </form>\
+</div>\
 ');  ngx.print(ui_helper.createFooter()); ngx.print('\
 <script>\
     $(\'input[type="checkbox"]\').click(function(){\

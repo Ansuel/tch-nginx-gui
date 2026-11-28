@@ -102,3 +102,9 @@ elif [ "$(transformer-cli get rpc.mmpbx.device.@fxs_dev_1.profileUsable | cut -d
 fi
 
 ubus send mmpbx.voiceled.status "{\"fxs_dev_0\":\"$fxs_dev_0_status\",\"fxs_dev_1\":\"$fxs_dev_1_status\"}"
+
+#Restore LEDs configured outside ledfw (LuCI: System > LED Configuration): the forced
+#shutdown above turned them off. With Eco LED on they stay off, like every other LED.
+if [ "$(uci -q get ledfw.status_led.enable)" != "1" ] && [ -x /etc/init.d/led ]; then
+    /etc/init.d/led restart >/dev/null 2>&1
+fi

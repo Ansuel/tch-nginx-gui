@@ -309,6 +309,13 @@ local set = function(mapping, param, value, key)
         param = "tx_power_adjust"
         value = power
     end
+    if param == "tx_power_overrule_reg" and value ~= "0" and value ~= "" then
+        -- On the DGA4331 this option puts the gateway in a boot loop.
+        local model = uci_helper.get_from_uci({ config = "env", sectionname = "var", option = "prod_friendly_name" })
+        if type(model) == "string" and model:match("4331") then
+            return nil, "Bypassing the regulatory power rule is not supported on this gateway"
+        end
+    end
     if param == "standard" then
         local radioData = network.getRadioInfo(key)
         local standard = radioData and tostring(radioData.supported_standards or "") or ""

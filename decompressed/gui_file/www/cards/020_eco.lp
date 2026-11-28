@@ -12,6 +12,7 @@ local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
 local content = {
 	cpuspeed = "uci.power.cpu.cpuspeed",
 	eee = "uci.power.ethernet.eee",
+	power_led_color = "uci.ledfw.status_led.power_color",
 }
 if prod_friendly_name[1].value:match("DGA4131") then
 	content.eco_led = "uci.ledfw.ambient.active"
@@ -47,6 +48,30 @@ else
 	content.eee_text = T"Energy Efficent Ethernet disabled"
 end
 
+-- LED color text formatting
+local power_colors = {
+	green = T"Green",
+	blue = T"Blue",
+	orange = T"Orange",
+	red = T"Red",
+	cyan = T"Cyan",
+	magenta = T"Magenta",
+	white = T"White"
+}
+
+local raw_color = content.power_led_color
+local safe_color = "green"
+
+for key in pairs(power_colors) do
+	if raw_color == key then
+		safe_color = key
+		break
+	end
+end
+
+-- Recover Translate
+content.power_led_text = string.format("%s: %s", T"Power LED color", power_colors[safe_color])
+
 local modalPath = nil
 local switchName = nil
 local session = ngx.ctx.session
@@ -75,12 +100,14 @@ ngx.print('\
     ');  ngx.print( ui_helper.createCardHeader(T"Eco Settings", modalPath, switchName, nil) ); ngx.print('\
 \
     <div class="content card_bg" data-bg-text="&#xf06c;">\
-	  <div class="divtable">\
+	  <div class="divtable" style="position: relative; top: -10px;">\
 \
       ');
 local html = {}
-
+	
+	html[#html + 1] = '<style>.eco-bulb{margin-left:2px; padding-right:2px;}</style>'
 	html[#html + 1] = ui_helper.createSimpleLight(content.eco_led, content.eco_led_text, nil, "fas fa-leaf"  )
+	html[#html + 1] = ui_helper.createSimpleLight("1", content.power_led_text, nil, "fas fa-lightbulb eco-bulb"  )
 	html[#html + 1] = ui_helper.createSimpleLight(content.cpuspeed_status, content.cpuspeed, nil, "fas fa-microchip"  )
 	html[#html + 1] = ui_helper.createSimpleLight(content.eee, content.eee_text, nil, "fas fa-exchange-alt"  )
 
